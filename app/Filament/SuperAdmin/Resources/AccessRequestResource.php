@@ -103,6 +103,25 @@ class AccessRequestResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
 
+                Tables\Actions\Action::make('resend_verification')
+                    ->label('Resend Verification Email')
+                    ->icon('heroicon-o-envelope')
+                    ->color('gray')
+                    ->visible(fn (AccessRequest $record) => $record->status === AccessRequest::STATUS_PENDING_EMAIL_VERIFICATION)
+                    ->requiresConfirmation()
+                    ->modalDescription(fn (AccessRequest $record) => "Send a new verification link to {$record->requester_email}? The previous link will stop working.")
+                    ->action(function (AccessRequest $record) {
+                        static::handleServiceCall(function (AccessRequestApprovalService $service) use ($record) {
+                            $service->resendVerification($record->id, auth()->user());
+
+                            Notification::make()
+                                ->title('Verification email resent')
+                                ->body("A new verification link was sent to {$record->requester_email}.")
+                                ->success()
+                                ->send();
+                        });
+                    }),
+
                 Tables\Actions\Action::make('start_review')
                     ->label('Start Review')
                     ->icon('heroicon-o-magnifying-glass')

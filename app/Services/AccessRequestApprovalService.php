@@ -116,6 +116,39 @@ class AccessRequestApprovalService
         return $accessRequest;
     }
 
+    /**
+     * Re-send the verification email for a request still awaiting it,
+     * issuing a fresh token/expiry so a stale or already-clicked link
+     * can't be confused with the new one.
+     */
+    public function resendVerification(int $accessRequestId, User $admin): AccessRequest
+    {
+        $accessRequest = AccessRequest::findOrFail($accessRequestId);
+
+        $this->guardedTransition(
+            $accessRequestId,
+            AccessRequest::STATUS_PENDING_EMAIL_VERIFICATION,
+            [
+                'email_verification_token' => Str::random(64),
+                'email_verification_expires_at' => now()->addHours(48),
+            ],
+        );
+
+        $accessRequest->refresh();
+
+        $this->notifyApplicant($accessRequest, 'verify_email', [
+            'verification_url' => URL::temporarySignedRoute(
+                'access-request.verify',
+                $accessRequest->email_verification_expires_at,
+                ['token' => $accessRequest->email_verification_token],
+            ),
+        ]);
+
+        $this->logEvent($accessRequest, 'access_request_verification_resent', "Verification email resent by {$admin->name}");
+
+        return $accessRequest;
+    }
+
     // ─────────────────────────────────────────────────────────────
     // Review
     // ─────────────────────────────────────────────────────────────
