@@ -5,9 +5,14 @@
    slate grey brand color (#2f4f4f).
    =================================================================== */
 
-/* ---------- Data tables: dark slate header row ---------- */
-.fi-ta-content table thead {
-    background-color: #2f4f4f;
+/* ---------- Data tables: dark slate header row ----------
+   Filament renders the header row as <thead><tr class="bg-gray-50 ...">,
+   so the <tr> itself paints its own background on top of anything set on
+   the parent <thead> — that background must be overridden directly on the
+   row, not just the thead, or the dark slate is invisible behind it. */
+.fi-ta-content table thead,
+.fi-ta-content table thead tr {
+    background-color: #2f4f4f !important;
 }
 .fi-ta-content table thead .fi-ta-header-cell-label {
     color: #ffffff !important;

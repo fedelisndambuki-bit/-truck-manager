@@ -119,10 +119,11 @@ class EmployeeResource extends Resource
                     ),
 
                 Tables\Columns\TextColumn::make('status')->badge()
-                    ->color(fn (string $state): string => match ($state) {
+                    ->color(fn (string $state): string => match (Str::title($state)) {
                         'Active' => 'success',
                         'On Leave' => 'warning',
                         'Suspended' => 'danger',
+                        default => 'gray',
                     }),
             ])
             ->filters([

@@ -483,8 +483,9 @@ class AdminPanelProvider extends PanelProvider
         \Filament\Tables\Table::$defaultCurrency = $currency;
         \Filament\Infolists\Infolist::$defaultCurrency = $currency;
 
+        $adminCssPath = public_path('css/admin-modern-ui.css');
         FilamentAsset::register([
-            Css::make('admin-modern-ui', asset('css/admin-modern-ui.css')),
+            Css::make('admin-modern-ui', asset('css/admin-modern-ui.css') . '?v=' . (file_exists($adminCssPath) ? filemtime($adminCssPath) : time())),
         ]);
     }
 
