@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\LaboratoryQualityControl\Resources\TestMethodRes
 use App\Filament\Clusters\LaboratoryQualityControl\Resources\TestMethodResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListTestMethods extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListTestMethods extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-document-text',
+            'title' => 'Test Methods',
+            'subtitle' => 'Maintain standardized test methods used in laboratory analysis.',
+        ]);
     }
 }

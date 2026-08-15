@@ -142,7 +142,9 @@ class ContractResource extends Resource
                     ->query(fn ($query) => $query->whereBetween('completion_date', [now(), now()->addDays(30)])->whereIn('status', ['Active', 'Suspended'])),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
+                Tables\Actions\ViewAction::make()
+                    ->modalIcon('heroicon-o-eye')
+                    ->modalIconColor('gray'),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([

@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\EquipmentAssetManagement\Resources\WorkshopBayRe
 use App\Filament\Clusters\EquipmentAssetManagement\Resources\WorkshopBayResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListWorkshopBays extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListWorkshopBays extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-squares-plus',
+            'title' => 'Workshop Bays',
+            'subtitle' => 'Manage workshop bay capacity and availability for maintenance work.',
+        ]);
     }
 }

@@ -178,7 +178,9 @@ class PurchaseOrderResource extends Resource
                     ->action(fn (PurchaseOrder $record) => $record->update(['approval_status' => 'Approved']))
                     ->visible(fn (PurchaseOrder $record) => $record->approval_status === 'Pending'
                         && (Auth::user()?->hasRole('Super Admin') || Auth::user()?->can('materials.approve'))),
-                Tables\Actions\ViewAction::make(),
+                Tables\Actions\ViewAction::make()
+                    ->modalIcon('heroicon-o-eye')
+                    ->modalIconColor('gray'),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\Action::make('printPo')
                     ->label('Print PO')

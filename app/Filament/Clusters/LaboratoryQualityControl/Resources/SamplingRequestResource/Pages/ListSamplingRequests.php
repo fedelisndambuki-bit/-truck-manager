@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\LaboratoryQualityControl\Resources\SamplingReque
 use App\Filament\Clusters\LaboratoryQualityControl\Resources\SamplingRequestResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListSamplingRequests extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListSamplingRequests extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-clipboard-document-list',
+            'title' => 'Sampling Requests',
+            'subtitle' => 'Manage requests for laboratory sampling and inspection.',
+        ]);
     }
 }

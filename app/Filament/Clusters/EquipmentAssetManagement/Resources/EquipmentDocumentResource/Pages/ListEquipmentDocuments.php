@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\EquipmentAssetManagement\Resources\EquipmentDocu
 use App\Filament\Clusters\EquipmentAssetManagement\Resources\EquipmentDocumentResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListEquipmentDocuments extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListEquipmentDocuments extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-folder',
+            'title' => 'Equipment Documents',
+            'subtitle' => 'Store and manage documents related to equipment records.',
+        ]);
     }
 }

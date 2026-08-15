@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\LaboratoryQualityControl\Resources\CertificateRe
 use App\Filament\Clusters\LaboratoryQualityControl\Resources\CertificateResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListCertificates extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListCertificates extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-document-check',
+            'title' => 'Certificates',
+            'subtitle' => 'Manage certificates of analysis and compliance documentation.',
+        ]);
     }
 }

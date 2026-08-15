@@ -7,6 +7,7 @@ use App\Models\Driver;
 use App\Models\DriverCompanyChatMessage;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Livewire\WithFileUploads;
 
@@ -27,6 +28,15 @@ class ListDriverChatMessages extends ListRecords
     public string $message = '';
     public $voiceNote = null;
     public $attachment = null;
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-chat-bubble-left-right',
+            'title' => 'Driver Chat',
+            'subtitle' => 'Direct messaging and calls between your company and drivers.',
+        ]);
+    }
 
     public function mount(): void
     {

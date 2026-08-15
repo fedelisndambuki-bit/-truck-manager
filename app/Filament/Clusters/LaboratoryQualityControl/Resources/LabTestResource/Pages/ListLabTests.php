@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\LaboratoryQualityControl\Resources\LabTestResour
 use App\Filament\Clusters\LaboratoryQualityControl\Resources\LabTestResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListLabTests extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListLabTests extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-clipboard-document-check',
+            'title' => 'Lab Tests',
+            'subtitle' => 'Record and monitor laboratory test results and outcomes.',
+        ]);
     }
 }

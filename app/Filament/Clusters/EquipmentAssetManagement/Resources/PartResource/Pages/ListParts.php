@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\EquipmentAssetManagement\Resources\PartResource\
 use App\Filament\Clusters\EquipmentAssetManagement\Resources\PartResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListParts extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListParts extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-cog',
+            'title' => 'Parts',
+            'subtitle' => 'Manage spare parts inventory used for equipment maintenance.',
+        ]);
     }
 }

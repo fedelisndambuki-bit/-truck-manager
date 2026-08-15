@@ -188,7 +188,9 @@ class MaterialResource extends Resource
                     ->query(fn ($query) => $query->whereColumn('quantity_on_hand', '<=', 'reorder_level')),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
+                Tables\Actions\ViewAction::make()
+                    ->modalIcon('heroicon-o-eye')
+                    ->modalIconColor('gray'),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([

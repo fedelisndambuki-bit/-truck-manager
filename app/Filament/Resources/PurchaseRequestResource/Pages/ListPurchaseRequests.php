@@ -7,6 +7,7 @@ use App\Models\PurchaseRequest;
 use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 
 class ListPurchaseRequests extends ListRecords
@@ -28,5 +29,14 @@ class ListPurchaseRequests extends ListRecords
                 }),
             Actions\CreateAction::make()->label('New Request'),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-document-plus',
+            'title' => 'Purchase Requests',
+            'subtitle' => 'Review and approve material purchase requests.',
+        ]);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\EquipmentAssetManagement\Resources\EquipmentAllo
 use App\Filament\Clusters\EquipmentAssetManagement\Resources\EquipmentAllocationResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListEquipmentAllocations extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListEquipmentAllocations extends ListRecords
         return [
             Actions\CreateAction::make()->label('Assign Equipment'),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-user-group',
+            'title' => 'Equipment Allocations',
+            'subtitle' => 'Track which equipment is assigned to which drivers, sites, or projects.',
+        ]);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\ProjectFinance\Resources\ChangeOrderResource\Pag
 use App\Filament\Clusters\ProjectFinance\Resources\ChangeOrderResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListChangeOrders extends ListRecords
 {
@@ -13,6 +14,15 @@ class ListChangeOrders extends ListRecords
     protected function getHeaderActions(): array
     {
         return [Actions\CreateAction::make()];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-arrow-path-rounded-square',
+            'title' => 'Change Orders',
+            'subtitle' => 'Review and approve contract change orders affecting project scope and cost.',
+        ]);
     }
 
     protected function getHeaderWidgets(): array

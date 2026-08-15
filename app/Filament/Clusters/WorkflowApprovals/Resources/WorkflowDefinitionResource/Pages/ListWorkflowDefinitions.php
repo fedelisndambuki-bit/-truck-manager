@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\WorkflowApprovals\Resources\WorkflowDefinitionRe
 use App\Filament\Clusters\WorkflowApprovals\Resources\WorkflowDefinitionResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListWorkflowDefinitions extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListWorkflowDefinitions extends ListRecords
         return [
             Actions\CreateAction::make()->label('New Workflow'),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-squares-plus',
+            'title' => 'Workflow Designer',
+            'subtitle' => 'Design and version the approval workflows used across the system.',
+        ]);
     }
 }

@@ -337,7 +337,9 @@ class SiteResource extends Resource
                 Tables\Filters\SelectFilter::make('county')->options(fn () => Site::query()->whereNotNull('county')->distinct()->pluck('county', 'county')->toArray()),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
+                Tables\Actions\ViewAction::make()
+                    ->modalIcon('heroicon-o-eye')
+                    ->modalIconColor('gray'),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([

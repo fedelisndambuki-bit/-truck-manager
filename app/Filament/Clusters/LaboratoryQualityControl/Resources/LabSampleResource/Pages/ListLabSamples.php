@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\LaboratoryQualityControl\Resources\LabSampleReso
 use App\Filament\Clusters\LaboratoryQualityControl\Resources\LabSampleResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListLabSamples extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListLabSamples extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-beaker',
+            'title' => 'Lab Samples',
+            'subtitle' => 'Track laboratory samples through collection, testing, and disposal.',
+        ]);
     }
 }

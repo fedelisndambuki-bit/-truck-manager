@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\ProjectFinance\Resources\RetentionResource\Pages
 use App\Filament\Clusters\ProjectFinance\Resources\RetentionResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListRetentionEntries extends ListRecords
 {
@@ -13,6 +14,15 @@ class ListRetentionEntries extends ListRecords
     protected function getHeaderActions(): array
     {
         return [Actions\CreateAction::make()];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-lock-closed',
+            'title' => 'Retention Management',
+            'subtitle' => 'Track retained contract funds and manage their release schedule.',
+        ]);
     }
 
     protected function getHeaderWidgets(): array

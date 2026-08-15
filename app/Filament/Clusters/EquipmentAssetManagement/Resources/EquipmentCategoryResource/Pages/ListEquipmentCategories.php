@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\EquipmentAssetManagement\Resources\EquipmentCate
 use App\Filament\Clusters\EquipmentAssetManagement\Resources\EquipmentCategoryResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListEquipmentCategories extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListEquipmentCategories extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-tag',
+            'title' => 'Equipment Categories',
+            'subtitle' => 'Organize equipment into categories for easier classification and reporting.',
+        ]);
     }
 }

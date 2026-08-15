@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\EquipmentAssetManagement\Resources\TelematicsRea
 use App\Filament\Clusters\EquipmentAssetManagement\Resources\TelematicsReadingResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListTelematicsReadings extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListTelematicsReadings extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-signal',
+            'title' => 'Telematics Readings',
+            'subtitle' => 'Monitor telematics data collected from connected equipment.',
+        ]);
     }
 }

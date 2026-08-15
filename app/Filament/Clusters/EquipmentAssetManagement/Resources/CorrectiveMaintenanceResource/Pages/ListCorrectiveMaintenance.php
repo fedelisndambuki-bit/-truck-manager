@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\EquipmentAssetManagement\Resources\CorrectiveMai
 use App\Filament\Clusters\EquipmentAssetManagement\Resources\CorrectiveMaintenanceResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListCorrectiveMaintenance extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListCorrectiveMaintenance extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-wrench',
+            'title' => 'Corrective Maintenance',
+            'subtitle' => 'Manage unscheduled repairs performed to fix equipment faults.',
+        ]);
     }
 }

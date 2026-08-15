@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\EquipmentAssetManagement\Resources\WarrantyClaim
 use App\Filament\Clusters\EquipmentAssetManagement\Resources\WarrantyClaimResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListWarrantyClaims extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListWarrantyClaims extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-shield-check',
+            'title' => 'Warranty Claims',
+            'subtitle' => 'Track and manage warranty claims filed for equipment.',
+        ]);
     }
 }

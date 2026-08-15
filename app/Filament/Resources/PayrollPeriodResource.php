@@ -80,7 +80,9 @@ class PayrollPeriodResource extends Resource
                 Tables\Columns\TextColumn::make('payslips_count')->counts('payslips')->label('Payslips'),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
+                Tables\Actions\ViewAction::make()
+                    ->modalIcon('heroicon-o-eye')
+                    ->modalIconColor('gray'),
                 Tables\Actions\Action::make('process')
                     ->label('Process Payroll')
                     ->icon('heroicon-o-play')
