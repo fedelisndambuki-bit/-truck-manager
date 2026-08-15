@@ -1,0 +1,190 @@
+/* ===================================================================
+   Tanaki Hub — modern admin UI pass
+   Table headers, page header banner, KPI stat cards, filter sections,
+   and read-only ("View") modal headers, all following the app's dark
+   slate grey brand color (#2f4f4f).
+   =================================================================== */
+
+/* ---------- Data tables: dark slate header row ---------- */
+.fi-ta-content table thead {
+    background-color: #2f4f4f;
+}
+.fi-ta-content table thead .fi-ta-header-cell-label {
+    color: #ffffff !important;
+}
+.fi-ta-content table thead .fi-ta-header-cell-sort-icon {
+    color: rgba(255, 255, 255, 0.65) !important;
+}
+.fi-ta-content table thead .group:hover .fi-ta-header-cell-sort-icon {
+    color: #ffffff !important;
+}
+.fi-ta-row:hover {
+    background-color: rgba(47, 79, 79, 0.035);
+}
+
+/* ---------- Standard page header banner ---------- */
+.tm-page-header {
+    background: linear-gradient(135deg, #2f4f4f 0%, #24403f 100%);
+    border-radius: 14px;
+    padding: 22px 28px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 4px 14px rgba(15, 23, 23, 0.18);
+}
+.tm-page-header-icon {
+    background: rgba(255, 255, 255, 0.14);
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.tm-page-header-icon svg {
+    width: 22px;
+    height: 22px;
+    color: #ffffff;
+}
+.tm-page-header h1 {
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 2px;
+    line-height: 1.3;
+}
+.tm-page-header p {
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 13px;
+    margin: 0;
+}
+
+/* ---------- KPI stat cards (plain server-rendered, no Livewire widget) ---------- */
+.tm-stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+}
+.tm-stat-card {
+    background: #ffffff;
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    border-radius: 14px;
+    padding: 18px 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+.tm-stat-card:hover {
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+}
+.tm-stat-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: rgba(47, 79, 79, 0.1);
+    color: #2f4f4f;
+}
+.tm-stat-icon svg {
+    width: 20px;
+    height: 20px;
+}
+.tm-stat-icon.success { background: rgba(16, 185, 129, 0.12); color: #10b981; }
+.tm-stat-icon.warning { background: rgba(245, 158, 11, 0.12); color: #d97706; }
+.tm-stat-icon.danger  { background: rgba(239, 68, 68, 0.12);  color: #dc2626; }
+.tm-stat-icon.info    { background: rgba(59, 130, 246, 0.12); color: #2563eb; }
+.tm-stat-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+.tm-stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+}
+.tm-stat-sub {
+    font-size: 11.5px;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+
+/* ---------- Filter / report sections ---------- */
+.filter-section-wrapper .filter-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-bottom: 14px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+.filter-section-wrapper .filter-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #1e293b;
+}
+.filter-section-wrapper .export-buttons {
+    display: flex;
+    gap: 8px;
+}
+.filter-section-wrapper .btn-export {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 7px 12px;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+.filter-section-wrapper .btn-export:hover {
+    background: #e2e8f0;
+}
+
+/* ---------- Read-only "View" modal — company colors ----------
+   Scoped to modals whose icon uses Filament's neutral gray color
+   (ViewAction's default), so destructive/colored action modals
+   (delete, warnings, etc.) keep their own semantic color. */
+.fi-modal-header:has(.bg-gray-100) {
+    background: #2f4f4f;
+    border-radius: 0.75rem 0.75rem 0 0;
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+.fi-modal-header:has(.bg-gray-100) .fi-modal-heading {
+    color: #ffffff !important;
+}
+.fi-modal-header:has(.bg-gray-100) .fi-modal-icon {
+    color: #ffffff !important;
+}
+.fi-modal-header:has(.bg-gray-100) .bg-gray-100 {
+    background-color: rgba(255, 255, 255, 0.14) !important;
+}
+.fi-modal-header:has(.bg-gray-100) .fi-modal-close-btn {
+    color: rgba(255, 255, 255, 0.85) !important;
+}
+.fi-modal-header:has(.bg-gray-100) .fi-modal-close-btn:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+}

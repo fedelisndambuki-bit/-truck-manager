@@ -482,6 +482,10 @@ class AdminPanelProvider extends PanelProvider
         $currency = session('currency', $default);
         \Filament\Tables\Table::$defaultCurrency = $currency;
         \Filament\Infolists\Infolist::$defaultCurrency = $currency;
+
+        FilamentAsset::register([
+            Css::make('admin-modern-ui', asset('css/admin-modern-ui.css')),
+        ]);
     }
 
     private function getBrandSettings(): ?BrandSetting

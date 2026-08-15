@@ -2,8 +2,6 @@
 
 namespace App\Providers;
 
-use App\Filament\Widgets\SettlementFilterWidget;
-use App\Filament\Widgets\SettlementStatsWidget;
 use App\Filament\Widgets\DailyInsights;
 use App\Filament\Widgets\PredictiveMaintenanceRisks;
 use App\Models\Expense;
@@ -128,8 +126,6 @@ class AppServiceProvider extends ServiceProvider
         TyreRepair::observe(TyreRepairObserver::class);
         DriverEmergencyAlert::observe(DriverEmergencyAlertObserver::class);
 
-        Livewire::component('settlement-stats-widget', SettlementStatsWidget::class);
-        Livewire::component('settlement-filter-widget', SettlementFilterWidget::class);
         Livewire::component('currency-switcher', \App\Livewire\CurrencySwitcher::class);
         Livewire::component('notifications-dropdown', \App\Livewire\NotificationsDropdown::class);
         Livewire::component('profile-menu', \App\Livewire\ProfileMenu::class);
