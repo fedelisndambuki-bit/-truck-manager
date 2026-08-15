@@ -1,8 +1,18 @@
 <x-mail::layout>
 {{-- Header --}}
+@php
+    // Embedded as a base64 data URI rather than linked via asset() — a
+    // linked URL resolves from APP_URL, which for local/dev environments
+    // (or any environment external recipients can't reach) means the logo
+    // never loads for anyone reading the email outside this network.
+    // Embedding the bytes directly in the HTML works everywhere, always.
+    $tanakiHubLogoDataUri = 'data:image/png;base64,' . base64_encode(
+        file_get_contents(public_path('images/brand/tanaki-hub-logo-dark.png'))
+    );
+@endphp
 <x-slot:header>
 <x-mail::header :url="config('app.url')">
-<img src="{{ asset('images/brand/tanaki-hub-logo-dark.png') }}" class="brand-logo" alt="Tanaki Hub">
+<img src="{{ $tanakiHubLogoDataUri }}" class="brand-logo" alt="Tanaki Hub">
 </x-mail::header>
 </x-slot:header>
 
