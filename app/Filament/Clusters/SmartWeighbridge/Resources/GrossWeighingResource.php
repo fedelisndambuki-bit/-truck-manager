@@ -7,6 +7,7 @@ use App\Filament\Clusters\SmartWeighbridge\Resources\GrossWeighingResource\Pages
 use App\Models\DispatchOrder;
 use App\Traits\HasModuleAccess;
 use Filament\Forms;
+use Filament\Infolists\Infolist;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -63,10 +64,8 @@ class GrossWeighingResource extends Resource
                 Tables\Columns\TextColumn::make('status')->badge()->color(fn (string $state): string => VehicleCheckInResource::getStatusColor($state)),
             ])
             ->actions([
-                Tables\Actions\Action::make('view')
-                    ->label('View')
-                    ->icon('heroicon-o-eye')
-                    ->url(fn (DispatchOrder $record) => VehicleCheckInResource::getUrl('view', ['record' => $record])),
+                Tables\Actions\ViewAction::make()
+                    ->infolist(fn (Infolist $infolist) => VehicleCheckInResource::infolist($infolist)),
                 Tables\Actions\Action::make('recordGross')
                     ->label('Record Gross Weight')
                     ->icon('heroicon-o-scale')

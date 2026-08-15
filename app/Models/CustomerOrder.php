@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
 class CustomerOrder extends BaseModel
 {
@@ -66,32 +67,43 @@ class CustomerOrder extends BaseModel
      */
     public function reserveStock(?int $stockpileId = null): ?StockReservation
     {
-        $stockpile = $stockpileId
-            ? Stockpile::find($stockpileId)
-            : Stockpile::query()
-                ->where('material_id', $this->material_id)
-                ->where('quantity_available', '>=', $this->quantity)
-                ->orderByDesc('quantity_available')
-                ->first();
+        return DB::transaction(function () use ($stockpileId) {
+            // The explicit-ID path must apply the same "enough quantity_available"
+            // guard the auto-select path already applies, and lockForUpdate()
+            // prevents a concurrent reservation against the same stockpile from
+            // both passing the availability check before either commits.
+            $stockpile = $stockpileId
+                ? Stockpile::query()
+                    ->where('id', $stockpileId)
+                    ->where('quantity_available', '>=', $this->quantity)
+                    ->lockForUpdate()
+                    ->first()
+                : Stockpile::query()
+                    ->where('material_id', $this->material_id)
+                    ->where('quantity_available', '>=', $this->quantity)
+                    ->orderByDesc('quantity_available')
+                    ->lockForUpdate()
+                    ->first();
 
-        if (! $stockpile) {
-            return null;
-        }
+            if (! $stockpile) {
+                return null;
+            }
 
-        $reservation = StockReservation::create([
-            'company_id' => $this->company_id,
-            'stockpile_id' => $stockpile->id,
-            'customer_id' => $this->customer_id,
-            'order_number' => $this->order_number,
-            'quantity_reserved' => $this->quantity,
-            'reservation_date' => now(),
-            'status' => 'Reserved',
-            'reserved_by_id' => $this->planned_by_id,
-        ]);
+            $reservation = StockReservation::create([
+                'company_id' => $this->company_id,
+                'stockpile_id' => $stockpile->id,
+                'customer_id' => $this->customer_id,
+                'order_number' => $this->order_number,
+                'quantity_reserved' => $this->quantity,
+                'reservation_date' => now(),
+                'status' => 'Reserved',
+                'reserved_by_id' => $this->planned_by_id,
+            ]);
 
-        $this->update(['reservation_id' => $reservation->id, 'status' => 'Reserved']);
+            $this->update(['reservation_id' => $reservation->id, 'status' => 'Reserved']);
 
-        return $reservation;
+            return $reservation;
+        });
     }
 
     /**

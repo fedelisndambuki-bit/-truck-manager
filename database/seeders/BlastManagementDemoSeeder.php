@@ -72,6 +72,17 @@ class BlastManagementDemoSeeder extends Seeder
         $face = QuarryFace::withoutGlobalScope('company')->where('extraction_site_id', $northSite->id)->first();
         $drillRig = Equipment::withoutGlobalScope('company')->where('company_id', $companyId)->where('name', 'like', '%Drill Rig%')->first();
 
+        // Pit/QuarryFace are seeded by ProductionManagementDemoSeeder (not
+        // QuarryDemoSeeder), and the Quarry Manager user is provisioned
+        // elsewhere — none of these are guaranteed present just because
+        // $northSite exists, so skip gracefully instead of a fatal null
+        // dereference on ->id further down.
+        if (! $pit || ! $face || ! $drillRig || ! $quarryManager) {
+            $this->command?->warn('Skipping BlastManagementDemoSeeder: missing a required dependency (Pit/QuarryFace — run ProductionManagementDemoSeeder first — a "Drill Rig" Equipment record, or the quarry.manager@riftvalleyquarries.example user).');
+
+            return;
+        }
+
         $engine = app(WorkflowEngine::class);
 
         // 1. A Draft blast plan — proves the Draft state

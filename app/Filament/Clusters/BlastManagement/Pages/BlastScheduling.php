@@ -7,6 +7,7 @@ use App\Filament\Clusters\BlastManagement\Resources\BlastPlanResource;
 use App\Models\BlastPlan;
 use App\Models\Staff;
 use App\Traits\HasModuleAccess;
+use Filament\Infolists\Infolist;
 use Filament\Pages\Page;
 use Filament\Tables;
 use Filament\Tables\Concerns\InteractsWithTable;
@@ -86,10 +87,8 @@ class BlastScheduling extends Page implements HasTable
                 Tables\Filters\SelectFilter::make('status')->options(BlastPlanResource::getStatusOptions()),
             ])
             ->actions([
-                Tables\Actions\Action::make('view')
-                    ->label('View')
-                    ->icon('heroicon-o-eye')
-                    ->url(fn (BlastPlan $record) => BlastPlanResource::getUrl('view', ['record' => $record])),
+                Tables\Actions\ViewAction::make()
+                    ->infolist(fn (Infolist $infolist) => BlastPlanResource::infolist($infolist)),
             ])
             ->striped();
     }

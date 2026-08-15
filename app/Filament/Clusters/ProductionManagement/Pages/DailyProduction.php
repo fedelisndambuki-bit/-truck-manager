@@ -3,6 +3,7 @@
 namespace App\Filament\Clusters\ProductionManagement\Pages;
 
 use App\Filament\Clusters\ProductionManagement;
+use App\Models\DispatchOrder;
 use App\Models\ExtractionSite;
 use App\Models\ProductionOutput;
 use App\Models\ProductionSetting;
@@ -117,10 +118,15 @@ class DailyProduction extends Page
             ->with('material')
             ->get()
             ->map(function (Stockpile $stockpile) use ($companyId) {
+                // ProductionOutput can be sourced from either the legacy
+                // ProductionLog workflow or the newer ProductionRun (Crushing
+                // Plant Management) workflow — both must count or run-sourced
+                // output silently disappears from today's reconciliation.
                 $production = (float) ProductionOutput::query()
                     ->where('stockpile_id', $stockpile->id)
                     ->whereDate('created_at', today())
-                    ->whereHas('productionLog', fn ($q) => $q->where('status', 'Approved'))
+                    ->where(fn ($q) => $q->whereHas('productionLog', fn ($sub) => $sub->where('status', 'Approved'))
+                        ->orWhereHas('productionRun', fn ($sub) => $sub->whereIn('status', ['Approved', 'Completed'])))
                     ->sum('quantity_produced');
 
                 $transfersIn = (float) ProductionStockTransfer::query()
@@ -137,6 +143,13 @@ class DailyProduction extends Page
                     ->whereDate('updated_at', today())
                     ->sum('quantity');
 
+                // WeighbridgeTicket (IoT hardware feed) and DispatchOrder
+                // (Smart Weighbridge workflow) are two unreconciled live
+                // write paths for the same real dispatches — both must be
+                // counted or this reconciliation misses whichever route a
+                // given truck went through. DispatchOrder.net_weight is
+                // already tonnes-consistent with Stockpile.quantity_available
+                // elsewhere in the codebase, so no /1000 conversion here.
                 $dispatches = (float) WeighbridgeTicket::query()
                     ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
                     ->where('material_id', $stockpile->material_id)
@@ -145,6 +158,13 @@ class DailyProduction extends Page
                     ->where('status', 'Weighed')
                     ->whereDate('created_at', today())
                     ->sum('net_weight') / 1000;
+
+                $dispatches += (float) DispatchOrder::query()
+                    ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
+                    ->where('stockpile_id', $stockpile->id)
+                    ->where('status', 'Approved')
+                    ->whereDate('gross_weighed_at', today())
+                    ->sum('net_weight');
 
                 $closing = (float) $stockpile->quantity_available;
                 $opening = $closing - $production + $dispatches - $transfersIn + $transfersOut;

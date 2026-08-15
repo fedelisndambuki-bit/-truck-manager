@@ -23,7 +23,7 @@ class YieldAnalysisChart extends ChartWidget
                 ->where('status', 'Approved')
                 ->whereNotNull('yield_percent')
                 ->where('date', '>=', now()->subDays(30))
-                ->select(DB::raw("strftime('%Y-%m-%d', date) as day"), DB::raw('avg(yield_percent) as avg_yield'))
+                ->select(DB::raw(\App\Support\SqlDateFormat::daily('date', 'day')), DB::raw('avg(yield_percent) as avg_yield'))
                 ->groupBy('day')
                 ->orderBy('day')
                 ->pluck('avg_yield', 'day')

@@ -6,6 +6,7 @@ use App\Filament\Clusters\SmartWeighbridge;
 use App\Filament\Clusters\SmartWeighbridge\Resources\DispatchApprovalResource\Pages;
 use App\Models\DispatchOrder;
 use App\Traits\HasModuleAccess;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -69,10 +70,8 @@ class DispatchApprovalResource extends Resource
                     ->options(['Pending Approval' => 'Pending Approval', 'Approved' => 'Approved', 'Rejected' => 'Rejected']),
             ])
             ->actions([
-                Tables\Actions\Action::make('view')
-                    ->label('View')
-                    ->icon('heroicon-o-eye')
-                    ->url(fn (DispatchOrder $record) => VehicleCheckInResource::getUrl('view', ['record' => $record])),
+                Tables\Actions\ViewAction::make()
+                    ->infolist(fn (Infolist $infolist) => VehicleCheckInResource::infolist($infolist)),
                 Tables\Actions\Action::make('viewApproval')
                     ->label('View Approval')
                     ->icon('heroicon-o-clipboard-document-check')

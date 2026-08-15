@@ -6,6 +6,8 @@ use App\Models\Conveyor;
 use App\Models\Crusher;
 use App\Models\CrushingPlant;
 use App\Models\EnergyReading;
+use App\Models\Equipment;
+use App\Models\EquipmentCategory;
 use App\Models\ExtractionSite;
 use App\Models\Feeder;
 use App\Models\Material;
@@ -92,15 +94,30 @@ class CrushingPlantManagementDemoSeeder extends Seeder
         $southLine->update(['line_code' => 'LINE-0002', 'current_capacity_tph' => 140, 'supervisor_id' => $crusherOperator?->id]);
 
         // Process-flow equipment — one of each stage per line
+        // Each Crusher is also a physical asset — link it back to an
+        // Equipment record so Equipment::crusher() (and EAM reporting that
+        // groups equipment by category/site) doesn't see every crusher as
+        // an orphaned, uncategorized, siteless asset.
+        $crusherCategory = EquipmentCategory::create(['company_id' => $companyId, 'name' => 'Crushers', 'code' => 'CRUSHER']);
+
+        $northCrusherEquipment = Equipment::create([
+            'company_id' => $companyId, 'name' => 'Primary Jaw Crusher — North Pit', 'equipment_type' => 'Crusher',
+            'status' => 'Operational', 'equipment_category_id' => $crusherCategory->id, 'extraction_site_id' => $northSite->id,
+        ]);
+        $southCrusherEquipment = Equipment::create([
+            'company_id' => $companyId, 'name' => 'Secondary Cone Crusher — South Pit', 'equipment_type' => 'Crusher',
+            'status' => 'Idle', 'equipment_category_id' => $crusherCategory->id, 'extraction_site_id' => $southSite->id,
+        ]);
+
         $northCrusher = Crusher::create([
             'company_id' => $companyId, 'production_line_id' => $northLine->id, 'type' => 'Primary Jaw Crusher',
             'manufacturer' => 'Sandvik', 'model' => 'CJ412', 'capacity_tph' => 250, 'current_throughput' => 235,
-            'operating_hours' => 8600, 'wear_status' => 'Good', 'status' => 'Running',
+            'operating_hours' => 8600, 'wear_status' => 'Good', 'status' => 'Running', 'equipment_id' => $northCrusherEquipment->id,
         ]);
         Crusher::create([
             'company_id' => $companyId, 'production_line_id' => $southLine->id, 'type' => 'Secondary Cone Crusher',
             'manufacturer' => 'Metso', 'model' => 'NW106', 'capacity_tph' => 150, 'current_throughput' => 0,
-            'operating_hours' => 5400, 'wear_status' => 'Monitor', 'status' => 'Idle',
+            'operating_hours' => 5400, 'wear_status' => 'Monitor', 'status' => 'Idle', 'equipment_id' => $southCrusherEquipment->id,
         ]);
 
         Screen::create([

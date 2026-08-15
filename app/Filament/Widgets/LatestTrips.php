@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\TripStatus;
 use App\Models\Trip;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -23,12 +24,7 @@ class LatestTrips extends BaseWidget
                 Tables\Columns\TextColumn::make('route_name'),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'In Progress' => 'warning',
-                        'Completed' => 'success',
-                        'Scheduled' => 'gray',
-                        default => 'danger',
-                    }),
+                    ->color(fn (TripStatus $state): string => $state->getColor()),
             ]);
     }
 }

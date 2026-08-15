@@ -22,7 +22,7 @@ class MonthlyProjectProgressChart extends ChartWidget
         try {
             $rawData = Project::query()
                 ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
-                ->select(DB::raw("strftime('%Y-%m', created_at) as month"), DB::raw('avg(progress_percent) as avg_progress'))
+                ->select(DB::raw(\App\Support\SqlDateFormat::monthly('created_at', 'month')), DB::raw('avg(progress_percent) as avg_progress'))
                 ->where('created_at', '>=', now()->subMonths(6))
                 ->groupBy('month')
                 ->orderBy('month')

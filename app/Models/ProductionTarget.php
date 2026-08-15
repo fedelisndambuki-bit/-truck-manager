@@ -27,11 +27,24 @@ class ProductionTarget extends BaseModel
 
     public function actualQuantity(): float
     {
+        // ProductionOutput can be sourced from either the legacy ProductionLog
+        // workflow or the newer ProductionRun (Crushing Plant Management)
+        // workflow — production_log_id is nullable specifically to allow the
+        // latter, so both sources must be counted or run-sourced output is
+        // silently dropped from the target's achievement figures.
         $query = ProductionOutput::query()
-            ->whereHas('productionLog', function ($q) {
-                $q->where('extraction_site_id', $this->extraction_site_id)
-                    ->where('status', 'Approved')
-                    ->whereBetween('date', [$this->period_start, $this->period_end]);
+            ->where(function ($q) {
+                $q->whereHas('productionLog', function ($sub) {
+                    $sub->where('extraction_site_id', $this->extraction_site_id)
+                        ->where('status', 'Approved')
+                        ->whereBetween('date', [$this->period_start, $this->period_end]);
+                })->orWhereHas('productionRun', function ($sub) {
+                    $sub->where('status', 'Approved')
+                        ->whereBetween('start_time', [$this->period_start, $this->period_end])
+                        ->whereHas('crushingPlant', function ($cp) {
+                            $cp->where('extraction_site_id', $this->extraction_site_id);
+                        });
+                });
             });
 
         if ($this->material_id) {

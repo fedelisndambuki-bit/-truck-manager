@@ -8,6 +8,7 @@ use App\Models\CrushingPlant;
 use App\Models\CrushingPlantLog;
 use App\Models\Employee;
 use App\Models\Equipment;
+use App\Models\EquipmentCategory;
 use App\Models\ExtractionSite;
 use App\Models\FuelLog;
 use App\Models\FuelStock;
@@ -248,10 +249,18 @@ class QuarryDemoSeeder extends Seeder
         ]);
 
         // Equipment fleet + fuel + maintenance
-        $loader = Equipment::create(['company_id' => $companyId, 'name' => 'Wheel Loader CAT 950', 'equipment_type' => 'Loader', 'status' => 'In Use', 'purchase_cost' => 8500000, 'current_value' => 6200000]);
-        $excavator = Equipment::create(['company_id' => $companyId, 'name' => 'Excavator Komatsu PC300', 'equipment_type' => 'Excavator', 'status' => 'In Use', 'purchase_cost' => 12000000, 'current_value' => 9500000]);
-        $dumpTruck = Equipment::create(['company_id' => $companyId, 'name' => 'Dump Truck Volvo A40', 'equipment_type' => 'Dump Truck', 'status' => 'Under Maintenance', 'purchase_cost' => 9800000, 'current_value' => 7100000]);
-        $drillRig = Equipment::create(['company_id' => $companyId, 'name' => 'Drill Rig Atlas Copco', 'equipment_type' => 'Drill Rig', 'status' => 'Out of Service', 'purchase_cost' => 15000000, 'current_value' => 10200000]);
+        // Categories + extraction_site_id backfilled here so Equipment::category()
+        // and Equipment::extractionSite() aren't left null for every demo record
+        // (they were previously defined-but-unpopulated relations).
+        $loaderCategory = EquipmentCategory::create(['company_id' => $companyId, 'name' => 'Loaders', 'code' => 'LOADER']);
+        $excavatorCategory = EquipmentCategory::create(['company_id' => $companyId, 'name' => 'Excavators', 'code' => 'EXCAVATOR']);
+        $dumpTruckCategory = EquipmentCategory::create(['company_id' => $companyId, 'name' => 'Dump Trucks', 'code' => 'DUMP-TRUCK']);
+        $drillRigCategory = EquipmentCategory::create(['company_id' => $companyId, 'name' => 'Drill Rigs', 'code' => 'DRILL-RIG']);
+
+        $loader = Equipment::create(['company_id' => $companyId, 'name' => 'Wheel Loader CAT 950', 'equipment_type' => 'Loader', 'status' => 'In Use', 'purchase_cost' => 8500000, 'current_value' => 6200000, 'equipment_category_id' => $loaderCategory->id, 'extraction_site_id' => $northSite->id]);
+        $excavator = Equipment::create(['company_id' => $companyId, 'name' => 'Excavator Komatsu PC300', 'equipment_type' => 'Excavator', 'status' => 'In Use', 'purchase_cost' => 12000000, 'current_value' => 9500000, 'equipment_category_id' => $excavatorCategory->id, 'extraction_site_id' => $northSite->id]);
+        $dumpTruck = Equipment::create(['company_id' => $companyId, 'name' => 'Dump Truck Volvo A40', 'equipment_type' => 'Dump Truck', 'status' => 'Under Maintenance', 'purchase_cost' => 9800000, 'current_value' => 7100000, 'equipment_category_id' => $dumpTruckCategory->id, 'extraction_site_id' => $northSite->id]);
+        $drillRig = Equipment::create(['company_id' => $companyId, 'name' => 'Drill Rig Atlas Copco', 'equipment_type' => 'Drill Rig', 'status' => 'Out of Service', 'purchase_cost' => 15000000, 'current_value' => 10200000, 'equipment_category_id' => $drillRigCategory->id, 'extraction_site_id' => $northSite->id]);
 
         $fuelOperator = Employee::create([
             'company_id' => $companyId, 'full_name' => 'Samuel Kiptoo', 'phone_number' => '+254712000103',

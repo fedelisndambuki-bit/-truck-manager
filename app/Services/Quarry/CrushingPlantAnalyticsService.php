@@ -51,10 +51,18 @@ class CrushingPlantAnalyticsService
 
     public function productionTodayTonnes(?int $companyId): float
     {
+        // CrushingPlantLog has no live write path in this app (seeder-only) —
+        // ProductionRun is the model actually credited by real approvals, so
+        // it must be counted too or this always understates production.
         return (float) CrushingPlantLog::query()
             ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
             ->whereDate('date', today())
-            ->sum('output_tonnes');
+            ->sum('output_tonnes')
+            + (float) ProductionRun::query()
+                ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
+                ->whereIn('status', ['Approved', 'Completed'])
+                ->whereDate('start_time', today())
+                ->sum('output_quantity');
     }
 
     public function plantThroughputTph(?int $companyId): float
@@ -143,7 +151,24 @@ class CrushingPlantAnalyticsService
             ->whereDate('date', today())
             ->get();
 
-        return round((float) $logs->sum(fn (CrushingPlantLog $l) => max(0, 24 - ($l->downtime_minutes / 60))), 1);
+        $logHours = (float) $logs->sum(fn (CrushingPlantLog $l) => max(0, 24 - ($l->downtime_minutes / 60)));
+
+        // ProductionRun has no per-calendar-day "24 hours minus downtime"
+        // field like CrushingPlantLog — operating hours are derived from the
+        // run's own duration minus any ProductionDowntime overlapping it.
+        $runs = ProductionRun::query()
+            ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
+            ->whereDate('start_time', today())
+            ->get();
+
+        $runHours = (float) $runs->sum(function (ProductionRun $r) {
+            $durationMinutes = $r->durationMinutes() ?? 0;
+            $downtimeMinutes = $r->relatedDowntimes()->sum('duration_minutes');
+
+            return max(0, ($durationMinutes - $downtimeMinutes) / 60);
+        });
+
+        return round($logHours + $runHours, 1);
     }
 
     public function downtimeHoursToday(?int $companyId): float
@@ -187,42 +212,95 @@ class CrushingPlantAnalyticsService
             ->whereDate('created_at', today())
             ->get();
 
-        return round((float) $runs->sum(fn (ProductionRun $r) => max(0, $r->input_quantity - $r->output_quantity)), 1);
+        $runWaste = (float) $runs->sum(fn (ProductionRun $r) => max(0, $r->input_quantity - $r->output_quantity));
+
+        $logWaste = (float) CrushingPlantLog::query()
+            ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
+            ->whereDate('date', today())
+            ->get()
+            ->sum(fn (CrushingPlantLog $l) => max(0, $l->throughput_tonnes - $l->output_tonnes));
+
+        return round($runWaste + $logWaste, 1);
     }
 
     public function recoveryRatePercent(?int $companyId, int $days = 7): float
     {
-        $runs = ProductionRun::query()
+        $runValues = ProductionRun::query()
             ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
             ->whereIn('status', ['Approved', 'Completed'])
             ->where('created_at', '>=', now()->subDays($days))
-            ->get();
+            ->get()
+            ->map(fn (ProductionRun $r) => $r->recoveryPercent());
 
-        if ($runs->isEmpty()) {
+        $logValues = CrushingPlantLog::query()
+            ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
+            ->where('date', '>=', now()->subDays($days))
+            ->where('throughput_tonnes', '>', 0)
+            ->get()
+            ->map(fn (CrushingPlantLog $l) => round(($l->output_tonnes / $l->throughput_tonnes) * 100, 1));
+
+        $values = $runValues->concat($logValues);
+
+        if ($values->isEmpty()) {
             return 0.0;
         }
 
-        return round($runs->avg(fn (ProductionRun $r) => $r->recoveryPercent()), 1);
+        return round($values->avg(), 1);
     }
 
     public function averageThroughput(?int $companyId, int $days = 7): float
     {
-        return round((float) CrushingPlantLog::query()
+        // CrushingPlantLog has no live write path in this app (seeder-only) —
+        // pool raw ProductionRun values too (not an average-of-averages,
+        // which would misweight days with different record counts).
+        $logValues = CrushingPlantLog::query()
             ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
             ->where('date', '>=', now()->subDays($days))
-            ->avg('output_tonnes'), 1);
+            ->pluck('output_tonnes');
+
+        $runValues = ProductionRun::query()
+            ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
+            ->whereIn('status', ['Approved', 'Completed'])
+            ->where('start_time', '>=', now()->subDays($days))
+            ->pluck('output_quantity');
+
+        $values = $logValues->concat($runValues);
+
+        if ($values->isEmpty()) {
+            return 0.0;
+        }
+
+        return round((float) $values->avg(), 1);
     }
 
     // ── Charts ───────────────────────────────────────────────────────────────
 
     public function plantThroughputTrend(?int $companyId, int $days = 14): array
     {
-        return CrushingPlantLog::query()
+        $logData = CrushingPlantLog::query()
             ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
             ->where('date', '>=', now()->subDays($days))
-            ->select(DB::raw("strftime('%Y-%m-%d', date) as day"), DB::raw('sum(output_tonnes) as total'))
-            ->groupBy('day')->orderBy('day')
+            ->select(DB::raw(\App\Support\SqlDateFormat::daily('date', 'day')), DB::raw('sum(output_tonnes) as total'))
+            ->groupBy('day')
             ->pluck('total', 'day')->toArray();
+
+        $runData = ProductionRun::query()
+            ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
+            ->whereIn('status', ['Approved', 'Completed'])
+            ->where('start_time', '>=', now()->subDays($days))
+            ->select(DB::raw(\App\Support\SqlDateFormat::daily('start_time', 'day')), DB::raw('sum(output_quantity) as total'))
+            ->groupBy('day')
+            ->pluck('total', 'day')->toArray();
+
+        $merged = [];
+        foreach ([$logData, $runData] as $source) {
+            foreach ($source as $day => $total) {
+                $merged[$day] = ($merged[$day] ?? 0) + (float) $total;
+            }
+        }
+        ksort($merged);
+
+        return $merged;
     }
 
     public function equipmentUtilizationByType(?int $companyId): array
@@ -243,7 +321,7 @@ class CrushingPlantAnalyticsService
             ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
             ->whereNotNull('crushing_plant_id')
             ->where('start_time', '>=', now()->subDays($days))
-            ->select(DB::raw("strftime('%Y-%m-%d', start_time) as day"), DB::raw('sum(duration_minutes) as total'))
+            ->select(DB::raw(\App\Support\SqlDateFormat::daily('start_time', 'day')), DB::raw('sum(duration_minutes) as total'))
             ->groupBy('day')->orderBy('day')
             ->pluck('total', 'day')->toArray();
     }
@@ -259,12 +337,25 @@ class CrushingPlantAnalyticsService
                 ->whereDate('date', $date)
                 ->get();
 
-            if ($logs->isEmpty()) {
+            $runs = ProductionRun::query()
+                ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
+                ->whereDate('start_time', $date)
+                ->get();
+
+            if ($logs->isEmpty() && $runs->isEmpty()) {
                 continue;
             }
 
             $operating = (float) $logs->sum(fn ($l) => 24 - ($l->downtime_minutes / 60));
             $downtime = (float) $logs->sum('downtime_minutes') / 60;
+
+            foreach ($runs as $run) {
+                $durationHours = ($run->durationMinutes() ?? 0) / 60;
+                $runDowntimeHours = $run->relatedDowntimes()->sum('duration_minutes') / 60;
+                $operating += max(0, $durationHours - $runDowntimeHours);
+                $downtime += $runDowntimeHours;
+            }
+
             $availability = ($operating + $downtime) > 0 ? $operating / ($operating + $downtime) : 0;
 
             $trend[$date->format('Y-m-d')] = round($availability * 100, 1);
@@ -291,7 +382,7 @@ class CrushingPlantAnalyticsService
         return EnergyReading::query()
             ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
             ->where('date', '>=', now()->subDays($days))
-            ->select(DB::raw("strftime('%Y-%m-%d', date) as day"), DB::raw('sum(electricity_kwh) as total'))
+            ->select(DB::raw(\App\Support\SqlDateFormat::daily('date', 'day')), DB::raw('sum(electricity_kwh) as total'))
             ->groupBy('day')->orderBy('day')
             ->pluck('total', 'day')->toArray();
     }
@@ -308,7 +399,12 @@ class CrushingPlantAnalyticsService
             $actual[$plant->name] = (float) CrushingPlantLog::query()
                 ->where('crushing_plant_id', $plant->id)
                 ->whereDate('date', today())
-                ->sum('output_tonnes');
+                ->sum('output_tonnes')
+                + (float) ProductionRun::query()
+                    ->where('crushing_plant_id', $plant->id)
+                    ->whereIn('status', ['Approved', 'Completed'])
+                    ->whereDate('start_time', today())
+                    ->sum('output_quantity');
         }
 
         return ['target' => $target, 'actual' => $actual];

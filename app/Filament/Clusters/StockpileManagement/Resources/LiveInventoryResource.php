@@ -8,6 +8,7 @@ use App\Models\ProductionOutput;
 use App\Models\StockMovement;
 use App\Models\Stockpile;
 use App\Traits\HasModuleAccess;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -100,10 +101,8 @@ class LiveInventoryResource extends Resource
                 Tables\Filters\SelectFilter::make('quality_status')->options(array_combine(Stockpile::QUALITY_STATUSES, Stockpile::QUALITY_STATUSES)),
             ])
             ->actions([
-                Tables\Actions\Action::make('view')
-                    ->label('View')
-                    ->icon('heroicon-o-eye')
-                    ->url(fn (Stockpile $record) => StockpileResource::getUrl('view', ['record' => $record])),
+                Tables\Actions\ViewAction::make()
+                    ->infolist(fn (Infolist $infolist) => StockpileResource::infolist($infolist)),
             ])
             ->striped();
     }

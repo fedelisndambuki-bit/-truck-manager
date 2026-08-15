@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Company;
 use App\Models\CrushingPlant;
+use App\Models\DispatchOrder;
 use App\Models\Equipment;
 use App\Models\FuelStock;
 use App\Models\Maintenance;
@@ -152,7 +153,23 @@ class SendQuarryAlerts extends Command
             ]));
         }
 
-        return $tickets->count();
+        // DispatchOrder is the newer, unreconciled parallel write path to
+        // WeighbridgeTicket — a truck stuck in its 17-status pipeline for the
+        // same 60+ minutes needs the same alert.
+        $orders = DispatchOrder::withoutGlobalScope('company')
+            ->where('company_id', $companyId)
+            ->whereNotIn('status', ['Approved', 'Rejected', 'Exited', 'En Route', 'Delivered', 'Cancelled'])
+            ->whereNotNull('gate_in_at')
+            ->where('gate_in_at', '<=', now()->subMinutes(60))
+            ->get();
+
+        foreach ($orders as $order) {
+            Notification::send($users, new QuarryNotification('delayed_dispatch', [
+                'reference' => $order->dispatch_number,
+            ]));
+        }
+
+        return $tickets->count() + $orders->count();
     }
 
     private function notifyProductionBelowTarget(int $companyId, $users): int

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Equipment extends BaseModel
 {
@@ -88,6 +89,11 @@ class Equipment extends BaseModel
     public function extractionSite(): BelongsTo
     {
         return $this->belongsTo(ExtractionSite::class);
+    }
+
+    public function crusher(): HasOne
+    {
+        return $this->hasOne(Crusher::class);
     }
 
     public function store(): BelongsTo

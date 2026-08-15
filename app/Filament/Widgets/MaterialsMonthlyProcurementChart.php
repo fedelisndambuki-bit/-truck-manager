@@ -23,7 +23,7 @@ class MaterialsMonthlyProcurementChart extends ChartWidget
             $rawData = PurchaseOrder::query()
                 ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
                 ->where('created_at', '>=', now()->subMonths(6))
-                ->select(DB::raw("strftime('%Y-%m', created_at) as month"), DB::raw('sum(total_amount) as total'))
+                ->select(DB::raw(\App\Support\SqlDateFormat::monthly('created_at', 'month')), DB::raw('sum(total_amount) as total'))
                 ->groupBy('month')
                 ->orderBy('month')
                 ->pluck('total', 'month')

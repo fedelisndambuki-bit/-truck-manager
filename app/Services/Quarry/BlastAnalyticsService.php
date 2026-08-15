@@ -181,7 +181,7 @@ class BlastAnalyticsService
     {
         return $this->plans($companyId)
             ->where('date_planned', '>=', now()->subMonths($months))
-            ->select(DB::raw("strftime('%Y-%m', date_planned) as month"), DB::raw('count(*) as total'))
+            ->select(DB::raw(\App\Support\SqlDateFormat::monthly('date_planned', 'month')), DB::raw('count(*) as total'))
             ->groupBy('month')->orderBy('month')
             ->pluck('total', 'month')->toArray();
     }
@@ -192,7 +192,7 @@ class BlastAnalyticsService
             ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
             ->where('issue_date', '>=', now()->subDays($days))
             ->whereNotNull('issue_date')
-            ->select(DB::raw("strftime('%Y-%m-%d', issue_date) as day"), DB::raw('sum(quantity_used) as total'))
+            ->select(DB::raw(\App\Support\SqlDateFormat::daily('issue_date', 'day')), DB::raw('sum(quantity_used) as total'))
             ->groupBy('day')->orderBy('day')
             ->pluck('total', 'day')->toArray();
     }

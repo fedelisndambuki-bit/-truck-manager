@@ -9,6 +9,7 @@ use App\Models\DispatchOrder;
 use App\Traits\HasModuleAccess;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -57,6 +58,28 @@ class DispatchOrderResource extends Resource
         };
     }
 
+    /**
+     * Statuses beyond 'Planned' are workflow-controlled (Smart Weighbridge's
+     * check-in/tare/loading/gross-weigh/approval/exit pages) and several of
+     * them have real side effects when set — 'Approved' fires approveDispatch()
+     * (stock decrement + invoice creation) via DispatchOrder::booted()'s
+     * updated() hook regardless of how the record got there. Setting it
+     * directly from this generic Edit form would trigger that with no
+     * gross weight ever recorded. Restricting the manual Select to the
+     * record's current value plus the handful of genuinely admin-editable
+     * states prevents skipping the real workflow entirely.
+     */
+    public static function getManuallyEditableStatuses(?string $current): array
+    {
+        $manual = ['Draft', 'Planned', 'Delayed', 'Cancelled', 'Rejected'];
+
+        if ($current && ! in_array($current, $manual, true)) {
+            $manual[] = $current;
+        }
+
+        return array_combine($manual, $manual);
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -81,7 +104,10 @@ class DispatchOrderResource extends Resource
                     Forms\Components\TextInput::make('product_grade'),
                     Forms\Components\TextInput::make('target_net_weight')->numeric()->suffix('t'),
                     Forms\Components\Select::make('priority')->options(array_combine(DispatchOrder::PRIORITIES, DispatchOrder::PRIORITIES))->default('Normal'),
-                    Forms\Components\Select::make('status')->options(array_combine(DispatchOrder::STATUSES, DispatchOrder::STATUSES))->required(),
+                    Forms\Components\Select::make('status')
+                        ->options(fn (?DispatchOrder $record) => self::getManuallyEditableStatuses($record?->status))
+                        ->helperText('Progression beyond Planned (check-in, weighing, approval, exit, delivery) happens via the Smart Weighbridge / Dispatch Management workflow pages, not here.')
+                        ->required(),
                 ])->columns(3),
 
                 Forms\Components\Section::make('Delivery Tracking')->schema([
@@ -117,7 +143,9 @@ class DispatchOrderResource extends Resource
                     ->label('Full Detail')
                     ->icon('heroicon-o-magnifying-glass')
                     ->color('gray')
-                    ->url(fn (DispatchOrder $record) => VehicleCheckInResource::getUrl('view', ['record' => $record])),
+                    ->infolist(fn (Infolist $infolist) => VehicleCheckInResource::infolist($infolist))
+                    ->modalHeading('Full Detail')
+                    ->modalSubmitAction(false),
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])

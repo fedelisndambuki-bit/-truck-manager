@@ -165,7 +165,7 @@ class LabAnalyticsService
         return $this->tests($companyId)
             ->where('result', 'Fail')
             ->where('end_time', '>=', now()->subDays($days))
-            ->select(DB::raw("strftime('%Y-%m-%d', end_time) as day"), DB::raw('count(*) as total'))
+            ->select(DB::raw(\App\Support\SqlDateFormat::daily('end_time', 'day')), DB::raw('count(*) as total'))
             ->groupBy('day')->orderBy('day')
             ->pluck('total', 'day')->toArray();
     }
@@ -175,7 +175,7 @@ class LabAnalyticsService
         return $this->samples($companyId)
             ->where('status', 'Approved')
             ->where('updated_at', '>=', now()->subDays($days))
-            ->select(DB::raw("strftime('%Y-%m-%d', updated_at) as day"), DB::raw('count(*) as total'))
+            ->select(DB::raw(\App\Support\SqlDateFormat::daily('updated_at', 'day')), DB::raw('count(*) as total'))
             ->groupBy('day')->orderBy('day')
             ->pluck('total', 'day')->toArray();
     }
@@ -220,7 +220,7 @@ class LabAnalyticsService
         return $this->samples($companyId)
             ->where('sample_type', 'Customer Complaint')
             ->where('created_at', '>=', now()->subDays($days))
-            ->select(DB::raw("strftime('%Y-%m-%d', created_at) as day"), DB::raw('count(*) as total'))
+            ->select(DB::raw(\App\Support\SqlDateFormat::daily('created_at', 'day')), DB::raw('count(*) as total'))
             ->groupBy('day')->orderBy('day')
             ->pluck('total', 'day')->toArray();
     }

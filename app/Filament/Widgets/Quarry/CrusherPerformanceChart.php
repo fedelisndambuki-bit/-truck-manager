@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets\Quarry;
 
 use App\Models\CrushingPlantLog;
+use App\Models\ProductionRun;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -20,17 +21,36 @@ class CrusherPerformanceChart extends ChartWidget
         $companyId = Auth::user()?->company_id;
 
         try {
-            $rawData = CrushingPlantLog::query()
+            // CrushingPlantLog has no live write path in this app (seeder-only) —
+            // ProductionRun is the model actually credited by real approvals, so
+            // both are merged into the same daily totals here.
+            $logData = CrushingPlantLog::query()
                 ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
                 ->where('date', '>=', now()->subDays(14))
-                ->select(DB::raw("strftime('%Y-%m-%d', date) as day"), DB::raw('sum(output_tonnes) as total'))
+                ->select(DB::raw(\App\Support\SqlDateFormat::daily('date', 'day')), DB::raw('sum(output_tonnes) as total'))
                 ->groupBy('day')
-                ->orderBy('day')
                 ->pluck('total', 'day')
                 ->toArray();
 
+            $runData = ProductionRun::query()
+                ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
+                ->whereIn('status', ['Approved', 'Completed'])
+                ->where('start_time', '>=', now()->subDays(14))
+                ->select(DB::raw(\App\Support\SqlDateFormat::daily('start_time', 'day')), DB::raw('sum(output_quantity) as total'))
+                ->groupBy('day')
+                ->pluck('total', 'day')
+                ->toArray();
+
+            $rawData = [];
+            foreach ([$logData, $runData] as $source) {
+                foreach ($source as $day => $total) {
+                    $rawData[$day] = ($rawData[$day] ?? 0) + (float) $total;
+                }
+            }
+            ksort($rawData);
+
             $labels = array_keys($rawData);
-            $values = array_map('floatval', array_values($rawData));
+            $values = array_values($rawData);
         } catch (\Exception $e) {
             $labels = [];
             $values = [];

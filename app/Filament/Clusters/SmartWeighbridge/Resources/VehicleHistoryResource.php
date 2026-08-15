@@ -6,6 +6,7 @@ use App\Filament\Clusters\SmartWeighbridge;
 use App\Filament\Clusters\SmartWeighbridge\Resources\VehicleHistoryResource\Pages;
 use App\Models\DispatchOrder;
 use App\Traits\HasModuleAccess;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -71,10 +72,8 @@ class VehicleHistoryResource extends Resource
                 Tables\Filters\SelectFilter::make('material_id')->label('Product')->relationship('material', 'name'),
             ])
             ->actions([
-                Tables\Actions\Action::make('view')
-                    ->label('View')
-                    ->icon('heroicon-o-eye')
-                    ->url(fn (DispatchOrder $record) => VehicleCheckInResource::getUrl('view', ['record' => $record])),
+                Tables\Actions\ViewAction::make()
+                    ->infolist(fn (Infolist $infolist) => VehicleCheckInResource::infolist($infolist)),
             ])
             ->striped();
     }

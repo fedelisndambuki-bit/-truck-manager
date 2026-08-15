@@ -25,13 +25,13 @@ class MaterialsStockMovementChart extends ChartWidget
                 ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
                 ->where('created_at', '>=', now()->subMonths(6))
                 ->where('status', 'Approved')
-                ->select(DB::raw("strftime('%Y-%m', created_at) as month"), DB::raw('sum(accepted_quantity) as total'))
+                ->select(DB::raw(\App\Support\SqlDateFormat::monthly('created_at', 'month')), DB::raw('sum(accepted_quantity) as total'))
                 ->groupBy('month')->orderBy('month')->pluck('total', 'month');
 
             $issued = MaterialConsumption::query()
                 ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
                 ->where('date', '>=', now()->subMonths(6))
-                ->select(DB::raw("strftime('%Y-%m', date) as month"), DB::raw('sum(quantity_used) as total'))
+                ->select(DB::raw(\App\Support\SqlDateFormat::monthly('date', 'month')), DB::raw('sum(quantity_used) as total'))
                 ->groupBy('month')->orderBy('month')->pluck('total', 'month');
         } catch (\Exception $e) {
             $received = collect();

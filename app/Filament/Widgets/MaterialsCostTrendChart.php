@@ -23,7 +23,7 @@ class MaterialsCostTrendChart extends ChartWidget
             $rawData = MaterialConsumption::query()
                 ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
                 ->where('date', '>=', now()->subMonths(6))
-                ->select(DB::raw("strftime('%Y-%m', date) as month"), DB::raw('sum(cost) as total'))
+                ->select(DB::raw(\App\Support\SqlDateFormat::monthly('date', 'month')), DB::raw('sum(cost) as total'))
                 ->groupBy('month')
                 ->orderBy('month')
                 ->pluck('total', 'month')

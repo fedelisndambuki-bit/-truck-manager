@@ -23,7 +23,7 @@ class ProductionTrendChart extends ChartWidget
             $rawData = ProductionLog::query()
                 ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
                 ->where('date', '>=', now()->subDays(14))
-                ->select(DB::raw("strftime('%Y-%m-%d', date) as day"), DB::raw('sum(quantity_tonnes) as total'))
+                ->select(DB::raw(\App\Support\SqlDateFormat::daily('date', 'day')), DB::raw('sum(quantity_tonnes) as total'))
                 ->groupBy('day')
                 ->orderBy('day')
                 ->pluck('total', 'day')

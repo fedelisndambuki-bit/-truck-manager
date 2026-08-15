@@ -141,7 +141,7 @@ class DispatchAnalyticsService
     {
         return $this->orders($companyId)
             ->where('created_at', '>=', now()->subDays($days))
-            ->select(DB::raw("strftime('%Y-%m-%d', created_at) as day"), DB::raw('count(*) as total'))
+            ->select(DB::raw(\App\Support\SqlDateFormat::daily('created_at', 'day')), DB::raw('count(*) as total'))
             ->groupBy('day')->orderBy('day')
             ->pluck('total', 'day')->toArray();
     }
@@ -164,7 +164,7 @@ class DispatchAnalyticsService
             ->where('status', 'Delivered')
             ->whereNotNull('arrived_at')
             ->where('arrived_at', '>=', now()->subDays($days))
-            ->select(DB::raw("strftime('%Y-%m-%d', arrived_at) as day"), DB::raw('sum(net_weight) as total'))
+            ->select(DB::raw(\App\Support\SqlDateFormat::daily('arrived_at', 'day')), DB::raw('sum(net_weight) as total'))
             ->groupBy('day')->orderBy('day')
             ->pluck('total', 'day')->toArray();
     }

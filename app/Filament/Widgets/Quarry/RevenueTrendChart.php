@@ -24,7 +24,7 @@ class RevenueTrendChart extends ChartWidget
                 ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
                 ->where('status', 'Paid')
                 ->where('payment_date', '>=', now()->subMonths(6))
-                ->select(DB::raw("strftime('%Y-%m', payment_date) as month"), DB::raw('sum(amount) as total'))
+                ->select(DB::raw(\App\Support\SqlDateFormat::monthly('payment_date', 'month')), DB::raw('sum(amount) as total'))
                 ->groupBy('month')
                 ->orderBy('month')
                 ->pluck('total', 'month')

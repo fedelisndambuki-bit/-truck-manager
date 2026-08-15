@@ -2,6 +2,7 @@
 
 namespace App\Services\Quarry;
 
+use App\Models\DispatchOrder;
 use App\Models\ProductionOutput;
 use App\Models\Stockpile;
 use App\Models\StockMovement;
@@ -172,7 +173,7 @@ class StockpileAnalyticsService
     {
         return $this->movements($companyId)
             ->where('date', '>=', now()->subDays($days))
-            ->select(DB::raw("strftime('%Y-%m-%d', date) as day"), DB::raw('sum(quantity) as total'))
+            ->select(DB::raw(\App\Support\SqlDateFormat::daily('date', 'day')), DB::raw('sum(quantity) as total'))
             ->groupBy('day')->orderBy('day')
             ->pluck('total', 'day')->toArray();
     }
@@ -271,7 +272,11 @@ class StockpileAnalyticsService
             ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
             ->where('direction', 'Outbound')
             ->whereDate('gate_out_at', today())
-            ->count();
+            ->count()
+            + DispatchOrder::query()
+                ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
+                ->whereDate('exit_at', today())
+                ->count();
     }
 
     public function pendingAdjustmentApprovals(?int $companyId): int

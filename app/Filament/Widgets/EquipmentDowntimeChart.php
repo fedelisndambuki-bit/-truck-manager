@@ -32,7 +32,7 @@ class EquipmentDowntimeChart extends ChartWidget
             $rawData = Maintenance::query()
                 ->where('equipment_id', $this->record->id)
                 ->where('maintenance_date', '>=', now()->subMonths(6))
-                ->select(DB::raw("strftime('%Y-%m', maintenance_date) as month"), DB::raw('count(*) as total'))
+                ->select(DB::raw(\App\Support\SqlDateFormat::monthly('maintenance_date', 'month')), DB::raw('count(*) as total'))
                 ->groupBy('month')
                 ->orderBy('month')
                 ->pluck('total', 'month')

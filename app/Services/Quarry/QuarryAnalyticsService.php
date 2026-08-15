@@ -13,8 +13,10 @@ use App\Models\Maintenance;
 use App\Models\Payment;
 use App\Models\ProductionDowntime;
 use App\Models\ProductionLine;
+use App\Models\DispatchOrder;
 use App\Models\ProductionLog;
 use App\Models\ProductionOutput;
+use App\Models\ProductionRun;
 use App\Models\SafetyIncident;
 use App\Models\Stockpile;
 use App\Models\WeighbridgeTicket;
@@ -92,10 +94,19 @@ class QuarryAnalyticsService
             return 0.0;
         }
 
+        // CrushingPlantLog has no live write path in this app (seeder-only) —
+        // ProductionRun is the model actually credited by real approvals, so
+        // it must be counted too or this always understates utilization.
         $output = (float) CrushingPlantLog::query()
             ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
             ->whereDate('date', today())
             ->sum('output_tonnes');
+
+        $output += (float) ProductionRun::query()
+            ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
+            ->whereIn('status', ['Approved', 'Completed'])
+            ->whereDate('start_time', today())
+            ->sum('output_quantity');
 
         return round(min(100, ($output / $capacity) * 100), 1);
     }
@@ -188,27 +199,46 @@ class QuarryAnalyticsService
 
     // ── Dispatch / Weighbridge ───────────────────────────────────────────────
 
+    // DispatchOrder statuses that mean "resolved, no longer waiting on the
+    // weighbridge/dispatch queue" — the closest equivalent of
+    // WeighbridgeTicket's 2-outcome Weighed/Rejected terminal states.
+    protected const DISPATCH_QUEUE_RESOLVED_STATUSES = ['Approved', 'Rejected', 'Exited', 'En Route', 'Delivered', 'Cancelled'];
+
     protected function tickets(?int $companyId)
     {
         return WeighbridgeTicket::query()->when($companyId, fn ($q) => $q->where('company_id', $companyId));
     }
 
+    protected function dispatchOrders(?int $companyId)
+    {
+        return DispatchOrder::query()->when($companyId, fn ($q) => $q->where('company_id', $companyId));
+    }
+
+    /**
+     * WeighbridgeTicket (IoT hardware feed) and DispatchOrder (Smart
+     * Weighbridge / Dispatch Management workflow) are two unreconciled live
+     * write paths onto the same real-world truck dispatches — counting only
+     * one silently misses whichever route a given truck went through.
+     */
     public function dispatchesToday(?int $companyId): int
     {
         return $this->tickets($companyId)
             ->where('direction', 'Outbound')
             ->whereDate('created_at', today())
-            ->count();
+            ->count()
+            + $this->dispatchOrders($companyId)->whereDate('created_at', today())->count();
     }
 
     public function ordersPending(?int $companyId): int
     {
-        return $this->tickets($companyId)->where('status', 'Pending')->count();
+        return $this->tickets($companyId)->where('status', 'Pending')->count()
+            + $this->dispatchOrders($companyId)->whereNotIn('status', self::DISPATCH_QUEUE_RESOLVED_STATUSES)->count();
     }
 
     public function ordersCompleted(?int $companyId): int
     {
-        return $this->tickets($companyId)->where('status', 'Weighed')->whereDate('created_at', today())->count();
+        return $this->tickets($companyId)->where('status', 'Weighed')->whereDate('created_at', today())->count()
+            + $this->dispatchOrders($companyId)->where('status', 'Approved')->whereDate('gross_weighed_at', today())->count();
     }
 
     public function avgTruckTurnaroundMinutes(?int $companyId): float
@@ -219,11 +249,21 @@ class QuarryAnalyticsService
             ->whereNotNull('gate_out_at')
             ->get();
 
-        if ($tickets->isEmpty()) {
+        $orders = $this->dispatchOrders($companyId)
+            ->whereDate('created_at', today())
+            ->whereNotNull('gate_in_at')
+            ->whereNotNull('exit_at')
+            ->get();
+
+        $minutes = $tickets->map(fn (WeighbridgeTicket $t) => $t->turnaroundMinutes())
+            ->concat($orders->map(fn (DispatchOrder $o) => $o->turnaroundMinutes()))
+            ->filter(fn ($m) => $m !== null);
+
+        if ($minutes->isEmpty()) {
             return 0.0;
         }
 
-        return round($tickets->avg(fn (WeighbridgeTicket $t) => $t->turnaroundMinutes()), 1);
+        return round($minutes->avg(), 1);
     }
 
     // ── Commercial / Finance ─────────────────────────────────────────────────
@@ -301,6 +341,15 @@ class QuarryAnalyticsService
                 'icon' => 'heroicon-o-truck',
                 'message' => "Ticket {$t->ticket_number} ({$t->direction}) — {$t->vehicle_registration}" . ($t->customer ? " for {$t->customer->company_name}" : ''),
                 'time' => $t->created_at,
+            ]));
+
+        DispatchOrder::query()->when($companyId, fn ($q) => $q->where('company_id', $companyId))
+            ->with('customer')->latest('created_at')->limit($limit)->get()
+            ->each(fn (DispatchOrder $o) => $events->push([
+                'type' => 'dispatch',
+                'icon' => 'heroicon-o-truck',
+                'message' => "Dispatch {$o->dispatch_number} ({$o->status}) — {$o->vehicle_registration}" . ($o->customer ? " for {$o->customer->company_name}" : ''),
+                'time' => $o->created_at,
             ]));
 
         Maintenance::query()->when($companyId, fn ($q) => $q->where('company_id', $companyId))

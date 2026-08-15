@@ -6,12 +6,20 @@ use App\Models\DispatchOrder;
 use App\Models\LoadingInstruction;
 use App\Models\Weighbridge;
 use App\Models\WeighbridgeException;
+use App\Models\WeighbridgeTicket;
 use Illuminate\Support\Facades\DB;
 
 /**
  * Orchestration layer for the Smart Weighbridge Dashboard/Analytics/Reports
  * — mirrors StockpileAnalyticsService's shape exactly (explicit companyId
  * param + query-per-metric).
+ *
+ * DispatchOrder (this service's primary model) and WeighbridgeTicket (the
+ * real IoT hardware feed, see RecordWeighbridgeReading) are two unreconciled
+ * live write paths for the same real-world truck dispatches. Methods below
+ * that can be meaningfully combined pull in WeighbridgeTicket too; a few
+ * (pendingApprovalsCount, weightAccuracyPercent) have no WeighbridgeTicket
+ * equivalent — flagged inline rather than silently unioned.
  */
 class WeighbridgeAnalyticsService
 {
@@ -20,16 +28,23 @@ class WeighbridgeAnalyticsService
         return DispatchOrder::query()->when($companyId, fn ($q) => $q->where('company_id', $companyId));
     }
 
+    protected function tickets(?int $companyId)
+    {
+        return WeighbridgeTicket::query()->when($companyId, fn ($q) => $q->where('company_id', $companyId));
+    }
+
     // ── Dashboard KPIs ───────────────────────────────────────────────────────
 
     public function vehiclesWaitingCount(?int $companyId): int
     {
-        return $this->orders($companyId)->where('status', 'Checked In')->count();
+        return $this->orders($companyId)->where('status', 'Checked In')->count()
+            + $this->tickets($companyId)->where('status', 'Pending')->count();
     }
 
     public function vehiclesCheckedInTodayCount(?int $companyId): int
     {
-        return $this->orders($companyId)->whereDate('gate_in_at', today())->count();
+        return $this->orders($companyId)->whereDate('gate_in_at', today())->count()
+            + $this->tickets($companyId)->whereDate('gate_in_at', today())->count();
     }
 
     public function vehiclesBeingLoadedCount(?int $companyId): int
@@ -49,12 +64,17 @@ class WeighbridgeAnalyticsService
 
     public function completedDispatchesTodayCount(?int $companyId): int
     {
-        return $this->orders($companyId)->where('status', 'Exited')->whereDate('exit_at', today())->count();
+        return $this->orders($companyId)->where('status', 'Exited')->whereDate('exit_at', today())->count()
+            + $this->tickets($companyId)->where('status', 'Weighed')->where('direction', 'Outbound')->whereDate('created_at', today())->count();
     }
 
     public function todaysTonnes(?int $companyId): float
     {
-        return (float) $this->orders($companyId)->whereDate('gross_weighed_at', today())->sum('net_weight');
+        // WeighbridgeTicket.net_weight is kg-denominated (see DailyProduction's
+        // matching /1000 conversion); DispatchOrder.net_weight is already
+        // tonnes-consistent, so only the ticket term needs the conversion.
+        return (float) $this->orders($companyId)->whereDate('gross_weighed_at', today())->sum('net_weight')
+            + ((float) $this->tickets($companyId)->where('direction', 'Outbound')->where('status', 'Weighed')->whereDate('created_at', today())->sum('net_weight') / 1000);
     }
 
     public function todaysRevenue(?int $companyId): float
@@ -74,11 +94,20 @@ class WeighbridgeAnalyticsService
             ->where('exit_at', '>=', now()->subDays($days))
             ->get();
 
-        if ($orders->isEmpty()) {
+        $tickets = $this->tickets($companyId)
+            ->whereNotNull('gate_in_at')->whereNotNull('gate_out_at')
+            ->where('gate_out_at', '>=', now()->subDays($days))
+            ->get();
+
+        $minutes = $orders->map(fn (DispatchOrder $o) => $o->turnaroundMinutes())
+            ->concat($tickets->map(fn (WeighbridgeTicket $t) => $t->turnaroundMinutes()))
+            ->filter(fn ($m) => $m !== null);
+
+        if ($minutes->isEmpty()) {
             return 0.0;
         }
 
-        return round((float) $orders->avg(fn (DispatchOrder $o) => $o->turnaroundMinutes()), 1);
+        return round($minutes->avg(), 1);
     }
 
     public function averageWaitingTimeMinutes(?int $companyId, int $days = 7): float
@@ -144,7 +173,8 @@ class WeighbridgeAnalyticsService
 
     public function rejectedLoadsCount(?int $companyId, int $days = 7): int
     {
-        return $this->orders($companyId)->where('status', 'Rejected')->where('updated_at', '>=', now()->subDays($days))->count();
+        return $this->orders($companyId)->where('status', 'Rejected')->where('updated_at', '>=', now()->subDays($days))->count()
+            + $this->tickets($companyId)->where('status', 'Rejected')->where('updated_at', '>=', now()->subDays($days))->count();
     }
 
     public function loaderProductivityToday(?int $companyId): int
@@ -186,13 +216,28 @@ class WeighbridgeAnalyticsService
 
     public function hourlyDispatchesToday(?int $companyId): array
     {
-        $rows = $this->orders($companyId)
+        $orderData = $this->orders($companyId)
             ->whereDate('exit_at', today())
-            ->select(DB::raw("strftime('%H:00', exit_at) as hour"), DB::raw('count(*) as total'))
-            ->groupBy('hour')->orderBy('hour')
+            ->select(DB::raw(\App\Support\SqlDateFormat::hourly('exit_at', 'hour')), DB::raw('count(*) as total'))
+            ->groupBy('hour')
             ->pluck('total', 'hour')->toArray();
 
-        return $rows;
+        $ticketData = $this->tickets($companyId)
+            ->where('direction', 'Outbound')
+            ->whereDate('gate_out_at', today())
+            ->select(DB::raw(\App\Support\SqlDateFormat::hourly('gate_out_at', 'hour')), DB::raw('count(*) as total'))
+            ->groupBy('hour')
+            ->pluck('total', 'hour')->toArray();
+
+        $merged = [];
+        foreach ([$orderData, $ticketData] as $source) {
+            foreach ($source as $hour => $total) {
+                $merged[$hour] = ($merged[$hour] ?? 0) + (int) $total;
+            }
+        }
+        ksort($merged);
+
+        return $merged;
     }
 
     public function truckTurnaroundTrend(?int $companyId, int $days = 14): array
@@ -206,7 +251,16 @@ class WeighbridgeAnalyticsService
                 ->whereDate('exit_at', $date)
                 ->get();
 
-            $trend[$date->format('Y-m-d')] = $orders->isEmpty() ? 0 : round((float) $orders->avg(fn (DispatchOrder $o) => $o->turnaroundMinutes()), 1);
+            $tickets = $this->tickets($companyId)
+                ->whereNotNull('gate_in_at')->whereNotNull('gate_out_at')
+                ->whereDate('gate_out_at', $date)
+                ->get();
+
+            $minutes = $orders->map(fn (DispatchOrder $o) => $o->turnaroundMinutes())
+                ->concat($tickets->map(fn (WeighbridgeTicket $t) => $t->turnaroundMinutes()))
+                ->filter(fn ($m) => $m !== null);
+
+            $trend[$date->format('Y-m-d')] = $minutes->isEmpty() ? 0 : round($minutes->avg(), 1);
         }
 
         return $trend;
@@ -236,36 +290,88 @@ class WeighbridgeAnalyticsService
 
     public function tonnesDispatchedTrend(?int $companyId, int $days = 14): array
     {
-        return $this->orders($companyId)
+        $orderData = $this->orders($companyId)
             ->whereNotNull('gross_weighed_at')
             ->where('gross_weighed_at', '>=', now()->subDays($days))
-            ->select(DB::raw("strftime('%Y-%m-%d', gross_weighed_at) as day"), DB::raw('sum(net_weight) as total'))
-            ->groupBy('day')->orderBy('day')
+            ->select(DB::raw(\App\Support\SqlDateFormat::daily('gross_weighed_at', 'day')), DB::raw('sum(net_weight) as total'))
+            ->groupBy('day')
             ->pluck('total', 'day')->toArray();
+
+        // WeighbridgeTicket.net_weight is kg-denominated (see DailyProduction's
+        // matching /1000 conversion); DispatchOrder.net_weight is tonnes.
+        $ticketData = $this->tickets($companyId)
+            ->where('direction', 'Outbound')->where('status', 'Weighed')
+            ->where('created_at', '>=', now()->subDays($days))
+            ->select(DB::raw(\App\Support\SqlDateFormat::daily('created_at', 'day')), DB::raw('sum(net_weight) as total'))
+            ->groupBy('day')
+            ->pluck('total', 'day')->toArray();
+
+        $merged = [];
+        foreach ($orderData as $day => $total) {
+            $merged[$day] = ($merged[$day] ?? 0) + (float) $total;
+        }
+        foreach ($ticketData as $day => $total) {
+            $merged[$day] = ($merged[$day] ?? 0) + ((float) $total / 1000);
+        }
+        ksort($merged);
+
+        return $merged;
     }
 
     public function productsDispatched(?int $companyId, int $days = 30): array
     {
-        return $this->orders($companyId)
+        $orderTotals = $this->orders($companyId)
             ->whereNotNull('gross_weighed_at')
             ->where('gross_weighed_at', '>=', now()->subDays($days))
             ->with('material')
             ->get()
             ->groupBy(fn (DispatchOrder $o) => $o->material?->name ?? 'Unassigned')
-            ->map(fn ($group) => (float) $group->sum('net_weight'))
-            ->toArray();
+            ->map(fn ($group) => (float) $group->sum('net_weight'));
+
+        $ticketTotals = $this->tickets($companyId)
+            ->where('direction', 'Outbound')->where('status', 'Weighed')
+            ->where('created_at', '>=', now()->subDays($days))
+            ->with('material')
+            ->get()
+            ->groupBy(fn (WeighbridgeTicket $t) => $t->material?->name ?? 'Unassigned')
+            ->map(fn ($group) => (float) $group->sum('net_weight') / 1000);
+
+        $merged = [];
+        foreach ([$orderTotals, $ticketTotals] as $totals) {
+            foreach ($totals as $name => $total) {
+                $merged[$name] = ($merged[$name] ?? 0) + $total;
+            }
+        }
+
+        return $merged;
     }
 
     public function customerDispatches(?int $companyId, int $days = 30): array
     {
-        return $this->orders($companyId)
+        $orderTotals = $this->orders($companyId)
             ->whereNotNull('gross_weighed_at')
             ->where('gross_weighed_at', '>=', now()->subDays($days))
             ->with('customer')
             ->get()
             ->groupBy(fn (DispatchOrder $o) => $o->customer?->company_name ?? 'Unassigned')
-            ->map(fn ($group) => (float) $group->sum('net_weight'))
-            ->toArray();
+            ->map(fn ($group) => (float) $group->sum('net_weight'));
+
+        $ticketTotals = $this->tickets($companyId)
+            ->where('direction', 'Outbound')->where('status', 'Weighed')
+            ->where('created_at', '>=', now()->subDays($days))
+            ->with('customer')
+            ->get()
+            ->groupBy(fn (WeighbridgeTicket $t) => $t->customer?->company_name ?? 'Unassigned')
+            ->map(fn ($group) => (float) $group->sum('net_weight') / 1000);
+
+        $merged = [];
+        foreach ([$orderTotals, $ticketTotals] as $totals) {
+            foreach ($totals as $name => $total) {
+                $merged[$name] = ($merged[$name] ?? 0) + $total;
+            }
+        }
+
+        return $merged;
     }
 
     public function weighbridgePerformance(?int $companyId): array

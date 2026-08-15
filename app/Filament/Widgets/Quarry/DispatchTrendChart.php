@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets\Quarry;
 
+use App\Models\DispatchOrder;
 use App\Models\WeighbridgeTicket;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\Auth;
@@ -20,18 +21,38 @@ class DispatchTrendChart extends ChartWidget
         $companyId = Auth::user()?->company_id;
 
         try {
-            $rawData = WeighbridgeTicket::query()
+            // WeighbridgeTicket (IoT hardware feed) and DispatchOrder (Smart
+            // Weighbridge / Dispatch Management workflow) are two
+            // unreconciled live write paths onto the same real dispatches —
+            // both must be counted or the trend understates whichever route
+            // a given truck went through.
+            $ticketData = WeighbridgeTicket::query()
                 ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
                 ->where('direction', 'Outbound')
                 ->where('created_at', '>=', now()->subDays(14))
-                ->select(DB::raw("strftime('%Y-%m-%d', created_at) as day"), DB::raw('count(*) as total'))
+                ->select(DB::raw(\App\Support\SqlDateFormat::daily('created_at', 'day')), DB::raw('count(*) as total'))
                 ->groupBy('day')
-                ->orderBy('day')
                 ->pluck('total', 'day')
                 ->toArray();
 
+            $orderData = DispatchOrder::query()
+                ->when($companyId, fn ($q) => $q->where('company_id', $companyId))
+                ->where('created_at', '>=', now()->subDays(14))
+                ->select(DB::raw(\App\Support\SqlDateFormat::daily('created_at', 'day')), DB::raw('count(*) as total'))
+                ->groupBy('day')
+                ->pluck('total', 'day')
+                ->toArray();
+
+            $rawData = [];
+            foreach ([$ticketData, $orderData] as $source) {
+                foreach ($source as $day => $total) {
+                    $rawData[$day] = ($rawData[$day] ?? 0) + (int) $total;
+                }
+            }
+            ksort($rawData);
+
             $labels = array_keys($rawData);
-            $values = array_map('intval', array_values($rawData));
+            $values = array_values($rawData);
         } catch (\Exception $e) {
             $labels = [];
             $values = [];
