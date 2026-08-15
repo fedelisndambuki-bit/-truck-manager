@@ -76,7 +76,13 @@ class ProjectBudget extends BaseModel
     {
         $service = app(ProjectFinanceService::class);
 
-        $this->actual_cost = $service->costForCostCode($this->project, $this->cost_code_id, $this->category);
+        $actual = $service->costForCostCode($this->project, $this->cost_code_id, $this->category);
+
+        if ($actual === null) {
+            return;
+        }
+
+        $this->actual_cost = $actual;
         $this->last_synced_at = now();
         $this->saveQuietly();
     }

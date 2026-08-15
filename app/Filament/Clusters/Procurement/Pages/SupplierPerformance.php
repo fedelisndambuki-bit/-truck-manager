@@ -6,6 +6,7 @@ use App\Filament\Clusters\Procurement;
 use App\Models\PurchaseOrder;
 use App\Models\Supplier;
 use App\Traits\HasModuleAccess;
+use Filament\Infolists\Infolist;
 use Filament\Pages\Page;
 use Filament\Tables;
 use Filament\Tables\Concerns\InteractsWithTable;
@@ -93,10 +94,10 @@ class SupplierPerformance extends Page implements HasTable
                 Tables\Filters\SelectFilter::make('risk_rating')->options(array_combine(Supplier::RISK_RATINGS, Supplier::RISK_RATINGS)),
             ])
             ->actions([
-                Tables\Actions\Action::make('open')
+                Tables\Actions\ViewAction::make('open')
                     ->label('Open Profile')
                     ->icon('heroicon-o-arrow-top-right-on-square')
-                    ->url(fn (Supplier $record) => \App\Filament\Clusters\Procurement\Resources\SupplierResource::getUrl('view', ['record' => $record])),
+                    ->infolist(fn (Infolist $infolist) => \App\Filament\Clusters\Procurement\Resources\SupplierResource::infolist($infolist)),
             ])
             ->striped();
     }

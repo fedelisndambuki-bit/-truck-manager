@@ -7,7 +7,6 @@ use App\Models\Client;
 use App\Models\Company;
 use App\Models\DailySiteDiary;
 use App\Models\Document;
-use App\Models\Employee;
 use App\Models\Equipment;
 use App\Models\EquipmentAllocation;
 use App\Models\Expense;
@@ -21,6 +20,7 @@ use App\Models\QualityInspection;
 use App\Models\SafetyIncident;
 use App\Models\Site;
 use App\Models\SiteInspection;
+use App\Models\Staff;
 use App\Models\Subcontractor;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -70,7 +70,10 @@ class ConstructionDemoSeeder extends Seeder
             'address' => 'Westlands, Nairobi',
         ]);
 
-        // ---- Employees (site managers, PMs, inspectors, labourers) ----
+        // ---- Site crew (site managers, PMs, inspectors, labourers) ----
+        // Staff, not Employee — every FK below (project_manager_id,
+        // site_manager_id, inspector_id, logged_by_id, reported_by_id, and
+        // Labourer/Attendance.employee_id) is Staff-foreign-keyed.
         $roles = ['Foreman', 'Engineer', 'Contractor', 'General Worker'];
         $names = [
             'James Otieno', 'Peter Mwangi', 'Faith Achieng', 'Samuel Kiplagat', 'Lucy Nyambura',
@@ -78,31 +81,29 @@ class ConstructionDemoSeeder extends Seeder
             'Catherine Adhiambo', 'Kevin Omondi', 'Ann Chebet', 'Michael Ouma', 'Sarah Gathoni',
         ];
 
-        $employees = collect();
-        $employeeRoles = [];
+        $staff = collect();
+        $staffRoles = [];
         foreach ($names as $i => $name) {
             $n = $i + 1;
-            $employeeRoles[$i] = $roles[$i % count($roles)];
-            $employees->push(Employee::create([
+            $staffRoles[$i] = $roles[$i % count($roles)];
+            $staff->push(Staff::create([
                 'company_id' => $companyId,
                 'full_name' => $name,
                 'phone_number' => '+254701' . str_pad((string) ($seed + $n), 6, '0', STR_PAD_LEFT),
                 'email' => strtolower(str_replace(' ', '.', $name)) . '@sitecrew.example',
                 'national_id' => (string) ($seed + $n),
-                'license_number' => 'LIC-' . ($seed + $n),
-                'license_expiry' => now()->addYears(2),
-                'category' => 'Local',
+                'employment_type' => 'Permanent',
                 'status' => 'Active',
                 'date_hired' => now()->subMonths(random_int(2, 24)),
                 'emergency_contact_name' => 'Next of Kin ' . $n,
                 'emergency_contact_phone' => '+254702' . str_pad((string) ($seed + $n), 6, '0', STR_PAD_LEFT),
-                'base_salary' => random_int(25000, 90000),
+                'basic_salary' => random_int(25000, 90000),
             ]));
         }
 
-        $projectManager = $employees[0];
-        $siteManagers = [$employees[1], $employees[2], $employees[3], $employees[4], $employees[5]];
-        $inspectors = [$employees[6], $employees[7]];
+        $projectManager = $staff[0];
+        $siteManagers = [$staff[1], $staff[2], $staff[3], $staff[4], $staff[5]];
+        $inspectors = [$staff[6], $staff[7]];
 
         // ---- Projects ----
         $projectDefs = [
@@ -149,13 +150,14 @@ class ConstructionDemoSeeder extends Seeder
         }
 
         // ---- Labourers + Attendance (last 7 days) ----
-        foreach ($employees as $i => $employee) {
+        foreach ($staff as $i => $member) {
             $site = $sites[$i % $sites->count()];
             Labourer::create([
                 'company_id' => $companyId,
-                'employee_id' => $employee->id,
+                'employee_id' => $member->id,
+                'project_id' => $site->project_id,
                 'site_id' => $site->id,
-                'role_on_site' => $employeeRoles[$i],
+                'role_on_site' => $staffRoles[$i],
                 'daily_rate' => random_int(1500, 6000),
             ]);
 
@@ -163,7 +165,7 @@ class ConstructionDemoSeeder extends Seeder
                 $present = random_int(1, 10) > 1; // ~90% attendance
                 Attendance::create([
                     'company_id' => $companyId,
-                    'employee_id' => $employee->id,
+                    'employee_id' => $member->id,
                     'site_id' => $site->id,
                     'date' => now()->subDays($daysAgo)->toDateString(),
                     'check_in_at' => $present ? now()->subDays($daysAgo)->setTime(7, random_int(0, 30)) : null,
@@ -175,14 +177,14 @@ class ConstructionDemoSeeder extends Seeder
 
         // ---- Equipment + Allocations ----
         $equipmentDefs = [
-            ['name' => 'Excavator CAT-01', 'type' => 'Excavator', 'status' => 'In Use'],
-            ['name' => 'Bulldozer KOM-02', 'type' => 'Bulldozer', 'status' => 'In Use'],
-            ['name' => 'Tower Crane TC-14', 'type' => 'Crane', 'status' => 'In Use'],
-            ['name' => 'Wheel Loader WL-05', 'type' => 'Loader', 'status' => 'Available'],
-            ['name' => 'Grader GR-03', 'type' => 'Grader', 'status' => 'Under Maintenance'],
-            ['name' => 'Excavator CAT-02', 'type' => 'Excavator', 'status' => 'Available'],
-            ['name' => 'Concrete Mixer CM-08', 'type' => 'Other', 'status' => 'In Use'],
-            ['name' => 'Backhoe Loader BL-06', 'type' => 'Loader', 'status' => 'In Use'],
+            ['name' => 'Excavator CAT-01', 'type' => 'Excavator', 'status' => 'In Use', 'rate' => 4200],
+            ['name' => 'Bulldozer KOM-02', 'type' => 'Bulldozer', 'status' => 'In Use', 'rate' => 4800],
+            ['name' => 'Tower Crane TC-14', 'type' => 'Crane', 'status' => 'In Use', 'rate' => 7000],
+            ['name' => 'Wheel Loader WL-05', 'type' => 'Loader', 'status' => 'Available', 'rate' => 3000],
+            ['name' => 'Grader GR-03', 'type' => 'Grader', 'status' => 'Under Maintenance', 'rate' => 3500],
+            ['name' => 'Excavator CAT-02', 'type' => 'Excavator', 'status' => 'Available', 'rate' => 4200],
+            ['name' => 'Concrete Mixer CM-08', 'type' => 'Other', 'status' => 'In Use', 'rate' => 1000],
+            ['name' => 'Backhoe Loader BL-06', 'type' => 'Loader', 'status' => 'In Use', 'rate' => 2600],
         ];
 
         foreach ($equipmentDefs as $i => $def) {
@@ -193,13 +195,16 @@ class ConstructionDemoSeeder extends Seeder
                 'status' => $def['status'],
                 'serial_number' => 'SN-' . ($seed + $i),
                 'purchase_date' => now()->subYears(random_int(1, 5)),
+                'hourly_rate' => $def['rate'],
             ]);
 
             if ($def['status'] !== 'Available') {
+                $site = $sites[$i % $sites->count()];
                 EquipmentAllocation::create([
                     'company_id' => $companyId,
                     'equipment_id' => $equipment->id,
-                    'site_id' => $sites[$i % $sites->count()]->id,
+                    'project_id' => $site->project_id,
+                    'site_id' => $site->id,
                     'allocated_from' => now()->subDays(random_int(5, 60)),
                     'operating_hours_today' => $def['status'] === 'In Use' ? round(random_int(30, 90) / 10, 1) : 0,
                     'fuel_consumed_today' => $def['status'] === 'In Use' ? round(random_int(100, 400) / 10, 1) : 0,

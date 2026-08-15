@@ -91,18 +91,29 @@ class PaymentCertificate extends BaseModel
 
         $projectId = $this->project_id ?: $this->contract?->project_id;
 
-        if ($projectId && $this->retention_amount > 0) {
-            RetentionEntry::updateOrCreate(
-                ['source_type' => 'payment_certificate', 'source_id' => $this->id],
-                [
-                    'company_id' => $this->company_id,
-                    'project_id' => $projectId,
-                    'percentage' => $this->contract?->retention_percent ?? $this->progressClaim?->retention_percent ?? 0,
-                    'held_amount' => $this->retention_amount,
-                    'release_status' => 'Held',
-                ]
-            );
+        if (! $projectId || $this->retention_amount <= 0) {
+            return;
         }
+
+        // When this certificate formalizes a specific ProgressClaim, both
+        // records represent the same underlying billing event's retention —
+        // attribute it to the claim (the same key ProgressClaim::certify()
+        // uses) instead of a second, independent RetentionEntry, which would
+        // double the amount reported as held for that one event.
+        [$sourceType, $sourceId] = $this->progress_claim_id
+            ? ['progress_claim', $this->progress_claim_id]
+            : ['payment_certificate', $this->id];
+
+        RetentionEntry::updateOrCreate(
+            ['source_type' => $sourceType, 'source_id' => $sourceId],
+            [
+                'company_id' => $this->company_id,
+                'project_id' => $projectId,
+                'percentage' => $this->contract?->retention_percent ?? $this->progressClaim?->retention_percent ?? 0,
+                'held_amount' => $this->retention_amount,
+                'release_status' => 'Held',
+            ]
+        );
     }
 
     public function markPaid(): void

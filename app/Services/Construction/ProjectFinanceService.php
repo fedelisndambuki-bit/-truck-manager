@@ -79,7 +79,34 @@ class ProjectFinanceService
             ->when($to, fn ($q) => $q->whereDate('allocated_to', '<=', $to))
             ->with('equipment:id,hourly_rate')
             ->get()
-            ->sum(fn ($allocation) => (float) $allocation->operating_hours_today * (float) ($allocation->equipment?->hourly_rate ?? 0));
+            ->sum(function ($allocation) use ($from, $to) {
+                $hourlyRate = (float) ($allocation->equipment?->hourly_rate ?? 0);
+                $dailyHours = (float) $allocation->operating_hours_today;
+
+                if ($hourlyRate <= 0 || $dailyHours <= 0) {
+                    return 0.0;
+                }
+
+                // operating_hours_today is only ever a same-day snapshot — there's
+                // no historical daily log of equipment hours — so it's treated as
+                // a representative daily rate and multiplied by the number of
+                // days actually allocated (clamped to the requested period, if
+                // any), rather than being counted once for the whole allocation
+                // regardless of how many weeks it spans.
+                $periodStart = $allocation->allocated_from ?: $allocation->created_at;
+                $periodEnd = $allocation->allocated_to ?: now();
+
+                if ($from && $periodStart->lt($from)) {
+                    $periodStart = $from;
+                }
+                if ($to && $periodEnd->gt($to)) {
+                    $periodEnd = $to;
+                }
+
+                $days = max(1, $periodStart->diffInDays($periodEnd) + 1);
+
+                return $dailyHours * $hourlyRate * $days;
+            });
 
         return round($total, 2);
     }
@@ -200,8 +227,18 @@ class ProjectFinanceService
     /**
      * Actual cost scoped to a specific budget line (cost code and/or category), used by
      * ProjectBudget::recalculateActual() to keep individual budget lines in sync.
+     *
+     * Cost codes/categories that name one of this service's own tracked resource
+     * buckets (Labour, Materials, Equipment, Subcontractors, Procurement) route to
+     * the real calculation for that bucket, not an Expense lookup — Expense rows
+     * are only ever categorised as Site Expenses/Utilities/Transport/Overheads,
+     * so matching a resource-bucket name against Expense.category would always
+     * return zero. Trade/BOQ-level cost codes (Earthworks, Concrete, Steel,
+     * Masonry, ...) have no actual-cost tracking dimension anywhere in the data
+     * model at all — null signals "nothing to recalculate from" so the caller
+     * can leave the existing value alone instead of overwriting it with zero.
      */
-    public function costForCostCode(Project $project, ?int $costCodeId, ?string $category): float
+    public function costForCostCode(Project $project, ?int $costCodeId, ?string $category): ?float
     {
         $codeName = $costCodeId ? \App\Models\CostCode::find($costCodeId)?->name : null;
         $match = $codeName ?: $category;
@@ -210,10 +247,27 @@ class ProjectFinanceService
             return $this->totalActualCost($project);
         }
 
-        return round((float) Expense::query()
-            ->where('project_id', $project->id)
-            ->where('category', $match)
-            ->sum('amount'), 2);
+        $resourceCostMethod = match ($match) {
+            'Labour' => 'labourCost',
+            'Materials' => 'materialsCost',
+            'Equipment' => 'equipmentCost',
+            'Subcontractors' => 'subcontractorCost',
+            'Procurement' => 'procurementCost',
+            default => null,
+        };
+
+        if ($resourceCostMethod) {
+            return $this->{$resourceCostMethod}($project);
+        }
+
+        if (in_array($match, ['Site Expenses', 'Utilities', 'Transport', 'Overheads'], true)) {
+            return round((float) Expense::query()
+                ->where('project_id', $project->id)
+                ->where('category', $match)
+                ->sum('amount'), 2);
+        }
+
+        return null;
     }
 
     public function totalRevenue(Project $project): float
