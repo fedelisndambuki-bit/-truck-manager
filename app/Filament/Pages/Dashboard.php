@@ -46,7 +46,7 @@ class Dashboard extends BaseDashboard
                 \App\Filament\Widgets\ProductionOverviewWidget::class,
                 [],
                 [],
-                [],
+                [\App\Filament\Clusters\BusinessIntelligence\Widgets\AiInsightsWidget::class],
                 [\App\Filament\Widgets\ExtractionSiteStatusWidget::class],
             ],
             default => [
@@ -57,7 +57,13 @@ class Dashboard extends BaseDashboard
                     \App\Filament\Widgets\DriverSubmissionHealth::class,
                 ],
                 [\App\Filament\Widgets\TruckUtilizationWidget::class],
-                [\App\Filament\Widgets\PredictiveMaintenanceRisks::class],
+                // DailyInsights summarizes Truck/Trip/FuelLog data — Fleet-only,
+                // so it's scoped to this branch instead of shown unconditionally
+                // (Quarry companies reach this same generic dashboard and were
+                // previously shown a Fleet AI card that meant nothing to them).
+                // AiInsightsWidget is industry-aware (AiInsight::serviceForIndustry())
+                // so it's shared across every branch instead of duplicated per industry.
+                [\App\Filament\Widgets\PredictiveMaintenanceRisks::class, \App\Filament\Widgets\DailyInsights::class, \App\Filament\Clusters\BusinessIntelligence\Widgets\AiInsightsWidget::class],
                 [\App\Filament\Widgets\LatestTrips::class],
             ],
         };
@@ -74,8 +80,7 @@ class Dashboard extends BaseDashboard
             \App\Filament\Widgets\RevenueChart::class,
             \App\Filament\Widgets\ExpenseChart::class,
             ...$industryCharts,
-            // AI / insights panels
-            \App\Filament\Widgets\DailyInsights::class,
+            // AI / insights panels — industry-scoped, see $industryOther above
             ...$industryOther,
             // Tables
             ...$industryTables,

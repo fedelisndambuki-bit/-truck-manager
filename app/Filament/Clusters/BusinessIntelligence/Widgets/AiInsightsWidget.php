@@ -3,7 +3,6 @@
 namespace App\Filament\Clusters\BusinessIntelligence\Widgets;
 
 use App\Models\AiInsight;
-use App\Services\Construction\AiInsightsService;
 use Filament\Notifications\Notification;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\Auth;
@@ -30,8 +29,9 @@ class AiInsightsWidget extends Widget
     public function generateInsights(): void
     {
         $companyId = Auth::user()?->company_id;
+        $industry = Auth::user()?->company?->industry;
 
-        $count = count(app(AiInsightsService::class)->generate($companyId));
+        $count = count(app(AiInsight::serviceForIndustry($industry))->generate($companyId));
 
         Notification::make()
             ->title($count > 0 ? "{$count} new insight(s) generated" : 'No new insights detected — all metrics are within normal range')

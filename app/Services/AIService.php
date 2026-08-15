@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\AiLog;
+use App\Models\AiUsageLog;
 use App\Models\Company;
 use App\Models\Truck;
 use App\Models\Trip;
@@ -31,20 +32,25 @@ class AIService
         ]);
 
         try {
+            $industry = $isSuperAdmin ? null : Company::find($companyId)?->industry;
+
             if ($isSuperAdmin) {
                 $contextData = $this->getSuperAdminSummary();
             } else {
-                $contextData = $this->getFleetSummary($companyId);
-                $enriched = $this->enrichContext($question, $companyId);
-                if (!empty($enriched)) {
-                    $contextData['focused_context'] = $enriched;
+                $contextData = $this->getContextSummary($companyId, $industry);
+
+                if ($industry !== 'construction' && $industry !== 'quarry') {
+                    $enriched = $this->enrichContext($question, $companyId);
+                    if (!empty($enriched)) {
+                        $contextData['focused_context'] = $enriched;
+                    }
                 }
             }
 
-            $prompt = $this->buildPrompt($question, $contextData, $isSuperAdmin);
-            $response = $this->callOllama($prompt);
+            $prompt = $this->buildPrompt($question, $contextData, $isSuperAdmin, $industry);
+            $response = $this->callOllama($prompt, false, $companyId, $userId);
             $responseTime = round((microtime(true) - $startTime) * 1000);
-            
+
             $this->logAiRequest($companyId, $userId, $question, $response, $contextData, $responseTime, 'success');
             
             return [
@@ -90,16 +96,22 @@ class AIService
         $isSuperAdmin = $user?->hasRole('Super Admin') ?? false;
 
         try {
+            $industry = $isSuperAdmin ? null : Company::find($companyId)?->industry;
+
             if ($isSuperAdmin) {
                 $contextData = $this->getSuperAdminSummary();
                 $question = 'Generate a platform-wide health summary and 2 operational suggestions for the Super Admin.';
             } else {
-                $contextData = $this->getFleetSummary($companyId);
-                $question = 'Generate today\'s fleet performance summary and 2 suggestions.';
+                $contextData = $this->getContextSummary($companyId, $industry);
+                $question = match ($industry) {
+                    'construction' => 'Generate today\'s construction portfolio summary and 2 suggestions.',
+                    'quarry' => 'Generate today\'s quarry operations summary and 2 suggestions.',
+                    default => 'Generate today\'s fleet performance summary and 2 suggestions.',
+                };
             }
 
-            $prompt = $this->buildPrompt($question, $contextData, $isSuperAdmin);
-            $response = $this->callOllama($prompt, true);
+            $prompt = $this->buildPrompt($question, $contextData, $isSuperAdmin, $industry);
+            $response = $this->callOllama($prompt, true, $companyId, $userId);
             $responseTime = round((microtime(true) - $startTime) * 1000);
             $this->logAiRequest($companyId, $userId, '[auto] daily_insights', $response, $contextData, $responseTime, 'success');
             return [
@@ -111,6 +123,20 @@ class AIService
         } catch (\Exception $e) {
             return ['success' => false, 'error' => 'AI unavailable.'];
         }
+    }
+
+    /**
+     * Dispatches to the industry-appropriate context builder — the chat
+     * assistant is injected into every panel of every industry, but each
+     * one's real operational data lives in different modules.
+     */
+    private function getContextSummary(int $companyId, ?string $industry): array
+    {
+        return match ($industry) {
+            'construction' => $this->getConstructionSummary($companyId),
+            'quarry' => $this->getQuarrySummary($companyId),
+            default => $this->getFleetSummary($companyId),
+        };
     }
 
     private function getFleetSummary(int $companyId): array
@@ -126,6 +152,42 @@ class AIService
                 'fuel_this_month' => (float) FuelLog::where('company_id', $companyId)->whereMonth('date', now()->month)->sum('quantity_litres'),
                 'maintenance_pending' => Maintenance::where('company_id', $companyId)->where('status', 'Pending')->count(),
                 'generated_at' => now()->toIso8601String()
+            ];
+        });
+    }
+
+    private function getConstructionSummary(int $companyId): array
+    {
+        $cacheKey = "construction_summary_{$companyId}";
+        return Cache::remember($cacheKey, 300, function () use ($companyId) {
+            $company = Company::find($companyId);
+            return [
+                'role' => 'Construction Admin',
+                'company_name' => $company->name ?? 'Your Company',
+                'active_projects' => \App\Models\Project::where('company_id', $companyId)->where('status', 'Active')->count(),
+                'delayed_projects' => \App\Models\Project::where('company_id', $companyId)->where('status', 'Delayed')->count(),
+                'open_safety_incidents' => \App\Models\SafetyIncident::where('company_id', $companyId)
+                    ->whereIn('status', ['Reported', 'Under Investigation', 'Corrective Action'])
+                    ->count(),
+                'active_subcontractors' => \App\Models\Subcontractor::where('company_id', $companyId)->where('status', 'Active')->count(),
+                'generated_at' => now()->toIso8601String(),
+            ];
+        });
+    }
+
+    private function getQuarrySummary(int $companyId): array
+    {
+        $cacheKey = "quarry_summary_{$companyId}";
+        return Cache::remember($cacheKey, 300, function () use ($companyId) {
+            $company = Company::find($companyId);
+            return [
+                'role' => 'Quarry Admin',
+                'company_name' => $company->name ?? 'Your Company',
+                'open_safety_incidents' => app(\App\Services\Quarry\QuarryAnalyticsService::class)->openSafetyIncidents($companyId),
+                'weighbridge_queue_length' => app(\App\Services\Quarry\WeighbridgeAnalyticsService::class)->currentQueueLength($companyId),
+                'delayed_dispatches' => app(\App\Services\Quarry\DispatchAnalyticsService::class)->delayedDispatchesCount($companyId),
+                'low_stockpiles' => app(\App\Services\Quarry\StockpileAnalyticsService::class)->lowStockCount($companyId),
+                'generated_at' => now()->toIso8601String(),
             ];
         });
     }
@@ -153,16 +215,16 @@ class AIService
         return $context;
     }
 
-    private function buildPrompt(string $userQuestion, array $contextData, bool $isSuperAdmin = false): string
+    private function buildPrompt(string $userQuestion, array $contextData, bool $isSuperAdmin = false, ?string $industry = null): string
     {
-        return $this->getSystemPrompt($contextData, $isSuperAdmin) . "\n\nUser Question: " . trim($userQuestion);
+        return $this->getSystemPrompt($contextData, $isSuperAdmin, $industry) . "\n\nUser Question: " . trim($userQuestion);
     }
 
-    private function getSystemPrompt(array $contextData, bool $isSuperAdmin = false): string
+    private function getSystemPrompt(array $contextData, bool $isSuperAdmin = false, ?string $industry = null): string
     {
         $contextJson = json_encode($contextData, JSON_PRETTY_PRINT);
         $date = now()->format('l, F j, Y H:i');
-        
+
         if ($isSuperAdmin) {
             return <<<PROMPT
 You are the Super Admin Intelligence Assistant for the Truck Manager Platform.
@@ -178,22 +240,30 @@ Guidelines:
 PROMPT;
         }
 
+        [$persona, $dataLabel, $exampleCommands] = match ($industry) {
+            'construction' => ['Construction AI Assistant', 'Construction Data', '/projects, /safety'],
+            'quarry' => ['Quarry AI Assistant', 'Quarry Data', '/production, /dispatch'],
+            default => ['Fleet AI Assistant', 'Fleet Data', '/trips, /fuel'],
+        };
+
         return <<<PROMPT
-You are a fast, professional Fleet AI Assistant for {$contextData['company_name']}.
+You are a fast, professional {$persona} for {$contextData['company_name']}.
 Current Date: {$date}
-Fleet Data: {$contextJson}
+{$dataLabel}: {$contextJson}
 
 Guidelines:
 1. Be extremely concise. Use bullet points for stats.
 2. If data is in 'focused_context', prioritize it.
-3. If you can't find specific data, tell the user to use a command (e.g., /trips, /fuel).
+3. If you can't find specific data, tell the user to use a command (e.g., {$exampleCommands}).
 4. AT THE END of your response, provide exactly 2 short follow-up questions.
    Format: SUGGESTIONS: [Question 1] | [Question 2]
 PROMPT;
     }
 
-    private function callOllama(string $prompt, bool $isLongResponse = false): string
+    private function callOllama(string $prompt, bool $isLongResponse = false, ?int $companyId = null, ?int $userId = null): string
     {
+        $start = microtime(true);
+
         $ollamaUrl = Config::get('services.ollama.url');
         $ollamaModel = Config::get('services.ollama.model');
 
@@ -208,12 +278,27 @@ PROMPT;
         ]);
 
         if (!$response->successful()) throw new \Exception('Ollama error: ' . $response->status());
+
+        // Ollama's non-streaming /api/generate response reports real token
+        // counts (prompt_eval_count + eval_count = input + output tokens) —
+        // logged per call so AiUsageLogResource reflects genuine usage.
+        if ($companyId) {
+            AiUsageLog::create([
+                'company_id' => $companyId,
+                'user_id' => $userId,
+                'tokens_used' => (int) $response->json('prompt_eval_count', 0) + (int) $response->json('eval_count', 0),
+                'response_ms' => (int) round((microtime(true) - $start) * 1000),
+            ]);
+        }
+
         return $response->json('response') ?? 'AI unavailable.';
     }
 
-    public function clearFleetCache(int $companyId): void
+    public function clearContextCache(int $companyId): void
     {
         Cache::forget("fleet_summary_{$companyId}");
+        Cache::forget("construction_summary_{$companyId}");
+        Cache::forget("quarry_summary_{$companyId}");
     }
 
     private function logAiRequest($companyId, $userId, $question, $response, $fleetData, $responseTime, $status, $errorMessage = null): void {

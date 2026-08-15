@@ -40,7 +40,7 @@ class AiPanel extends Component
         if ($user) {
             $companyId = $user->company_id ?? ($user->company?->id ?? null);
             if ($companyId) {
-                app(AIService::class)->clearFleetCache($companyId);
+                app(AIService::class)->clearContextCache($companyId);
             }
         }
         $this->clearHistory();
@@ -63,7 +63,11 @@ class AiPanel extends Component
         if ($isSuperAdmin) {
             $cmds = ['/companies', '/plans', '/subscriptions', '/settings', '/system', '/logs', '/help'];
         } else {
-            $cmds = ['/trips', '/truck', '/fuel', '/maintenance', '/driver', '/invoices', '/predict', '/fraud', '/insights', '/help'];
+            $cmds = match ($user->company?->industry) {
+                'construction' => ['/projects', '/project', '/site', '/subcontractor', '/safety', '/materials', '/insights', '/help'],
+                'quarry' => ['/production', '/dispatch', '/blast', '/stockpile', '/weighbridge', '/safety', '/insights', '/help'],
+                default => ['/trips', '/truck', '/fuel', '/maintenance', '/driver', '/invoices', '/predict', '/fraud', '/insights', '/help'],
+            };
         }
 
         foreach ($cmds as $c) {
@@ -118,7 +122,13 @@ class AiPanel extends Component
                 $companyId = $company->id;
             }
 
-            $fq = app(FleetQueryService::class);
+            $industry = $user->company?->industry;
+            $queryServiceClass = match ($industry) {
+                'construction' => \App\Services\Construction\QueryService::class,
+                'quarry' => \App\Services\Quarry\QueryService::class,
+                default => FleetQueryService::class,
+            };
+            $fq = app($queryServiceClass);
             if ($isSuperAdmin) {
                 $fastPathMapping = [
                     'total companies' => '/companies count',
@@ -127,13 +137,28 @@ class AiPanel extends Component
                     'platform settings' => '/settings list',
                 ];
             } else {
-                $fastPathMapping = [
-                    'active trips' => '/trips active',
-                    'delayed trips' => '/trips delayed-today',
-                    'maintenance due' => '/maintenance due',
-                    'unpaid invoices' => '/invoices unpaid-this-month',
-                    'fuel this month' => '/fuel this-month',
-                ];
+                $fastPathMapping = match ($industry) {
+                    'construction' => [
+                        'active projects' => '/projects active',
+                        'delayed projects' => '/projects delayed',
+                        'safety incidents' => '/safety incidents-this-month',
+                        'low stock' => '/materials wastage-this-month',
+                    ],
+                    'quarry' => [
+                        'production today' => '/production today',
+                        'dispatch queue' => '/dispatch queue',
+                        'weighbridge queue' => '/weighbridge queue',
+                        'low stockpiles' => '/stockpile low',
+                        'safety incidents' => '/safety incidents',
+                    ],
+                    default => [
+                        'active trips' => '/trips active',
+                        'delayed trips' => '/trips delayed-today',
+                        'maintenance due' => '/maintenance due',
+                        'unpaid invoices' => '/invoices unpaid-this-month',
+                        'fuel this month' => '/fuel this-month',
+                    ],
+                };
             }
 
             $msgLower = strtolower($this->message);

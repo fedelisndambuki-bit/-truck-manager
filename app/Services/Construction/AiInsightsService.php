@@ -3,6 +3,7 @@
 namespace App\Services\Construction;
 
 use App\Models\AiInsight;
+use App\Models\AiUsageLog;
 use App\Models\Attendance;
 use App\Models\Equipment;
 use App\Models\Maintenance;
@@ -44,7 +45,7 @@ class AiInsightsService
         ]);
 
         return $insights->map(function (array $insight) use ($companyId) {
-            $insight['narrative'] = $this->narrate($insight);
+            $insight['narrative'] = $this->narrate($insight, $companyId);
 
             return AiInsight::create([
                 'company_id' => $companyId,
@@ -304,11 +305,13 @@ class AiInsightsService
      * Falls back to a templated sentence built from the facts if Ollama is
      * unreachable — the insight is always usable either way.
      */
-    protected function narrate(array $insight): string
+    protected function narrate(array $insight, ?int $companyId = null): string
     {
         $fallback = $insight['title'] . '. ' . collect($insight['facts'])
             ->map(fn ($v, $k) => str($k)->replace('_', ' ') . ': ' . (is_numeric($v) ? round($v, 2) : $v))
             ->implode(', ') . '.';
+
+        $start = microtime(true);
 
         try {
             $prompt = "You are a construction project analyst. In 1-2 concise sentences, explain this finding to a construction executive and suggest one concrete action. Finding: {$insight['title']}. Supporting data: " . json_encode($insight['facts']);
@@ -321,6 +324,14 @@ class AiInsightsService
             ]);
 
             if ($response->successful() && filled($response->json('response'))) {
+                if ($companyId) {
+                    AiUsageLog::create([
+                        'company_id' => $companyId,
+                        'tokens_used' => (int) $response->json('prompt_eval_count', 0) + (int) $response->json('eval_count', 0),
+                        'response_ms' => (int) round((microtime(true) - $start) * 1000),
+                    ]);
+                }
+
                 return trim($response->json('response'));
             }
         } catch (\Throwable $e) {
