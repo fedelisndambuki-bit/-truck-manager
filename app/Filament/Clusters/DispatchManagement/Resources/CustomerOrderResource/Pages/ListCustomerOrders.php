@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\DispatchManagement\Resources\CustomerOrderResour
 use App\Filament\Clusters\DispatchManagement\Resources\CustomerOrderResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListCustomerOrders extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListCustomerOrders extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-clipboard-document-list',
+            'title' => 'Customer Orders',
+            'subtitle' => 'Manage incoming customer orders awaiting dispatch.',
+        ]);
     }
 }
