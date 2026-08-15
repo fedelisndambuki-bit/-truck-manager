@@ -8,6 +8,10 @@ use App\Models\StockpileAdjustment;
 use App\Traits\HasModuleAccess;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists\Components\RepeatableEntry;
+use Filament\Infolists\Components\Section;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -75,6 +79,26 @@ class StockAdjustmentResource extends Resource
             ]);
     }
 
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist->schema([
+            Section::make('Adjustment Details')->schema([
+                TextEntry::make('adjustment_number')->label('Adjustment #'),
+                TextEntry::make('stockpile.label')->label('Stockpile')->placeholder('—'),
+                TextEntry::make('quantity')->suffix(' t'),
+                TextEntry::make('reason')->badge(),
+                TextEntry::make('requestedBy.full_name')->label('Requested By')->placeholder('—'),
+                TextEntry::make('status')->badge()->color(fn (string $state): string => self::getStatusColor($state)),
+            ])->columns(3),
+            Section::make('Supporting Documents')->schema([
+                RepeatableEntry::make('documents')->hiddenLabel()->schema([
+                    TextEntry::make('category')->badge(),
+                    TextEntry::make('file_path')->label('File')->formatStateUsing(fn ($state) => $state ? basename($state) : '—'),
+                ])->columns(2)->columnSpanFull(),
+            ]),
+        ]);
+    }
+
     public static function table(Table $table): Table
     {
         return $table
@@ -129,7 +153,6 @@ class StockAdjustmentResource extends Resource
         return [
             'index' => Pages\ListStockAdjustments::route('/'),
             'create' => Pages\CreateStockAdjustment::route('/create'),
-            'view' => Pages\ViewStockAdjustment::route('/{record}'),
             'edit' => Pages\EditStockAdjustment::route('/{record}/edit'),
         ];
     }

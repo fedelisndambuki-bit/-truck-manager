@@ -78,7 +78,6 @@ class QualityReleaseResource extends Resource
     {
         return [
             'index' => Pages\ListQualityReleases::route('/'),
-            'view' => Pages\ViewQualityRelease::route('/{record}'),
         ];
     }
 }

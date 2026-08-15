@@ -131,7 +131,6 @@ class NonConformanceResource extends Resource
         return [
             'index' => Pages\ListNonConformances::route('/'),
             'create' => Pages\CreateNonConformance::route('/create'),
-            'view' => Pages\ViewNonConformance::route('/{record}'),
             'edit' => Pages\EditNonConformance::route('/{record}/edit'),
         ];
     }

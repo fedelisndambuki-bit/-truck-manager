@@ -108,7 +108,6 @@ class CalibrationResource extends Resource
         return [
             'index' => Pages\ListCalibrations::route('/'),
             'create' => Pages\CreateCalibration::route('/create'),
-            'view' => Pages\ViewCalibration::route('/{record}'),
             'edit' => Pages\EditCalibration::route('/{record}/edit'),
         ];
     }

@@ -8,6 +8,9 @@ use App\Models\Maintenance;
 use App\Traits\HasModuleAccess;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists\Components\Section as InfolistSection;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -43,6 +46,30 @@ class ServiceHistoryResource extends Resource
     protected static ?string $navigationLabel = 'Service History';
 
     protected static ?int $navigationSort = 8;
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist->schema([
+            InfolistSection::make('Service Record')->schema([
+                TextEntry::make('equipment.name')->label('Equipment'),
+                TextEntry::make('maintenance_type')->label('Type')->badge(),
+                TextEntry::make('maintenance_date')->date(),
+                TextEntry::make('technician.full_name')->label('Technician')->placeholder('—'),
+                TextEntry::make('workOrder.work_order_number')->label('Work Order')->placeholder('—'),
+            ])->columns(3),
+
+            InfolistSection::make('Cost & Downtime')->schema([
+                TextEntry::make('cost')->money(session('currency', 'KES'))->placeholder('—'),
+                TextEntry::make('downtime_hours')->suffix(' hrs')->placeholder('—'),
+                TextEntry::make('warranty_covered')->label('Warranty Covered')->badge()->formatStateUsing(fn (bool $state) => $state ? 'Yes' : 'No')->color(fn (bool $state) => $state ? 'success' : 'gray'),
+            ])->columns(3),
+
+            InfolistSection::make('Details')->schema([
+                TextEntry::make('description')->columnSpanFull()->placeholder('—'),
+                TextEntry::make('recommendations')->columnSpanFull()->placeholder('—'),
+            ]),
+        ]);
+    }
 
     public static function form(Form $form): Form
     {
@@ -86,7 +113,6 @@ class ServiceHistoryResource extends Resource
     {
         return [
             'index' => Pages\ListServiceHistory::route('/'),
-            'view' => Pages\ViewServiceHistory::route('/{record}'),
             'edit' => Pages\EditServiceHistory::route('/{record}/edit'),
         ];
     }

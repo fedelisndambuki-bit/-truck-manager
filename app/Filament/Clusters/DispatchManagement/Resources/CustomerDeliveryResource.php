@@ -82,7 +82,6 @@ class CustomerDeliveryResource extends Resource
     {
         return [
             'index' => Pages\ListCustomerDeliveries::route('/'),
-            'view' => Pages\ViewCustomerDelivery::route('/{record}'),
         ];
     }
 

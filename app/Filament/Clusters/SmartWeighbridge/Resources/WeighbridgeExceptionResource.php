@@ -8,6 +8,9 @@ use App\Models\WeighbridgeException;
 use App\Traits\HasModuleAccess;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists\Components\Section;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -77,6 +80,23 @@ class WeighbridgeExceptionResource extends Resource
             ]);
     }
 
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist->schema([
+            Section::make('Exception Details')->schema([
+                TextEntry::make('exception_number')->label('Exception #'),
+                TextEntry::make('dispatchOrder.dispatch_number')->label('Dispatch #')->placeholder('—'),
+                TextEntry::make('exception_type')->badge(),
+                TextEntry::make('reason')->columnSpanFull(),
+                TextEntry::make('comments')->placeholder('—')->columnSpanFull(),
+                TextEntry::make('corrective_action')->placeholder('—')->columnSpanFull(),
+                TextEntry::make('preventive_action')->placeholder('—')->columnSpanFull(),
+                TextEntry::make('reportedBy.full_name')->label('Reported By')->placeholder('—'),
+                TextEntry::make('status')->badge()->color(fn (string $state): string => self::getStatusColor($state)),
+            ])->columns(3),
+        ]);
+    }
+
     public static function table(Table $table): Table
     {
         return $table
@@ -130,7 +150,6 @@ class WeighbridgeExceptionResource extends Resource
         return [
             'index' => Pages\ListWeighbridgeExceptions::route('/'),
             'create' => Pages\CreateWeighbridgeException::route('/create'),
-            'view' => Pages\ViewWeighbridgeException::route('/{record}'),
             'edit' => Pages\EditWeighbridgeException::route('/{record}/edit'),
         ];
     }

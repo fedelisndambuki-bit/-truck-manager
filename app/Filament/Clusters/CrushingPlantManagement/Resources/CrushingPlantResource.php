@@ -8,6 +8,9 @@ use App\Models\CrushingPlant;
 use App\Traits\HasModuleAccess;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists\Components\Section;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -74,6 +77,26 @@ class CrushingPlantResource extends Resource
             ]);
     }
 
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist->schema([
+            Section::make('Plant Details')->schema([
+                TextEntry::make('plant_code')->label('Plant Code')->placeholder('—'),
+                TextEntry::make('name')->label('Plant Name'),
+                TextEntry::make('extractionSite.name')->label('Quarry'),
+                TextEntry::make('location')->placeholder('—'),
+                TextEntry::make('status')->badge()->color(fn (string $state): string => self::getStatusColor($state)),
+                TextEntry::make('capacity_tph')->label('Rated Capacity')->suffix(' t/h')->placeholder('—'),
+                TextEntry::make('manufacturer')->placeholder('—'),
+                TextEntry::make('model')->placeholder('—'),
+                TextEntry::make('serial_number')->placeholder('—'),
+                TextEntry::make('commission_date')->date()->placeholder('—'),
+                TextEntry::make('supervisor.full_name')->label('Supervisor')->placeholder('—'),
+                TextEntry::make('operator.full_name')->label('Operator')->placeholder('—'),
+            ])->columns(3),
+        ]);
+    }
+
     public static function table(Table $table): Table
     {
         return $table
@@ -115,7 +138,6 @@ class CrushingPlantResource extends Resource
         return [
             'index' => Pages\ListCrushingPlants::route('/'),
             'create' => Pages\CreateCrushingPlant::route('/create'),
-            'view' => Pages\ViewCrushingPlant::route('/{record}'),
             'edit' => Pages\EditCrushingPlant::route('/{record}/edit'),
         ];
     }

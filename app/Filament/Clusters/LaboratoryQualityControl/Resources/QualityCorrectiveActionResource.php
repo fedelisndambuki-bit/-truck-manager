@@ -126,7 +126,6 @@ class QualityCorrectiveActionResource extends Resource
         return [
             'index' => Pages\ListQualityCorrectiveActions::route('/'),
             'create' => Pages\CreateQualityCorrectiveAction::route('/create'),
-            'view' => Pages\ViewQualityCorrectiveAction::route('/{record}'),
             'edit' => Pages\EditQualityCorrectiveAction::route('/{record}/edit'),
         ];
     }

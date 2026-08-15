@@ -104,7 +104,6 @@ class TestMethodResource extends Resource
         return [
             'index' => Pages\ListTestMethods::route('/'),
             'create' => Pages\CreateTestMethod::route('/create'),
-            'view' => Pages\ViewTestMethod::route('/{record}'),
             'edit' => Pages\EditTestMethod::route('/{record}/edit'),
         ];
     }

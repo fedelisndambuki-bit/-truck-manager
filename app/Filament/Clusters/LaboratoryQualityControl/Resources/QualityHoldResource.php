@@ -122,7 +122,6 @@ class QualityHoldResource extends Resource
         return [
             'index' => Pages\ListQualityHolds::route('/'),
             'create' => Pages\CreateQualityHold::route('/create'),
-            'view' => Pages\ViewQualityHold::route('/{record}'),
         ];
     }
 }

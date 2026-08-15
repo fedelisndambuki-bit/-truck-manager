@@ -97,7 +97,6 @@ class CustomerQualityRequirementResource extends Resource
         return [
             'index' => Pages\ListCustomerQualityRequirements::route('/'),
             'create' => Pages\CreateCustomerQualityRequirement::route('/create'),
-            'view' => Pages\ViewCustomerQualityRequirement::route('/{record}'),
             'edit' => Pages\EditCustomerQualityRequirement::route('/{record}/edit'),
         ];
     }

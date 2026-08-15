@@ -121,7 +121,6 @@ class DeliveryTrackingResource extends Resource
     {
         return [
             'index' => Pages\ListDeliveryTrackings::route('/'),
-            'view' => Pages\ViewDeliveryTracking::route('/{record}'),
         ];
     }
 

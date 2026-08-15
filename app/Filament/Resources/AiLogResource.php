@@ -66,7 +66,6 @@ class AiLogResource extends Resource
     {
         return [
             'index' => Pages\ListAiLogs::route('/'),
-            'view' => Pages\ViewAiLog::route('/{record}'),
         ];
     }
 }

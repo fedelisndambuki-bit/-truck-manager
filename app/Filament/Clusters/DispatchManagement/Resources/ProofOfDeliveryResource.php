@@ -119,7 +119,6 @@ class ProofOfDeliveryResource extends Resource
         return [
             'index' => Pages\ListProofOfDeliveries::route('/'),
             'create' => Pages\CreateProofOfDelivery::route('/create'),
-            'view' => Pages\ViewProofOfDelivery::route('/{record}'),
             'edit' => Pages\EditProofOfDelivery::route('/{record}/edit'),
         ];
     }

@@ -150,7 +150,6 @@ class LabTestResource extends Resource
         return [
             'index' => Pages\ListLabTests::route('/'),
             'create' => Pages\CreateLabTest::route('/create'),
-            'view' => Pages\ViewLabTest::route('/{record}'),
             'edit' => Pages\EditLabTest::route('/{record}/edit'),
         ];
     }

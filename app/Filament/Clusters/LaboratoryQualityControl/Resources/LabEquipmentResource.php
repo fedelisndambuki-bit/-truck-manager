@@ -109,7 +109,6 @@ class LabEquipmentResource extends Resource
         return [
             'index' => Pages\ListLabEquipment::route('/'),
             'create' => Pages\CreateLabEquipment::route('/create'),
-            'view' => Pages\ViewLabEquipment::route('/{record}'),
             'edit' => Pages\EditLabEquipment::route('/{record}/edit'),
         ];
     }

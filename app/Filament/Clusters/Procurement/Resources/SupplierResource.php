@@ -9,6 +9,9 @@ use App\Models\Supplier;
 use App\Traits\HasModuleAccess;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists\Components\Section as InfolistSection;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -107,6 +110,36 @@ class SupplierResource extends Resource
         ];
     }
 
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist->schema([
+            InfolistSection::make('Profile')->schema([
+                TextEntry::make('supplier_number')->label('Supplier #'),
+                TextEntry::make('company_name'),
+                TextEntry::make('category')->badge()->placeholder('—'),
+                TextEntry::make('contact_person')->placeholder('—'),
+                TextEntry::make('phone')->placeholder('—'),
+                TextEntry::make('email')->placeholder('—'),
+                TextEntry::make('status')->badge()->color(fn (string $state): string => self::getStatusColor($state)),
+            ])->columns(4),
+
+            InfolistSection::make('Performance & Risk')->schema([
+                TextEntry::make('performance_rating')->suffix(' / 5')->placeholder('—'),
+                TextEntry::make('delivery_performance_rating')->suffix(' / 5')->placeholder('—'),
+                TextEntry::make('quality_rating')->suffix(' / 5')->placeholder('—'),
+                TextEntry::make('risk_rating')->badge()->color(fn (string $state): string => self::getRiskColor($state)),
+            ])->columns(4),
+
+            InfolistSection::make('Financial & Compliance')->schema([
+                TextEntry::make('credit_limit')->money(session('currency', 'KES'))->placeholder('—'),
+                TextEntry::make('payment_terms')->placeholder('—'),
+                TextEntry::make('contract_start_date')->date()->placeholder('—'),
+                TextEntry::make('contract_end_date')->date()->placeholder('—'),
+                TextEntry::make('insurance_expiry')->date()->placeholder('—'),
+            ])->columns(4),
+        ]);
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -167,7 +200,6 @@ class SupplierResource extends Resource
             'index' => Pages\ListSuppliers::route('/'),
             'create' => Pages\CreateSupplier::route('/create'),
             'edit' => Pages\EditSupplier::route('/{record}/edit'),
-            'view' => Pages\ViewSupplier::route('/{record}'),
         ];
     }
 }

@@ -7,6 +7,9 @@ use App\Models\WeighbridgeTicket;
 use App\Traits\HasModuleAccess;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists\Components\Section as InfolistSection;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -51,6 +54,30 @@ class WeighbridgeTicketResource extends Resource
             'Rejected' => 'danger',
             default => 'gray',
         };
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist->schema([
+            InfolistSection::make('Ticket Details')->schema([
+                TextEntry::make('ticket_number')->label('Ticket #'),
+                TextEntry::make('extractionSite.name')->label('Site'),
+                TextEntry::make('direction')->badge(),
+                TextEntry::make('status')->badge()->color(fn (string $state): string => self::getStatusColor($state)),
+                TextEntry::make('vehicle_registration')->label('Vehicle')->placeholder('—'),
+                TextEntry::make('driver_name')->label('Driver')->placeholder('—'),
+                TextEntry::make('customer.company_name')->label('Customer')->placeholder('—'),
+                TextEntry::make('material.name')->label('Material')->placeholder('—'),
+            ])->columns(2),
+            InfolistSection::make('Weighing')->schema([
+                TextEntry::make('gross_weight')->suffix(' kg')->placeholder('—'),
+                TextEntry::make('tare_weight')->suffix(' kg')->placeholder('—'),
+                TextEntry::make('net_weight')->suffix(' kg')->placeholder('—'),
+                TextEntry::make('gate_in_at')->dateTime()->placeholder('—'),
+                TextEntry::make('gate_out_at')->dateTime()->placeholder('—'),
+                TextEntry::make('operator.full_name')->label('Operator')->placeholder('—'),
+            ])->columns(3),
+        ]);
     }
 
     public static function form(Form $form): Form
@@ -137,7 +164,6 @@ class WeighbridgeTicketResource extends Resource
         return [
             'index' => Pages\ListWeighbridgeTickets::route('/'),
             'create' => Pages\CreateWeighbridgeTicket::route('/create'),
-            'view' => Pages\ViewWeighbridgeTicket::route('/{record}'),
             'edit' => Pages\EditWeighbridgeTicket::route('/{record}/edit'),
         ];
     }

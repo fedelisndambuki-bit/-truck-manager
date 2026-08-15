@@ -88,7 +88,6 @@ class CertificateRegisterResource extends Resource
     {
         return [
             'index' => Pages\ListCertificateRegister::route('/'),
-            'view' => Pages\ViewCertificateRegister::route('/{record}'),
         ];
     }
 }

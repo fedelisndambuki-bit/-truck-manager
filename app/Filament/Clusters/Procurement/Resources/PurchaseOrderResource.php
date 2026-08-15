@@ -6,8 +6,12 @@ use App\Filament\Clusters\Procurement;
 use App\Filament\Clusters\Procurement\Resources\PurchaseOrderResource\Pages;
 use App\Models\PurchaseOrder;
 use App\Traits\HasModuleAccess;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists\Components\Section as InfolistSection;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -44,6 +48,35 @@ class PurchaseOrderResource extends Resource
         return match ($status) {
             'Approved' => 'success', 'Rejected' => 'danger', 'Pending' => 'warning', default => 'gray',
         };
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist->schema([
+            InfolistSection::make('Purchase Order')->schema([
+                TextEntry::make('po_number')->label('PO #'),
+                TextEntry::make('supplier.company_name')->label('Supplier'),
+                TextEntry::make('status')->badge()->color(fn (string $state): string => self::getStatusColor($state)),
+                TextEntry::make('total_amount')->money(fn ($record) => $record->currency ?: 'KES'),
+                TextEntry::make('expected_delivery')->date()->placeholder('—'),
+                TextEntry::make('payment_terms')->placeholder('—'),
+            ])->columns(3),
+        ]);
+    }
+
+    protected static function streamPurchaseOrderPdf(PurchaseOrder $record)
+    {
+        $record->load(['supplier', 'items.material']);
+
+        $pdf = Pdf::loadView('reports.purchase-order', [
+            'title' => 'Purchase Order — ' . $record->po_number,
+            'date' => now()->format('d M Y'),
+            'order' => $record,
+        ]);
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->stream();
+        }, 'purchase-order-' . $record->po_number . '.pdf');
     }
 
     public static function form(Form $form): Form
@@ -123,6 +156,11 @@ class PurchaseOrderResource extends Resource
                     ->color('gray')
                     ->visible(fn (PurchaseOrder $record) => $record->currentApproval() !== null)
                     ->url(fn (PurchaseOrder $record) => \App\Filament\Clusters\WorkflowApprovals\Resources\ApprovalRequestResource\Pages\ViewApprovalRequest::getUrl(['record' => $record->currentApproval()])),
+                Tables\Actions\Action::make('printPo')
+                    ->label('Print PO')
+                    ->icon('heroicon-o-printer')
+                    ->color('gray')
+                    ->action(fn (PurchaseOrder $record) => static::streamPurchaseOrderPdf($record)),
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])
@@ -141,7 +179,6 @@ class PurchaseOrderResource extends Resource
             'index' => Pages\ListPurchaseOrders::route('/'),
             'create' => Pages\CreatePurchaseOrder::route('/create'),
             'edit' => Pages\EditPurchaseOrder::route('/{record}/edit'),
-            'view' => Pages\ViewPurchaseOrder::route('/{record}'),
         ];
     }
 }

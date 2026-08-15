@@ -86,7 +86,6 @@ class QualityStandardResource extends Resource
         return [
             'index' => Pages\ListQualityStandards::route('/'),
             'create' => Pages\CreateQualityStandard::route('/create'),
-            'view' => Pages\ViewQualityStandard::route('/{record}'),
             'edit' => Pages\EditQualityStandard::route('/{record}/edit'),
         ];
     }

@@ -139,7 +139,6 @@ class DispatchOrderResource extends Resource
         return [
             'index' => Pages\ListDispatchOrders::route('/'),
             'create' => Pages\CreateDispatchOrder::route('/create'),
-            'view' => Pages\ViewDispatchOrder::route('/{record}'),
             'edit' => Pages\EditDispatchOrder::route('/{record}/edit'),
         ];
     }

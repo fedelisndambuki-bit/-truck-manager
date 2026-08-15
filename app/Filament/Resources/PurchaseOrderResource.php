@@ -5,8 +5,13 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\PurchaseOrderResource\Pages;
 use App\Models\PurchaseOrder;
 use App\Traits\HasModuleAccess;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Infolists\Components\RepeatableEntry;
+use Filament\Infolists\Components\Section as InfolistSection;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -105,6 +110,37 @@ class PurchaseOrderResource extends Resource
         ];
     }
 
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist->schema([
+            InfolistSection::make('Overview')->schema([
+                TextEntry::make('approval_status')->label('Status')->badge()->color(fn (string $state): string => self::getStatusColor($state)),
+                TextEntry::make('subtotal')->money(fn (PurchaseOrder $record): string => $record->currency),
+                TextEntry::make('tax_amount')->label('Tax')->money(fn (PurchaseOrder $record): string => $record->currency),
+                TextEntry::make('discount_amount')->label('Discount')->money(fn (PurchaseOrder $record): string => $record->currency),
+                TextEntry::make('total_amount')->label('Total')->money(fn (PurchaseOrder $record): string => $record->currency),
+            ])->columns(3),
+            InfolistSection::make('Line Items')->schema([
+                RepeatableEntry::make('items')->hiddenLabel()->schema([
+                    TextEntry::make('material.name')->label('Material'),
+                    TextEntry::make('quantity')->numeric(2),
+                    TextEntry::make('unit_price')->numeric(2),
+                    TextEntry::make('total')->numeric(2),
+                ])->columns(4),
+            ]),
+            InfolistSection::make('Delivery')->schema([
+                TextEntry::make('delivery_address')->label('Address')->placeholder('—'),
+                TextEntry::make('expected_delivery')->date()->placeholder('—'),
+                TextEntry::make('payment_terms')->placeholder('—'),
+            ])->columns(3),
+            InfolistSection::make('Supplier')->schema([
+                TextEntry::make('supplier.company_name')->label('Company'),
+                TextEntry::make('supplier.contact_person')->label('Contact')->placeholder('—'),
+                TextEntry::make('supplier.phone')->label('Phone')->placeholder('—'),
+            ])->columns(3),
+        ]);
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -144,6 +180,23 @@ class PurchaseOrderResource extends Resource
                         && (Auth::user()?->hasRole('Super Admin') || Auth::user()?->can('materials.approve'))),
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('printPo')
+                    ->label('Print PO')
+                    ->icon('heroicon-o-printer')
+                    ->color('gray')
+                    ->action(function (PurchaseOrder $record) {
+                        $record = $record->load(['supplier', 'items.material']);
+
+                        $pdf = Pdf::loadView('reports.purchase-order', [
+                            'title' => 'Purchase Order — ' . $record->po_number,
+                            'date' => now()->format('d M Y'),
+                            'order' => $record,
+                        ]);
+
+                        return response()->streamDownload(function () use ($pdf) {
+                            echo $pdf->stream();
+                        }, 'purchase-order-' . $record->po_number . '.pdf');
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -160,7 +213,6 @@ class PurchaseOrderResource extends Resource
             'index' => Pages\ListPurchaseOrders::route('/'),
             'create' => Pages\CreatePurchaseOrder::route('/create'),
             'edit' => Pages\EditPurchaseOrder::route('/{record}/edit'),
-            'view' => Pages\ViewPurchaseOrder::route('/{record}'),
         ];
     }
 }

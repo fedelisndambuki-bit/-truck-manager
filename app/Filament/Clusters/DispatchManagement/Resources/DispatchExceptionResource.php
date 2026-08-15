@@ -144,7 +144,6 @@ class DispatchExceptionResource extends Resource
         return [
             'index' => Pages\ListDispatchExceptions::route('/'),
             'create' => Pages\CreateDispatchException::route('/create'),
-            'view' => Pages\ViewDispatchException::route('/{record}'),
             'edit' => Pages\EditDispatchException::route('/{record}/edit'),
         ];
     }
