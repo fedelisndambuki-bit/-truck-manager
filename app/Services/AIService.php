@@ -19,6 +19,24 @@ class AIService
 {
     private const TIMEOUT = 45;
 
+    /**
+     * Send an arbitrary custom prompt straight to the model with no context
+     * building/logging beyond the same Ollama usage tracking every other
+     * call gets — for callers (e.g. TyreManagement's smart insights card)
+     * that already assemble their own prompt/data and just want raw text
+     * back, matching the old App\AI\AIService::ask() signature/shape.
+     */
+    public function askRaw(string $prompt, ?int $companyId = null): string
+    {
+        try {
+            return $this->callOllama($prompt, false, $companyId);
+        } catch (\Throwable $e) {
+            Log::info('AIService::askRaw: Ollama unavailable.', ['error' => $e->getMessage()]);
+
+            return 'AI unavailable.';
+        }
+    }
+
     public function processRequest(int $companyId, int $userId, string $question): array
     {
         $startTime = microtime(true);

@@ -17,7 +17,7 @@ use Filament\Forms\Components\Textarea;
 use App\Models\TyreInspection;
 use App\Models\TyreRepair;
 
-use App\AI\AIService;
+use App\Services\AIService;
 use App\Traits\HasIndustryAccess;
 
 class TyreManagement extends Page
@@ -58,7 +58,7 @@ class TyreManagement extends Page
         
         Data: " . $tyreData;
 
-        return AIService::ask($prompt);
+        return app(AIService::class)->askRaw($prompt, auth()->user()?->company_id);
     }
 
     protected function getHeaderActions(): array
