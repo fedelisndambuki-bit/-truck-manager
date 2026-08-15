@@ -10,8 +10,6 @@ class ListRetentionEntries extends ListRecords
 {
     protected static string $resource = RetentionResource::class;
 
-    protected static string $view = 'filament.clusters.project-finance.resources.retention-resource.pages.list-retention-entries';
-
     protected function getHeaderActions(): array
     {
         return [Actions\CreateAction::make()];

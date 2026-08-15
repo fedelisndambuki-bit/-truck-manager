@@ -10,8 +10,6 @@ class ListScopeOfWorks extends ListRecords
 {
     protected static string $resource = ScopeOfWorkResource::class;
 
-    protected static string $view = 'filament.resources.scope-of-work-resource.pages.list-scope-of-works';
-
     protected function getHeaderActions(): array
     {
         return [

@@ -54,11 +54,12 @@ class ClientResource extends Resource
                 Tables\Columns\TextColumn::make('company_name')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('contact_person')->searchable(),
                 Tables\Columns\TextColumn::make('phone')->searchable(),
+                Tables\Columns\TextColumn::make('email')->searchable(),
+                Tables\Columns\TextColumn::make('billing_terms'),
                 Tables\Columns\TextColumn::make('status')->badge()->color(fn (string $state): string => match ($state) {
                     'Active' => 'success',
                     'Inactive' => 'danger',
                 }),
-                Tables\Columns\TextColumn::make('billing_terms'),
             ])
             ->filters([
                 //

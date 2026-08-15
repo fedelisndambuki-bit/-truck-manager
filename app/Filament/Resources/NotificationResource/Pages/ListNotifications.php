@@ -10,8 +10,6 @@ class ListNotifications extends ListRecords
 {
     protected static string $resource = NotificationResource::class;
 
-    protected static string $view = 'filament.resources.notification-resource.pages.list-notifications';
-
     protected function getHeaderActions(): array
     {
         return [

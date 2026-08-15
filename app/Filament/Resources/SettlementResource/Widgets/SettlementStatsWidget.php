@@ -9,8 +9,6 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class SettlementStatsWidget extends BaseWidget
 {
-    protected static string $view = 'filament.widgets.settlement-stats-widget'; // Custom view
-
     protected int | string | array $columnSpan = 'full';
 
     protected function getStats(): array
@@ -27,7 +25,7 @@ class SettlementStatsWidget extends BaseWidget
                 session('currency', 'KES') . ' ' . number_format($totalEarned, 2)
             )->description(
                 Settlement::count().' settlements total'
-            )->icon('fa-solid fa-wallet') // Font Awesome icon
+            )->icon('heroicon-o-wallet')
                 ->color(Color::Blue), // Using a color for consistency
 
             Stat::make(
@@ -35,7 +33,7 @@ class SettlementStatsWidget extends BaseWidget
                 session('currency', 'KES') . ' ' . number_format($thisMonth, 2)
             )->description(
                 Settlement::whereMonth('settlement_date', now()->month)->count().' settlements processed'
-            )->icon('fa-solid fa-calendar-alt') // Font Awesome icon
+            )->icon('heroicon-o-calendar')
                 ->color(Color::Blue),
 
             Stat::make(
@@ -43,7 +41,7 @@ class SettlementStatsWidget extends BaseWidget
                 session('currency', 'KES') . ' ' . number_format($pendingPayment, 2)
             )->description(
                 'All pending payments'
-            )->icon('fa-solid fa-hourglass-half') // Font Awesome icon
+            )->icon('heroicon-o-clock')
                 ->color(Color::Blue),
 
             Stat::make(
@@ -51,7 +49,7 @@ class SettlementStatsWidget extends BaseWidget
                 session('currency', 'KES') . ' ' . number_format($averageWeekly ?? 0, 2)
             )->description(
                 'Based on last 5 weeks'
-            )->icon('fa-solid fa-chart-line') // Font Awesome icon
+            )->icon('heroicon-o-chart-bar')
                 ->color(Color::Blue),
         ];
     }

@@ -10,8 +10,6 @@ class ListPhysicalStockCounts extends ListRecords
 {
     protected static string $resource = PhysicalStockCountResource::class;
 
-    protected static string $view = 'filament.resources.physical-stock-count-resource.pages.list-physical-stock-counts';
-
     protected function getHeaderActions(): array
     {
         return [

@@ -1,14 +1,5 @@
 <x-filament-panels::page>
-    <x-slot name="heading"></x-slot>
-    <x-slot name="subheading"></x-slot>
-    <x-slot name="header"></x-slot>
-
     <style>
-        .page-header-custom{background-color:#2f4f4f;padding:25px 35px;color:#fff;border-radius:10px;margin-bottom:20px}
-        .page-header-content{display:flex;align-items:center;gap:12px}
-        .page-header-icon{background:rgba(255,255,255,.15);padding:10px;border-radius:8px;display:flex;align-items:center;justify-content:center}
-        .page-header-custom h1{font-size:24px;font-weight:600;margin-bottom:4px}
-        .page-header-custom p{font-size:13px;opacity:.85;font-weight:400}
         .chat-wrap{background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08)}
         .chat-top{background:#2f4f4f;color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
         .chat-title{font-size:15px;font-weight:600;color:#f9fafb;display:flex;align-items:center;gap:8px}
@@ -30,18 +21,6 @@
         .emoji-panel{display:none;max-height:180px;overflow:auto;border:1px solid #d1d5db;border-radius:8px;padding:8px;background:#fff;margin-top:8px}
         .emoji-btn{border:0;background:transparent;font-size:18px;cursor:pointer;line-height:1.2;padding:3px}
     </style>
-
-    <div class="page-header-custom">
-        <div class="page-header-content">
-            <div class="page-header-icon">
-                <x-heroicon-o-chat-bubble-left-right style="width:20px;height:20px;" />
-            </div>
-            <div>
-                <h1>Chat</h1>
-                <p>Direct conversation between company and drivers</p>
-            </div>
-        </div>
-    </div>
 
     <div class="chat-wrap" wire:poll.2s>
         @php $messages = $this->getChatMessages(); @endphp

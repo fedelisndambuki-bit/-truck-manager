@@ -37,8 +37,6 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
 
-use App\Filament\Resources\InvoiceResource\Widgets\InvoiceHeaderWidget;
-use App\Filament\Resources\InvoiceResource\Widgets\InvoiceFilterWidget;
 
 use App\Traits\HasModuleAccess;
 
@@ -195,6 +193,10 @@ class InvoiceResource extends Resource
                     ->weight(\Filament\Support\Enums\FontWeight::Bold)
                     ->copyable()
                     ->copyMessage('Invoice number copied'),
+                TextColumn::make('invoice_date')
+                    ->label('Date')
+                    ->date()
+                    ->sortable(),
                 TextColumn::make('client.company_name')
                     ->searchable()
                     ->sortable(),
@@ -202,6 +204,9 @@ class InvoiceResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->placeholder('-'),
+                TextColumn::make('route_from')
+                    ->label('Route')
+                    ->formatStateUsing(fn ($record) => "{$record->route_from} → {$record->route_to}"),
                 TextColumn::make('total_amount')
                     ->money(session('currency', 'KES'))
                     ->sortable(),
@@ -233,6 +238,13 @@ class InvoiceResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
+                Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('downloadPdf')
+                    ->label('Download PDF')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('gray')
+                    ->url(fn (Invoice $record): string => route('invoices.pdf', ['invoice' => $record->id]))
+                    ->openUrlInNewTab(),
                 Tables\Actions\Action::make('email')
                     ->label('Email Invoice')
                     ->icon('heroicon-o-envelope')
@@ -271,14 +283,6 @@ class InvoiceResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])->striped();
-    }
-
-    public static function getWidgets(): array
-    {
-        return [
-            InvoiceHeaderWidget::class, // Added
-            InvoiceFilterWidget::class, // Added
-        ];
     }
 
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder

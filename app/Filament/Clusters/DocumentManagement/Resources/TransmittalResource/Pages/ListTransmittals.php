@@ -10,8 +10,6 @@ class ListTransmittals extends ListRecords
 {
     protected static string $resource = TransmittalResource::class;
 
-    protected static string $view = 'filament.clusters.document-management.resources.transmittal-resource.pages.list-transmittals';
-
     protected function getHeaderActions(): array
     {
         return [Actions\CreateAction::make()];

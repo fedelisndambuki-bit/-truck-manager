@@ -10,8 +10,6 @@ class ListTrucks extends ListRecords
 {
     protected static string $resource = TruckResource::class;
 
-    protected static string $view = 'filament.resources.truck-resource.pages.list-trucks';
-
     protected function getHeaderActions(): array
     {
         return [

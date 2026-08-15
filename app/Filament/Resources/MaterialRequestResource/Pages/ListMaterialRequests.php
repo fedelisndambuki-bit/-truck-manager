@@ -10,8 +10,6 @@ class ListMaterialRequests extends ListRecords
 {
     protected static string $resource = MaterialRequestResource::class;
 
-    protected static string $view = 'filament.resources.material-request-resource.pages.list-material-requests';
-
     protected function getHeaderActions(): array
     {
         return [

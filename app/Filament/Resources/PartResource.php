@@ -75,12 +75,14 @@ class PartResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('part_number')->searchable(),
-                Tables\Columns\TextColumn::make('category')->badge(),
-                Tables\Columns\TextColumn::make('unit_price')->money(),
-                Tables\Columns\TextColumn::make('stock_quantity')
+                Tables\Columns\TextColumn::make('category')->badge()->color('info'),
+                Tables\Columns\TextColumn::make('unit_price')->label('Price')->money(session('currency', 'KES')),
+                Tables\Columns\TextColumn::make('stock_quantity')->label('In Stock'),
+                Tables\Columns\TextColumn::make('stock_status')
+                    ->label('Status')
+                    ->state(fn ($record) => $record->stock_quantity <= $record->reorder_level ? 'Low Stock' : 'Sufficient')
                     ->badge()
-                    ->color(fn ($record) => $record->stock_quantity <= $record->reorder_level ? 'danger' : 'success')
-                    ->label('In Stock'),
+                    ->color(fn ($record) => $record->stock_quantity <= $record->reorder_level ? 'danger' : 'success'),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('category')->options([

@@ -55,6 +55,9 @@ class CargoResource extends Resource
                 Tables\Columns\TextColumn::make('description')->searchable(),
                 Tables\Columns\TextColumn::make('cargo_type')->searchable(),
                 Tables\Columns\TextColumn::make('weight')->suffix(' Tons'),
+                Tables\Columns\TextColumn::make('value')->label('Value')
+                    ->money(session('currency', 'KES'))
+                    ->color(fn ($state) => $state >= 0 ? 'success' : 'danger'),
             ])
             ->filters([
                 //

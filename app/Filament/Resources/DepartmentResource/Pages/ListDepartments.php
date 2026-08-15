@@ -10,8 +10,6 @@ class ListDepartments extends ListRecords
 {
     protected static string $resource = DepartmentResource::class;
 
-    protected static string $view = 'filament.resources.department-resource.pages.list-departments';
-
     protected function getHeaderActions(): array
     {
         return [

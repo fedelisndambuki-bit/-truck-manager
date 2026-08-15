@@ -10,8 +10,6 @@ class ListPayrollPeriods extends ListRecords
 {
     protected static string $resource = PayrollPeriodResource::class;
 
-    protected static string $view = 'filament.resources.payroll-period-resource.pages.list-payroll-periods';
-
     protected function getHeaderActions(): array
     {
         return [

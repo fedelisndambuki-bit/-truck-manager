@@ -10,8 +10,6 @@ class ListCargos extends ListRecords
 {
     protected static string $resource = CargoResource::class;
 
-    protected static string $view = 'filament.resources.cargo-resource.pages.list-cargos';
-
     protected function getHeaderActions(): array
     {
         return [

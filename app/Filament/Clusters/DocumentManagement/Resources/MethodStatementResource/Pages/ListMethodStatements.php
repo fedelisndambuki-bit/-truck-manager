@@ -10,8 +10,6 @@ class ListMethodStatements extends ListRecords
 {
     protected static string $resource = MethodStatementResource::class;
 
-    protected static string $view = 'filament.clusters.document-management.resources.method-statement-resource.pages.list-method-statements';
-
     protected function getHeaderActions(): array
     {
         return [Actions\CreateAction::make()];

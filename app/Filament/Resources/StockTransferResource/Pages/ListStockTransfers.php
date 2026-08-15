@@ -10,8 +10,6 @@ class ListStockTransfers extends ListRecords
 {
     protected static string $resource = StockTransferResource::class;
 
-    protected static string $view = 'filament.resources.stock-transfer-resource.pages.list-stock-transfers';
-
     protected function getHeaderActions(): array
     {
         return [

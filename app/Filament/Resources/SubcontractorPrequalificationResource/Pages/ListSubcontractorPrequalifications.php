@@ -10,8 +10,6 @@ class ListSubcontractorPrequalifications extends ListRecords
 {
     protected static string $resource = SubcontractorPrequalificationResource::class;
 
-    protected static string $view = 'filament.resources.subcontractor-prequalification-resource.pages.list-subcontractor-prequalifications';
-
     protected function getHeaderActions(): array
     {
         return [

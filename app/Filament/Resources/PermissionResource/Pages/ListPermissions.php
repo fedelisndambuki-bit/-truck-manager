@@ -10,8 +10,6 @@ class ListPermissions extends ListRecords
 {
     protected static string $resource = PermissionResource::class;
 
-    protected static string $view = 'filament.resources.permission-resource.pages.list-permissions';
-
     protected function getHeaderActions(): array
     {
         return [

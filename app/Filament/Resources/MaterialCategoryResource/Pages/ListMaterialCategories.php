@@ -10,8 +10,6 @@ class ListMaterialCategories extends ListRecords
 {
     protected static string $resource = MaterialCategoryResource::class;
 
-    protected static string $view = 'filament.resources.material-category-resource.pages.list-material-categories';
-
     protected function getHeaderActions(): array
     {
         return [

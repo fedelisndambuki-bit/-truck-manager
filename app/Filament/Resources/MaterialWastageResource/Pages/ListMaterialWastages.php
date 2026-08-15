@@ -10,8 +10,6 @@ class ListMaterialWastages extends ListRecords
 {
     protected static string $resource = MaterialWastageResource::class;
 
-    protected static string $view = 'filament.resources.material-wastage-resource.pages.list-material-wastages';
-
     protected function getHeaderActions(): array
     {
         return [

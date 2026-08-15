@@ -43,17 +43,23 @@ class AiLogResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->columns([
-            Tables\Columns\TextColumn::make('user.name')->label('User')->sortable(),
-            Tables\Columns\TextColumn::make('question')->limit(60)->searchable(),
+            Tables\Columns\TextColumn::make('id')
+                ->label('Log ID')
+                ->formatStateUsing(fn ($state) => '#' . $state)
+                ->sortable(),
+            Tables\Columns\TextColumn::make('user.name')->label('User')->placeholder('System')->sortable(),
+            Tables\Columns\TextColumn::make('question')->limit(80)->searchable(),
             Tables\Columns\BadgeColumn::make('status')->colors([
                 'success' => 'success',
                 'error' => 'danger',
             ]),
-            Tables\Columns\TextColumn::make('response_time_ms')->label('ms')->sortable(),
+            Tables\Columns\TextColumn::make('response_time_ms')->label('Response (ms)')->placeholder('—')->sortable(),
             Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable(),
         ])->filters([])->actions([
             Tables\Actions\ViewAction::make(),
-        ]);
+            Tables\Actions\DeleteAction::make(),
+        ])
+        ->striped();
     }
 
     public static function getPages(): array

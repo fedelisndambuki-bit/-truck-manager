@@ -10,8 +10,6 @@ class ListExpenses extends ListRecords
 {
     protected static string $resource = ExpenseResource::class;
 
-    protected static string $view = 'filament.resources.expense-resource.pages.list-expenses';
-
     public function deleteTableRecord(string $record): void
     {
         $this->getModel()::findOrFail($record)->delete();

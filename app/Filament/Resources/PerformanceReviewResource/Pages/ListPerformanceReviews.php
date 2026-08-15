@@ -10,8 +10,6 @@ class ListPerformanceReviews extends ListRecords
 {
     protected static string $resource = PerformanceReviewResource::class;
 
-    protected static string $view = 'filament.resources.performance-review-resource.pages.list-performance-reviews';
-
     protected function getHeaderActions(): array
     {
         return [

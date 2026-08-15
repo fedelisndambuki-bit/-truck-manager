@@ -91,6 +91,9 @@ class FuelLogResource extends Resource
                 Tables\Filters\SelectFilter::make('truck_id')
                     ->relationship('truck', 'plate_number')
                     ->label('Filter by Truck'),
+            ])
+            ->actions([
+                Tables\Actions\EditAction::make(),
             ])->striped();
     }
 

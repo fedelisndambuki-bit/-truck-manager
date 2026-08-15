@@ -126,6 +126,8 @@ class TruckResource extends Resource
                 'In Transit' => 'In Transit',
                 'Under Maintenance' => 'Under Maintenance',
             ]),
+        ])->actions([
+            Tables\Actions\EditAction::make(),
         ])->striped();
     }
 

@@ -145,6 +145,8 @@ class TripResource extends Resource
             Tables\Columns\TextColumn::make('truck.plate_number')->sortable(),
             Tables\Columns\TextColumn::make('client.company_name')->label('Client')->searchable(),
             Tables\Columns\TextColumn::make('route_name')->description(fn ($record) => "$record->origin → $record->destination"),
+            Tables\Columns\TextColumn::make('departure_time')->label('Departure')->dateTime('M d, Y H:i')->sortable(),
+            Tables\Columns\TextColumn::make('expected_arrival')->label('Expected Arrival')->dateTime('M d, Y H:i')->sortable(),
             Tables\Columns\TextColumn::make('assignment.decline_reason')
                 ->label('Decline Reason')
                 ->wrap()

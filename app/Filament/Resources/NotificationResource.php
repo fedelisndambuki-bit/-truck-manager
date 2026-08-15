@@ -70,10 +70,12 @@ class NotificationResource extends Resource
     {
         return $table->columns([
             Tables\Columns\TextColumn::make('title')->searchable()->limit(50),
+            Tables\Columns\TextColumn::make('is_active')
+                ->label('Status')
+                ->badge()
+                ->formatStateUsing(fn (bool $state): string => $state ? 'Active' : 'Inactive')
+                ->color(fn (bool $state): string => $state ? 'success' : 'danger'),
             Tables\Columns\TextColumn::make('created_at')->label('Sent On')->dateTime()->sortable(),
-            Tables\Columns\IconColumn::make('is_active')
-                ->label('Active')
-                ->boolean(),
             Tables\Columns\TextColumn::make('expires_at')
                 ->label('Expires')
                 ->dateTime()
@@ -90,7 +92,8 @@ class NotificationResource extends Resource
             Tables\Actions\BulkActionGroup::make([
                 Tables\Actions\DeleteBulkAction::make(),
             ]),
-        ]);
+        ])
+        ->striped();
     }
 
     public static function getPages(): array

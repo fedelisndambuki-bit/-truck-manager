@@ -10,8 +10,6 @@ class ListFuelLogs extends ListRecords
 {
     protected static string $resource = FuelLogResource::class;
 
-    protected static string $view = 'filament.resources.fuel-log-resource.pages.list-fuel-logs';
-
     protected function getHeaderActions(): array
     {
         return [

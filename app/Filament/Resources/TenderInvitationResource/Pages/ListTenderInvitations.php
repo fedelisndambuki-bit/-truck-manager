@@ -10,8 +10,6 @@ class ListTenderInvitations extends ListRecords
 {
     protected static string $resource = TenderInvitationResource::class;
 
-    protected static string $view = 'filament.resources.tender-invitation-resource.pages.list-tender-invitations';
-
     protected function getHeaderActions(): array
     {
         return [

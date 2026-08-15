@@ -10,8 +10,6 @@ class ListEquipment extends ListRecords
 {
     protected static string $resource = EquipmentResource::class;
 
-    protected static string $view = 'filament.resources.equipment-resource.pages.list-equipment';
-
     protected function getHeaderActions(): array
     {
         return [

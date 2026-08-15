@@ -2,12 +2,11 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\SettlementResource\Widgets\SettlementFilterWidget;
-use App\Filament\Resources\SettlementResource\Widgets\SettlementStatsWidget;
 use App\Filament\Resources\SettlementResource\Pages;
 use App\Models\Settlement;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -125,6 +124,12 @@ class SettlementResource extends Resource
                 Tables\Columns\TextColumn::make('settlement_date')
                     ->date()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('pay_period')
+                    ->label('Pay Period'),
+                Tables\Columns\TextColumn::make('trucks')
+                    ->label('Trucks'),
+                Tables\Columns\TextColumn::make('trips')
+                    ->label('Trips'),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
@@ -150,21 +155,23 @@ class SettlementResource extends Resource
                     ]),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()->label('View Details'),
+                Tables\Actions\Action::make('download')
+                    ->label('Download')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('info')
+                    ->action(function (Settlement $record) {
+                        Notification::make()
+                            ->title('Download initiated for Settlement '.$record->settlement_id)
+                            ->success()
+                            ->send();
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])->striped();
-    }
-
-    public static function getWidgets(): array
-    {
-        return [
-            SettlementStatsWidget::class,
-            SettlementFilterWidget::class,
-        ];
     }
 
     public static function getRelations(): array

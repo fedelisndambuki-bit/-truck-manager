@@ -10,8 +10,6 @@ class ListPpeIssuances extends ListRecords
 {
     protected static string $resource = PpeIssuanceResource::class;
 
-    protected static string $view = 'filament.resources.ppe-issuance-resource.pages.list-ppe-issuances';
-
     protected function getHeaderActions(): array
     {
         return [

@@ -13,8 +13,6 @@ class ListPurchaseRequests extends ListRecords
 {
     protected static string $resource = PurchaseRequestResource::class;
 
-    protected static string $view = 'filament.resources.purchase-request-resource.pages.list-purchase-requests';
-
     protected function getHeaderActions(): array
     {
         return [

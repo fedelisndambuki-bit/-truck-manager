@@ -10,8 +10,6 @@ class ListMaterialDeliveries extends ListRecords
 {
     protected static string $resource = MaterialDeliveryResource::class;
 
-    protected static string $view = 'filament.resources.material-delivery-resource.pages.list-material-deliveries';
-
     protected function getHeaderActions(): array
     {
         return [

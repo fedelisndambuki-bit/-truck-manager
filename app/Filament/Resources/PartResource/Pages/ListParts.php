@@ -10,8 +10,6 @@ class ListParts extends ListRecords
 {
     protected static string $resource = PartResource::class;
 
-    protected static string $view = 'filament.resources.part-resource.pages.list-parts';
-
     protected function getHeaderActions(): array
     {
         return [

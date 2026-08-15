@@ -10,8 +10,6 @@ class ListBidSubmissions extends ListRecords
 {
     protected static string $resource = BidSubmissionResource::class;
 
-    protected static string $view = 'filament.resources.bid-submission-resource.pages.list-bid-submissions';
-
     protected function getHeaderActions(): array
     {
         return [

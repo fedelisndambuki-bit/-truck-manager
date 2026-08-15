@@ -10,8 +10,6 @@ class ListCertifications extends ListRecords
 {
     protected static string $resource = CertificationResource::class;
 
-    protected static string $view = 'filament.resources.certification-resource.pages.list-certifications';
-
     protected function getHeaderActions(): array
     {
         return [

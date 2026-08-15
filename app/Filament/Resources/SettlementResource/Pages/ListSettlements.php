@@ -14,11 +14,6 @@ class ListSettlements extends ListRecords
 {
     protected static string $resource = SettlementResource::class;
 
-    protected static string $view = 'filament.resources.settlement-resource.pages.list-settlements'; // Custom view
-
-
-
-
 
     public array $filters = []; // Property to hold filters
 
@@ -82,6 +77,4 @@ class ListSettlements extends ListRecords
             ->success()
             ->send();
     }
-
-    // getHeaderWidgets() method is removed as widgets are rendered directly in the custom view
 }

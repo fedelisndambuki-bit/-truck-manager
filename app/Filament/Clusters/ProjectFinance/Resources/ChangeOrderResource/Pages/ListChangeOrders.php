@@ -10,8 +10,6 @@ class ListChangeOrders extends ListRecords
 {
     protected static string $resource = ChangeOrderResource::class;
 
-    protected static string $view = 'filament.clusters.project-finance.resources.change-order-resource.pages.list-change-orders';
-
     protected function getHeaderActions(): array
     {
         return [Actions\CreateAction::make()];

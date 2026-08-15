@@ -10,8 +10,6 @@ class ListSubcontractorPerformanceReviews extends ListRecords
 {
     protected static string $resource = SubcontractorPerformanceReviewResource::class;
 
-    protected static string $view = 'filament.resources.subcontractor-performance-review-resource.pages.list-subcontractor-performance-reviews';
-
     protected function getHeaderActions(): array
     {
         return [

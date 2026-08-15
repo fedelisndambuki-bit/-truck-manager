@@ -10,8 +10,6 @@ class ListShifts extends ListRecords
 {
     protected static string $resource = ShiftResource::class;
 
-    protected static string $view = 'filament.resources.shift-resource.pages.list-shifts';
-
     protected function getHeaderActions(): array
     {
         return [

@@ -10,8 +10,6 @@ class ListWorkOrders extends ListRecords
 {
     protected static string $resource = WorkOrderResource::class;
 
-    protected static string $view = 'filament.resources.work-order-resource.pages.list-work-orders';
-
     protected function getHeaderActions(): array
     {
         return [

@@ -160,7 +160,8 @@ class SubcontractorResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('subcontractor_code')->label('Code')->searchable()->sortable(),
-                Tables\Columns\TextColumn::make('company_name')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('company_name')->searchable()->sortable()
+                    ->url(fn (Subcontractor $record) => self::getUrl('view', ['record' => $record])),
                 Tables\Columns\TextColumn::make('specialization.name')->label('Specialization')->placeholder('—')->toggleable(),
                 Tables\Columns\TextColumn::make('category')->badge()->color('gray')->placeholder('—'),
                 Tables\Columns\TextColumn::make('contact_person')->label('Contact')->placeholder('—')->toggleable(),

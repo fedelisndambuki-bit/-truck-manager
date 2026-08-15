@@ -10,8 +10,6 @@ class ListCostCodes extends ListRecords
 {
     protected static string $resource = CostCodeResource::class;
 
-    protected static string $view = 'filament.clusters.project-finance.resources.cost-code-resource.pages.list-cost-codes';
-
     protected function getHeaderActions(): array
     {
         return [Actions\CreateAction::make()];

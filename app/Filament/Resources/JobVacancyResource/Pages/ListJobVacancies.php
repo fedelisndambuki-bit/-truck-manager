@@ -10,8 +10,6 @@ class ListJobVacancies extends ListRecords
 {
     protected static string $resource = JobVacancyResource::class;
 
-    protected static string $view = 'filament.resources.job-vacancy-resource.pages.list-job-vacancies';
-
     protected function getHeaderActions(): array
     {
         return [

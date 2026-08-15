@@ -10,8 +10,6 @@ class ListMaterialAllocations extends ListRecords
 {
     protected static string $resource = MaterialAllocationResource::class;
 
-    protected static string $view = 'filament.resources.material-allocation-resource.pages.list-material-allocations';
-
     protected function getHeaderActions(): array
     {
         return [

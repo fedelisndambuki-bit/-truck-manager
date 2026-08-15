@@ -10,8 +10,6 @@ class ListCustomReports extends ListRecords
 {
     protected static string $resource = CustomReportResource::class;
 
-    protected static string $view = 'filament.clusters.business-intelligence.resources.custom-report-resource.pages.list-custom-reports';
-
     protected function getHeaderActions(): array
     {
         return [Actions\CreateAction::make()];

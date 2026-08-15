@@ -137,6 +137,9 @@ class MaintenanceResource extends Resource
         ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')->options(['Pending' => 'Pending', 'Completed' => 'Completed']),
+            ])
+            ->actions([
+                Tables\Actions\EditAction::make(),
             ])->striped();
     }
 

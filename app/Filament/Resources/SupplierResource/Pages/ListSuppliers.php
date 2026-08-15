@@ -10,8 +10,6 @@ class ListSuppliers extends ListRecords
 {
     protected static string $resource = SupplierResource::class;
 
-    protected static string $view = 'filament.resources.supplier-resource.pages.list-suppliers';
-
     protected function getHeaderActions(): array
     {
         return [

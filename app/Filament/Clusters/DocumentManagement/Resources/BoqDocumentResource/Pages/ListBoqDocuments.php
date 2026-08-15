@@ -10,8 +10,6 @@ class ListBoqDocuments extends ListRecords
 {
     protected static string $resource = BoqDocumentResource::class;
 
-    protected static string $view = 'filament.clusters.document-management.resources.boq-document-resource.pages.list-boq-documents';
-
     protected function getHeaderActions(): array
     {
         return [Actions\CreateAction::make()];

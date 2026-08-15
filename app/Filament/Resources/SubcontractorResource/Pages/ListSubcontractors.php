@@ -10,8 +10,6 @@ class ListSubcontractors extends ListRecords
 {
     protected static string $resource = SubcontractorResource::class;
 
-    protected static string $view = 'filament.resources.subcontractor-resource.pages.list-subcontractors';
-
     protected function getHeaderActions(): array
     {
         return [

@@ -10,8 +10,6 @@ class ListSafetyDocuments extends ListRecords
 {
     protected static string $resource = SafetyDocumentResource::class;
 
-    protected static string $view = 'filament.clusters.document-management.resources.safety-document-resource.pages.list-safety-documents';
-
     protected function getHeaderActions(): array
     {
         return [Actions\CreateAction::make()];

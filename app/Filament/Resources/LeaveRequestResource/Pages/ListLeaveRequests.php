@@ -10,8 +10,6 @@ class ListLeaveRequests extends ListRecords
 {
     protected static string $resource = LeaveRequestResource::class;
 
-    protected static string $view = 'filament.resources.leave-request-resource.pages.list-leave-requests';
-
     protected function getHeaderActions(): array
     {
         return [

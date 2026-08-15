@@ -10,8 +10,6 @@ class ListPayments extends ListRecords
 {
     protected static string $resource = PaymentResource::class;
 
-    protected static string $view = 'filament.resources.payment-resource.pages.list-payments';
-
     protected function getHeaderActions(): array
     {
         return [

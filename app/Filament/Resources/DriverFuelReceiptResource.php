@@ -110,7 +110,8 @@ class DriverFuelReceiptResource extends Resource
                     }),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
-            ]);
+            ])
+            ->striped();
     }
 
     public static function getPages(): array

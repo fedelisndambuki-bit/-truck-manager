@@ -10,6 +10,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Storage;
 
 class DocumentResource extends Resource
 {
@@ -172,6 +173,11 @@ class DocumentResource extends Resource
                 Tables\Filters\SelectFilter::make('category')->options(self::getCategoryOptions()),
             ])
             ->actions([
+                Tables\Actions\Action::make('download')
+                    ->label('Download')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->url(fn (Document $record): string => Storage::disk($record->disk)->url($record->file_path))
+                    ->openUrlInNewTab(),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([

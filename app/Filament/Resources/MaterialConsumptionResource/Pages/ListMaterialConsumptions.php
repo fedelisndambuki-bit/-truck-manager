@@ -10,8 +10,6 @@ class ListMaterialConsumptions extends ListRecords
 {
     protected static string $resource = MaterialConsumptionResource::class;
 
-    protected static string $view = 'filament.resources.material-consumption-resource.pages.list-material-consumptions';
-
     protected function getHeaderActions(): array
     {
         return [

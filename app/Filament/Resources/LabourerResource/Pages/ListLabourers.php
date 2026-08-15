@@ -10,8 +10,6 @@ class ListLabourers extends ListRecords
 {
     protected static string $resource = LabourerResource::class;
 
-    protected static string $view = 'filament.resources.labourer-resource.pages.list-labourers';
-
     protected function getHeaderActions(): array
     {
         return [

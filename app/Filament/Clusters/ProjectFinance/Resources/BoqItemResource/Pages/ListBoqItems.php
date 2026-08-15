@@ -10,8 +10,6 @@ class ListBoqItems extends ListRecords
 {
     protected static string $resource = BoqItemResource::class;
 
-    protected static string $view = 'filament.clusters.project-finance.resources.boq-item-resource.pages.list-boq-items';
-
     protected function getHeaderActions(): array
     {
         return [Actions\CreateAction::make()];

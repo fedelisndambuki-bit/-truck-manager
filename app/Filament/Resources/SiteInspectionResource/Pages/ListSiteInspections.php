@@ -10,8 +10,6 @@ class ListSiteInspections extends ListRecords
 {
     protected static string $resource = SiteInspectionResource::class;
 
-    protected static string $view = 'filament.resources.site-inspection-resource.pages.list-site-inspections';
-
     protected function getHeaderActions(): array
     {
         return [

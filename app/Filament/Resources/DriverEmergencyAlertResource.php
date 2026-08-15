@@ -61,10 +61,19 @@ class DriverEmergencyAlertResource extends Resource
                 Tables\Columns\TextColumn::make('driver.user.name')->label('Driver')->searchable(),
                 Tables\Columns\TextColumn::make('trip.id')->label('Trip')->sortable(),
                 Tables\Columns\TextColumn::make('type')->badge()->color('danger'),
-                Tables\Columns\TextColumn::make('status')->badge(),
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->color(fn (?string $state): string => match ($state) {
+                        'resolved' => 'success',
+                        'in_progress' => 'warning',
+                        default => 'danger',
+                    }),
                 Tables\Columns\TextColumn::make('message')->limit(50)->toggleable(),
-                Tables\Columns\TextColumn::make('latitude')->toggleable(),
-                Tables\Columns\TextColumn::make('longitude')->toggleable(),
+                Tables\Columns\TextColumn::make('latitude')
+                    ->label('Location')
+                    ->formatStateUsing(fn ($record) => ($record->latitude && $record->longitude)
+                        ? number_format((float) $record->latitude, 4).', '.number_format((float) $record->longitude, 4)
+                        : 'No GPS'),
                 Tables\Columns\TextColumn::make('triggered_at')->dateTime()->sortable(),
             ])
             ->actions([
@@ -82,7 +91,8 @@ class DriverEmergencyAlertResource extends Resource
                     ->action(fn (DriverEmergencyAlert $record) => $record->update(['status' => 'in_progress'])),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
-            ]);
+            ])
+            ->striped();
     }
 
     public static function form(\Filament\Forms\Form $form): \Filament\Forms\Form

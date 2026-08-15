@@ -10,8 +10,6 @@ class ListPurchaseOrders extends ListRecords
 {
     protected static string $resource = PurchaseOrderResource::class;
 
-    protected static string $view = 'filament.resources.purchase-order-resource.pages.list-purchase-orders';
-
     protected function getHeaderActions(): array
     {
         return [

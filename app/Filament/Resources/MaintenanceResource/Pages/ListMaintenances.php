@@ -10,8 +10,6 @@ class ListMaintenances extends ListRecords
 {
     protected static string $resource = MaintenanceResource::class;
 
-    protected static string $view = 'filament.resources.maintenance-resource.pages.list-maintenances';
-
     protected function getHeaderActions(): array
     {
         return [

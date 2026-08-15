@@ -10,8 +10,6 @@ class ListTrips extends ListRecords
 {
     protected static string $resource = TripResource::class;
 
-    protected static string $view = 'filament.resources.trip-resource.pages.list-trips';
-
     protected function getHeaderActions(): array
     {
         return [

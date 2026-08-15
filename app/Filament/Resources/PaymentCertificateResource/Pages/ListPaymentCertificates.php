@@ -10,8 +10,6 @@ class ListPaymentCertificates extends ListRecords
 {
     protected static string $resource = PaymentCertificateResource::class;
 
-    protected static string $view = 'filament.resources.payment-certificate-resource.pages.list-payment-certificates';
-
     protected function getHeaderActions(): array
     {
         return [

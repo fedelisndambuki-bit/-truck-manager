@@ -10,8 +10,6 @@ class ListWarehouses extends ListRecords
 {
     protected static string $resource = WarehouseResource::class;
 
-    protected static string $view = 'filament.resources.warehouse-resource.pages.list-warehouses';
-
     protected function getHeaderActions(): array
     {
         return [

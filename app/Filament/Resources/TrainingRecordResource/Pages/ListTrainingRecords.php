@@ -10,8 +10,6 @@ class ListTrainingRecords extends ListRecords
 {
     protected static string $resource = TrainingRecordResource::class;
 
-    protected static string $view = 'filament.resources.training-record-resource.pages.list-training-records';
-
     protected function getHeaderActions(): array
     {
         return [

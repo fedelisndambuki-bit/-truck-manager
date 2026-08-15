@@ -10,8 +10,6 @@ class ListVariations extends ListRecords
 {
     protected static string $resource = VariationResource::class;
 
-    protected static string $view = 'filament.resources.variation-resource.pages.list-variations';
-
     protected function getHeaderActions(): array
     {
         return [

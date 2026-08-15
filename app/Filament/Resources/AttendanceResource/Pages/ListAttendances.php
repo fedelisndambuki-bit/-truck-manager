@@ -10,8 +10,6 @@ class ListAttendances extends ListRecords
 {
     protected static string $resource = AttendanceResource::class;
 
-    protected static string $view = 'filament.resources.attendance-resource.pages.list-attendances';
-
     protected function getHeaderActions(): array
     {
         return [

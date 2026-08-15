@@ -10,8 +10,6 @@ class ListMeetingMinutes extends ListRecords
 {
     protected static string $resource = MeetingMinutesResource::class;
 
-    protected static string $view = 'filament.clusters.document-management.resources.meeting-minutes-resource.pages.list-meeting-minutes';
-
     protected function getHeaderActions(): array
     {
         return [Actions\CreateAction::make()];

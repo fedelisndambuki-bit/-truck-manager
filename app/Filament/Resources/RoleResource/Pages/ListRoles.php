@@ -10,8 +10,6 @@ class ListRoles extends ListRecords
 {
     protected static string $resource = RoleResource::class;
 
-    protected static string $view = 'filament.resources.role-resource.pages.list-roles';
-
     protected function getHeaderActions(): array
     {
         return [

@@ -18,6 +18,10 @@ class ListDriverChatMessages extends ListRecords
 
     protected static string $view = 'filament.resources.driver-chat-message-resource.pages.list-driver-chat-messages';
 
+    protected static ?string $title = 'Chat';
+
+    protected ?string $subheading = 'Direct conversation between company and drivers';
+
     public ?int $selectedDriverId = null;
 
     public string $message = '';

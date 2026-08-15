@@ -10,8 +10,6 @@ class ListStockAdjustments extends ListRecords
 {
     protected static string $resource = StockAdjustmentResource::class;
 
-    protected static string $view = 'filament.resources.stock-adjustment-resource.pages.list-stock-adjustments';
-
     protected function getHeaderActions(): array
     {
         return [
