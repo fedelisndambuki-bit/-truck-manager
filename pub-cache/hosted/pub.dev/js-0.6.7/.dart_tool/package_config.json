@@ -1,0 +1,28 @@
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "lints",
+      "rootUri": "file:///C:/Users/GEN%20X/AppData/Local/Pub/Cache/hosted/pub.dev/lints-6.1.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.8"
+    },
+    {
+      "name": "meta",
+      "rootUri": "file:///C:/Users/GEN%20X/AppData/Local/Pub/Cache/hosted/pub.dev/meta-1.18.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.5"
+    },
+    {
+      "name": "js",
+      "rootUri": "../",
+      "packageUri": "lib/",
+      "languageVersion": "2.19"
+    }
+  ],
+  "generator": "pub",
+  "generatorVersion": "3.11.0",
+  "flutterRoot": "file:///C:/Users/GEN%20X/Herd/truck-manager/mobile/flutter",
+  "flutterVersion": "3.41.1",
+  "pubCache": "file:///C:/Users/GEN%20X/AppData/Local/Pub/Cache"
+}

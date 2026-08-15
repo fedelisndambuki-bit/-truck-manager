@@ -1,0 +1,58 @@
+name: tests
+
+# This package is distributed privately via a Composer path repository and
+# is not currently pushed to a remote Git host, so this workflow does not
+# run anywhere yet. It is included as the package's CI configuration so
+# that the moment this directory is pushed to a repository with GitHub
+# Actions enabled, test and static-analysis coverage runs automatically
+# with no further setup.
+
+on:
+  push:
+    paths:
+      - 'packages/tanaki/integration-contracts/**'
+  pull_request:
+    paths:
+      - 'packages/tanaki/integration-contracts/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['8.2', '8.3', '8.4']
+    defaults:
+      run:
+        working-directory: packages/tanaki/integration-contracts
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Run tests
+        run: composer test
+
+  static-analysis:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/tanaki/integration-contracts
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Run PHPStan
+        run: composer analyse

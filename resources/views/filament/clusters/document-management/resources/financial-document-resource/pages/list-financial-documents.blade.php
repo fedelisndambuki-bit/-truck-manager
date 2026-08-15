@@ -1,0 +1,31 @@
+<x-filament-panels::page>
+    <x-slot name="heading"></x-slot>
+    <x-slot name="subheading"></x-slot>
+    <x-slot name="header"></x-slot>
+
+    @include('filament.construction.partials.styles')
+    @include('filament.construction.partials.native-table-styles')
+    @include('filament.construction.partials.header', [
+        'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />',
+        'title' => 'Financial Documents',
+        'subtitle' => 'Invoices and certificates filed within the document library',
+    ])
+
+    <div class="table-section">
+        <div class="table-header-custom">
+            <div class="table-title">Financial Documents</div>
+            <div class="table-results">
+                @php $records = $this->getTable()->getRecords(); @endphp
+                @if ($records->firstItem() && $records->lastItem() && $records->total())
+                    Showing <strong>{{ $records->firstItem() }}-{{ $records->lastItem() }}</strong> of <strong>{{ $records->total() }}</strong> results
+                @else
+                    No results
+                @endif
+            </div>
+        </div>
+
+        <div class="tanaki-native-table">
+            {{ $this->table }}
+        </div>
+    </div>
+</x-filament-panels::page>

@@ -1,0 +1,692 @@
+<title>Public API Review &amp; Stability Analysis — tanaki/integration-contracts</title>
+<style>
+  @media (prefers-color-scheme: light) { :root { color-scheme: light; } }
+  @media (prefers-color-scheme: dark)  { :root { color-scheme: dark; } }
+
+  :root {
+    --bg: #F1F4F7; --surface: #FFFFFF; --surface-2: #E7ECF1; --ink: #101B2D; --ink-muted: #45536B;
+    --line: #D3DBE3; --blueprint: #2C5C8A; --blueprint-soft: #E4EDF4; --signal: #B85C2C; --signal-soft: #F6E8DE;
+    --ok: #2F7A54; --ok-soft: #E3F0E9; --warn: #A6791F; --warn-soft: #F5EAD6; --crit: #A6342F; --crit-soft: #F5E0E0;
+    --shadow: 0 1px 2px rgba(16,27,45,.06), 0 8px 24px rgba(16,27,45,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0E1826; --surface: #142032; --surface-2: #1B2A40; --ink: #E8EDF3; --ink-muted: #93A3BA;
+      --line: #28384F; --blueprint: #7FB2DE; --blueprint-soft: #1D3348; --signal: #E08A52; --signal-soft: #3A2A1E;
+      --ok: #74C39A; --ok-soft: #17301F; --warn: #E0B45E; --warn-soft: #362A15; --crit: #E3847F; --crit-soft: #341C1B;
+      --shadow: 0 1px 2px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #F1F4F7; --surface: #FFFFFF; --surface-2: #E7ECF1; --ink: #101B2D; --ink-muted: #45536B;
+    --line: #D3DBE3; --blueprint: #2C5C8A; --blueprint-soft: #E4EDF4; --signal: #B85C2C; --signal-soft: #F6E8DE;
+    --ok: #2F7A54; --ok-soft: #E3F0E9; --warn: #A6791F; --warn-soft: #F5EAD6; --crit: #A6342F; --crit-soft: #F5E0E0;
+    --shadow: 0 1px 2px rgba(16,27,45,.06), 0 8px 24px rgba(16,27,45,.06);
+  }
+  :root[data-theme="dark"] {
+    --bg: #0E1826; --surface: #142032; --surface-2: #1B2A40; --ink: #E8EDF3; --ink-muted: #93A3BA;
+    --line: #28384F; --blueprint: #7FB2DE; --blueprint-soft: #1D3348; --signal: #E08A52; --signal-soft: #3A2A1E;
+    --ok: #74C39A; --ok-soft: #17301F; --warn: #E0B45E; --warn-soft: #362A15; --crit: #E3847F; --crit-soft: #341C1B;
+    --shadow: 0 1px 2px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-variant-numeric: tabular-nums; }
+  a { color: var(--blueprint); }
+
+  .shell { display: flex; max-width: 1320px; margin: 0 auto; align-items: flex-start; }
+  .toc {
+    position: sticky; top: 0; align-self: flex-start; width: 272px; flex: 0 0 272px; height: 100vh; overflow-y: auto;
+    padding: 28px 18px 40px 28px; border-right: 1px solid var(--line);
+  }
+  .toc::-webkit-scrollbar { width: 8px; }
+  .toc::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+  .toc-brand { display: flex; align-items: center; gap: 9px; margin-bottom: 4px; }
+  .toc-mark { width: 22px; height: 22px; border-radius: 4px; background: var(--blueprint); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .toc-mark svg { width: 13px; height: 13px; }
+  .toc-brand-text { font-family: ui-monospace, monospace; font-size: 12.5px; font-weight: 600; letter-spacing: .02em; color: var(--ink-muted); }
+  .toc-title { font-size: 15px; font-weight: 700; line-height: 1.35; margin: 14px 0 4px; text-wrap: balance; }
+  .toc-status {
+    display: inline-flex; align-items: center; gap: 6px; margin: 4px 0 22px; font-family: ui-monospace, monospace;
+    font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--signal);
+    background: var(--signal-soft); padding: 4px 8px; border-radius: 4px;
+  }
+  .toc-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--signal); }
+  .toc nav { display: flex; flex-direction: column; gap: 1px; }
+  .toc nav a { color: var(--ink-muted); text-decoration: none; font-size: 13px; padding: 5px 8px; border-radius: 5px; display: flex; gap: 8px; }
+  .toc nav a:hover { background: var(--surface-2); color: var(--ink); }
+  .toc nav a .n { font-family: ui-monospace, monospace; color: var(--signal); font-size: 11.5px; min-width: 18px; }
+  .toc nav .sub { padding-left: 24px; font-size: 12.3px; }
+
+  .content { flex: 1 1 auto; min-width: 0; padding: 48px 56px 120px; }
+  @media (max-width: 900px) { .toc { display: none; } .content { padding: 32px 20px 100px; } }
+
+  .doc-header { margin-bottom: 48px; }
+  .doc-eyebrow { font-family: ui-monospace, monospace; font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--blueprint); margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+  .doc-eyebrow::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  h1.doc-title { font-size: clamp(26px, 3.6vw, 38px); font-weight: 800; letter-spacing: -.01em; line-height: 1.12; margin: 0 0 14px; text-wrap: balance; }
+  .doc-sub { font-size: 17px; color: var(--ink-muted); max-width: 66ch; margin: 0 0 26px; text-wrap: balance; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .meta-chip { display: inline-flex; align-items: center; gap: 7px; background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 7px 11px; font-size: 12.5px; box-shadow: var(--shadow); }
+  .meta-chip .k { color: var(--ink-muted); font-family: ui-monospace, monospace; font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; }
+  .meta-chip .v { font-weight: 600; }
+  .meta-chip.constraint { border-color: var(--crit); background: var(--crit-soft); }
+  .meta-chip.constraint .v { color: var(--crit); }
+
+  section { margin: 0 0 64px; scroll-margin-top: 24px; }
+  .sec-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 6px; }
+  .sec-num { font-family: ui-monospace, monospace; font-size: 15px; font-weight: 700; color: var(--signal); }
+  h2 { font-size: 23px; font-weight: 800; letter-spacing: -.005em; margin: 0; text-wrap: balance; }
+  .sec-dek { color: var(--ink-muted); font-size: 15px; max-width: 68ch; margin: 10px 0 26px; }
+  h3 { font-size: 16px; font-weight: 700; margin: 34px 0 10px; padding-top: 18px; border-top: 1px solid var(--line); }
+  h3:first-of-type { border-top: none; padding-top: 0; margin-top: 22px; }
+  h4 { font-size: 14.5px; font-weight: 700; margin: 22px 0 6px; }
+  .kicker { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-muted); font-family: ui-monospace, monospace; margin: 0 0 16px; }
+  p { max-width: 70ch; margin: 0 0 14px; }
+  p.wide { max-width: none; }
+  ul, ol { max-width: 70ch; padding-left: 22px; margin: 0 0 16px; }
+  li { margin-bottom: 6px; }
+  strong { font-weight: 700; }
+  code:not(pre code) { font-family: ui-monospace, monospace; font-size: .88em; background: var(--surface-2); padding: .12em .4em; border-radius: 4px; border: 1px solid var(--line); }
+
+  .callout { border: 1px solid var(--line); border-left: 3px solid var(--blueprint); background: var(--surface); border-radius: 8px; padding: 16px 18px; margin: 18px 0; box-shadow: var(--shadow); max-width: 70ch; }
+  .callout.finding { border-left-color: var(--signal); }
+  .callout.crit { border-left-color: var(--crit); background: var(--crit-soft); }
+  .callout.ok { border-left-color: var(--ok); }
+  .callout .callout-label { font-family: ui-monospace, monospace; font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-muted); margin-bottom: 6px; display: block; }
+  .callout p:last-child { margin-bottom: 0; }
+
+  .table-wrap { overflow-x: auto; margin: 16px 0 26px; border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); }
+  table { width: 100%; border-collapse: collapse; background: var(--surface); font-size: 13.3px; min-width: 560px; }
+  thead th { text-align: left; font-size: 10.8px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-muted); background: var(--surface-2); padding: 9px 13px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  tbody td { padding: 10px 13px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody td.mono { font-size: 12.3px; }
+  tbody tr.subtle td { color: var(--ink-muted); }
+
+  .pill { display: inline-flex; align-items: center; gap: 5px; font-size: 10.8px; font-weight: 600; padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
+  .pill::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
+  .pill.ok { color: var(--ok); background: var(--ok-soft); } .pill.ok::before { background: var(--ok); }
+  .pill.warn { color: var(--warn); background: var(--warn-soft); } .pill.warn::before { background: var(--warn); }
+  .pill.crit { color: var(--crit); background: var(--crit-soft); } .pill.crit::before { background: var(--crit); }
+  .pill.info { color: var(--blueprint); background: var(--blueprint-soft); } .pill.info::before { background: var(--blueprint); }
+  .pill.flat { color: var(--ink-muted); background: var(--surface-2); } .pill.flat::before { background: var(--ink-muted); }
+
+  /* type-review cards */
+  .type-card { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 18px 20px; margin: 14px 0; box-shadow: var(--shadow); }
+  .type-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+  .type-name { font-family: ui-monospace, monospace; font-size: 14.5px; font-weight: 700; }
+  .type-purpose { font-size: 13.5px; color: var(--ink-muted); margin: 2px 0 12px; max-width: 68ch; }
+  .verdict-strip { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 12px; }
+  .verdict { font-size: 11px; padding: 3px 8px; border-radius: 6px; background: var(--surface-2); border: 1px solid var(--line); }
+  .verdict b { font-weight: 700; }
+  .type-risk { font-size: 13.3px; margin: 8px 0 0; }
+  .type-risk b.tag { font-family: ui-monospace, monospace; font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color: var(--crit); margin-right: 6px; }
+
+  /* ADRs */
+  .adr { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; margin: 16px 0; box-shadow: var(--shadow); overflow: hidden; }
+  .adr-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 18px; background: var(--surface-2); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .adr-id { font-family: ui-monospace, monospace; font-size: 11.5px; color: var(--ink-muted); }
+  .adr-title { font-size: 14.5px; font-weight: 700; margin: 0; flex: 1 1 auto; min-width: 220px; }
+  .adr-body { padding: 16px 18px; }
+  .adr-body h5 { font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-muted); margin: 14px 0 5px; }
+  .adr-body h5:first-child { margin-top: 0; }
+  .adr-body p { margin: 0 0 4px; font-size: 13.5px; }
+
+  .phase { display: grid; grid-template-columns: 34px 1fr; gap: 14px; padding: 14px 0; border-top: 1px solid var(--line); align-items: start; }
+  .phase:first-of-type { border-top: none; }
+  .phase input[type=checkbox] { width: 16px; height: 16px; margin-top: 3px; accent-color: var(--blueprint); }
+  .phase-title { font-size: 14px; font-weight: 600; margin: 0 0 3px; }
+  .phase-body p { margin: 0; font-size: 13px; color: var(--ink-muted); }
+
+  .pkg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 14px 0 24px; }
+  .stat-card { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 14px 16px; box-shadow: var(--shadow); }
+  .stat-num { font-family: ui-monospace, monospace; font-size: 26px; font-weight: 700; color: var(--blueprint); line-height: 1; }
+  .stat-label { font-size: 11.5px; color: var(--ink-muted); margin-top: 6px; }
+
+  footer.doc-footer { border-top: 1px solid var(--line); margin-top: 60px; padding-top: 24px; color: var(--ink-muted); font-size: 12.5px; }
+  ::selection { background: var(--blueprint-soft); }
+</style>
+
+<div class="shell">
+  <aside class="toc">
+    <div class="toc-brand">
+      <span class="toc-mark"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2 3 6v6c0 5 4 8.5 9 10 5-1.5 9-5 9-10V6l-9-4Z"/><path d="m9 12 2 2 4-4"/></svg></span>
+      <span class="toc-brand-text">TANAKI HUB</span>
+    </div>
+    <div class="toc-title">Public API Review &amp; Stability Analysis</div>
+    <span class="toc-status">Pre-freeze review</span>
+    <nav>
+      <a href="#summary"><span class="n">—</span>Executive summary</a>
+      <a href="#api-ref"><span class="n">01</span>Public API reference</a>
+      <a href="#interfaces" class="sub">Core &amp; category interfaces</a>
+      <a href="#dtos" class="sub">Data transfer objects</a>
+      <a href="#enums" class="sub">Enumerations</a>
+      <a href="#events" class="sub">Event contracts</a>
+      <a href="#attribute" class="sub">Attribute</a>
+      <a href="#exceptions" class="sub">Exceptions</a>
+      <a href="#classification" class="sub">Stability classification</a>
+      <a href="#sdk-guide"><span class="n">02</span>SDK design guide</a>
+      <a href="#versioning"><span class="n">03</span>Versioning strategy</a>
+      <a href="#compat-matrix"><span class="n">04</span>Compatibility matrix</a>
+      <a href="#extension-guide"><span class="n">05</span>Extension guide</a>
+      <a href="#adr"><span class="n">06</span>Architecture decision records</a>
+      <a href="#checklist"><span class="n">07</span>v1.0 release checklist</a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <header class="doc-header" id="summary">
+      <div class="doc-eyebrow">Public API Review · No implementation code · No architecture changes</div>
+      <h1 class="doc-title">tanaki/integration-contracts — public API review and stability analysis</h1>
+      <p class="doc-sub">Every interface, DTO, enum, attribute, event, and exception that will ship in the pure-PHP contracts package, reviewed against the standard third-party publishing owns for years, not months.</p>
+      <div class="meta-row">
+        <span class="meta-chip"><span class="k">Package</span><span class="v">tanaki/integration-contracts</span></span>
+        <span class="meta-chip"><span class="k">Target</span><span class="v">v1.0.0</span></span>
+        <span class="meta-chip"><span class="k">Public types reviewed</span><span class="v">49</span></span>
+        <span class="meta-chip constraint"><span class="k">Extraction</span><span class="v">Blocked until §07 clears</span></span>
+      </div>
+    </header>
+
+    <section>
+      <p class="wide" style="max-width:72ch; font-size:16px;">Package extraction (§04 of the prior migration plan) does not start from this document — it starts after every item on the §07 checklist is resolved. That ordering is deliberate: the architecture review approved the <em>shape</em> of the five-tier package graph; this review is about the one package in that graph where a mistake is nearly permanent. Once a hardware manufacturer's driver compiles against <code>tanaki/integration-contracts:^1.0</code>, every public signature in it is a promise Tanaki has to keep to code it doesn't own and can't recompile. Six concrete pre-freeze defects were found — three would be straightforward breaking changes if caught after 1.0, one (§Enums) is a structural blocker to the entire plugin-ecosystem goal. All six are free to fix now and are listed as blocking items in §07.</p>
+    </section>
+
+    <section id="api-ref">
+      <div class="sec-head"><span class="sec-num">01</span><h2>Public API reference</h2></div>
+      <p class="sec-dek">Every type that will live in <code>tanaki/integration-contracts</code>, reviewed for purpose, method rationale, immutability, extensibility, inheritance, composition, and the three compatibility risks that matter once external code depends on it: source (does existing calling code still compile), binary (does existing compiled/cached bytecode still resolve), and version (does the change require a major/minor/patch bump).</p>
+
+      <div class="pkg-grid">
+        <div class="stat-card"><div class="stat-num">16</div><div class="stat-label">Interfaces (7 core + 9 category)</div></div>
+        <div class="stat-card"><div class="stat-num">12</div><div class="stat-label">Data transfer objects</div></div>
+        <div class="stat-card"><div class="stat-num">4</div><div class="stat-label">Enumerations</div></div>
+        <div class="stat-card"><div class="stat-num">12</div><div class="stat-label">Event contracts</div></div>
+        <div class="stat-card"><div class="stat-num">1</div><div class="stat-label">Attribute</div></div>
+        <div class="stat-card"><div class="stat-num">4</div><div class="stat-label">Exceptions</div></div>
+      </div>
+
+      <h3 id="interfaces">Core &amp; category interfaces (16)</h3>
+      <p><strong>SOLID lens applied to all 16:</strong> Interface Segregation is the standout strength of the current design — <code>DeviceDriverInterface</code> composes three single-purpose interfaces (<code>HealthCheckableInterface</code>, <code>DiagnosticsInterface</code>, <code>DriverMetadataInterface</code>) rather than declaring one flat 8-method contract, so code that only needs a health probe can depend on a two-method interface instead of the whole driver surface. Dependency Inversion holds throughout: nothing in this layer references a concrete class. Liskov holds by construction — every category interface only <em>adds</em> methods to <code>DeviceDriverInterface</code>, never narrows or overrides one, so any category driver is safely substitutable wherever the base interface is expected. Single Responsibility is where the review found the one real inconsistency, noted under <code>WeighbridgeDriverInterface</code> below. Open/Closed is the throughline of the whole review: every interface is closed for modification by definition (it's about to be frozen) — the open questions are all about whether each one was designed to be <em>extended</em> correctly before that happens.</p>
+
+      <div class="type-card">
+        <div class="type-card-head"><span class="type-name">DeviceDriverInterface</span><span class="pill ok">Stable</span></div>
+        <p class="type-purpose">The contract every driver implements regardless of vendor or category — lifecycle plus composition root for the three focused sub-interfaces.</p>
+        <div class="verdict-strip">
+          <span class="verdict"><b>Extensible:</b> yes — extended by 9 category interfaces, the intended path</span>
+          <span class="verdict"><b>Inheritance:</b> interface inheritance only; implementers must not be required to extend a base class (see §SDK Guide, composition over inheritance)</span>
+          <span class="verdict"><b>Composition:</b> composes 3 segregated interfaces rather than declaring their methods directly — correct, keep</span>
+        </div>
+        <p class="type-risk"><b class="tag">Versioning</b>Adding a method here is binary- and source-breaking for every existing driver package, local or third-party — it is the single highest-blast-radius type in the package. Post-1.0, new lifecycle behavior must ship as a new opt-in interface (e.g. <code>PausableDriverInterface</code>) that drivers may additionally implement, never as an addition to this one.</p>
+      </div>
+
+      <div class="type-card">
+        <div class="type-card-head"><span class="type-name">HealthCheckableInterface / DiagnosticsInterface / DriverMetadataInterface</span><span class="pill ok">Stable</span></div>
+        <p class="type-purpose">The three segregated pieces <code>DeviceDriverInterface</code> composes — one method each (<code>healthCheck()</code>, <code>runDiagnostics()</code>, <code>getMetadata()</code>+<code>getCapabilities()</code>). Reviewed together: same verdict applies to all three.</p>
+        <div class="verdict-strip">
+          <span class="verdict"><b>Extensible:</b> yes, by design — this is why they're separate from the base interface</span>
+          <span class="verdict"><b>Composition:</b> preferred and already applied</span>
+        </div>
+        <p class="type-risk"><b class="tag">Source compat</b><code>DriverMetadataInterface::getCapabilities(): array</code> returns untyped <code>string[]</code> rather than the enum-like capability tags this whole ecosystem is meant to standardize on. Low risk today (it's additive-safe either way), but worth deciding in §Extension Guide whether capability strings get a validated vocabulary before third parties start inventing their own spellings of <code>supports_gps</code>.</p>
+      </div>
+
+      <div class="type-card">
+        <div class="type-card-head"><span class="type-name">ProtocolAdapterInterface</span><span class="pill ok">Stable</span></div>
+        <p class="type-purpose">Transport-level contract, deliberately independent of vendor payload interpretation (Strategy pattern — adapters are interchangeable per protocol, drivers compose one).</p>
+        <div class="verdict-strip">
+          <span class="verdict"><b>Extensible:</b> yes, one adapter per protocol package</span>
+          <span class="verdict"><b>Inheritance:</b> not used — flat implementation, correct</span>
+        </div>
+        <p class="type-risk"><b class="tag">Design note</b><code>send()/receive()</code> return <code>mixed</code> deliberately — protocol-level payloads are inherently untyped until a driver interprets them. Correct as designed; documented here so it isn't "fixed" into something narrower during extraction, which would break every adapter package.</p>
+      </div>
+
+      <div class="type-card">
+        <div class="type-card-head"><span class="type-name">DeviceRegistryInterface</span><span class="pill warn">Stable after fix</span></div>
+        <p class="type-purpose">Lookup contract for "which driver class handles this vendor key" — consumed by Core's internals and by any admin/business code (e.g. a future Filament resource) that wants to query installed drivers without depending on the concrete <code>DeviceRegistry</code> class.</p>
+        <div class="verdict-strip">
+          <span class="verdict"><b>Belongs in Contracts:</b> yes — kept here rather than moved to Core, so consumers can depend on the interface (Dependency Inversion), not Core's concretion</span>
+        </div>
+        <p class="type-risk"><b class="tag">Binary compat — blocking</b><code>driversForCategory()</code> and <code>all()</code> return <code>Illuminate\Support\Collection</code> — a Laravel Framework dependency inside a package that must build without Laravel. This is the interface-level instance of the leak flagged in the architecture review. <strong>Fix required before freeze:</strong> change both return types to <code>array</code>. This is a source-breaking change for any caller currently chaining Collection methods (<code>->pluck()</code>, <code>->filter()</code>) on the result — cheap now, effectively impossible once a third party has written code against the Collection-returning signature.</p>
+      </div>
+
+      <div class="type-card">
+        <div class="type-card-head"><span class="type-name">DriverFactoryInterface</span><span class="pill ok">Stable</span></div>
+        <p class="type-purpose">Resolves and constructs a driver instance from a vendor key via the container, so a driver's own constructor dependencies still get injected normally.</p>
+        <div class="verdict-strip"><span class="verdict"><b>Single method:</b> <code>make(string $vendorKey): DeviceDriverInterface</code> — minimal, nothing to segregate further</span></div>
+        <p class="type-risk"><b class="tag">Future expansion</b>No <code>tryMake(): ?DeviceDriverInterface</code> non-throwing variant exists yet. Not a defect — <code>make()</code> throwing <code>DriverNotFoundException</code> is a reasonable default — but if a non-throwing lookup is ever needed, it must be a new method on a new interface (e.g. a <code>NullableDriverFactoryInterface</code>), never a signature change here.</p>
+      </div>
+
+      <div class="type-card">
+        <div class="type-card-head"><span class="type-name">The 9 category interfaces</span><span class="pill ok">Stable, one rename pending</span></div>
+        <p class="type-purpose"><code>WeighbridgeDriverInterface</code>, <code>GpsTrackerDriverInterface</code>, <code>FuelControllerDriverInterface</code>, <code>RfidReaderDriverInterface</code>, <code>BiometricDriverInterface</code>, <code>BarcodeScannerDriverInterface</code>, <code>QrReaderDriverInterface</code>, <code>PlcDriverInterface</code>, <code>IotSensorDriverInterface</code> — each extends <code>DeviceDriverInterface</code> and adds exactly the parse method(s) its category needs. Reviewed as a family: near-identical shape is a strength here (a manufacturer learns the pattern once), not duplication worth abstracting further — collapsing them into one generic <code>parse(array): mixed</code> method would destroy the compile-time type safety that's the entire point of standardizing per-category DTOs.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Interface</th><th>Adds</th><th>Naming convention</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">GpsTrackerDriverInterface</td><td class="mono">parsePosition(array): GpsPositionDTO</td><td><span class="pill ok">parseX()</span></td></tr>
+              <tr><td class="mono">FuelControllerDriverInterface</td><td class="mono">parseTransaction(array): FuelTransactionDTO</td><td><span class="pill ok">parseX()</span></td></tr>
+              <tr><td class="mono">RfidReaderDriverInterface</td><td class="mono">parseScan(array): RfidScanDTO</td><td><span class="pill ok">parseX()</span></td></tr>
+              <tr><td class="mono">BiometricDriverInterface</td><td class="mono">parseEvent(array): BiometricEventDTO</td><td><span class="pill ok">parseX()</span></td></tr>
+              <tr><td class="mono">BarcodeScannerDriverInterface</td><td class="mono">parseScan(array): BarcodeScanDTO</td><td><span class="pill ok">parseX()</span></td></tr>
+              <tr><td class="mono">QrReaderDriverInterface</td><td class="mono">parseScan(array): QrScanDTO</td><td><span class="pill ok">parseX()</span></td></tr>
+              <tr><td class="mono">IotSensorDriverInterface</td><td class="mono">parseReading(array): SensorReadingDTO</td><td><span class="pill ok">parseX()</span></td></tr>
+              <tr><td class="mono">PlcDriverInterface</td><td class="mono">readSignal(string): PlcSignalDTO<br/>writeSignal(string, mixed): bool</td><td><span class="pill info">intentionally different — bidirectional</span></td></tr>
+              <tr><td class="mono">WeighbridgeDriverInterface</td><td class="mono">captureWeight(array): WeighbridgeReadingDTO</td><td><span class="pill crit">breaks convention</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="type-risk"><b class="tag">Naming convention — blocking</b>8 of 9 read-only category interfaces follow <code>parseX(array $rawPayload): XDTO</code>. <code>WeighbridgeDriverInterface::captureWeight()</code> is the lone outlier — same shape, different verb, no functional reason for the difference. A manufacturer building their fourth driver after learning the <code>parseX</code> pattern on the first three will reasonably expect <code>parseReading()</code> or <code>parseWeight()</code> here and be wrong. <strong>Rename to <code>parseReading(array $rawPayload): WeighbridgeReadingDTO</code> before freeze</strong> — a source-breaking rename that costs nothing today (one first-party driver implements it) and is a permanent wart if shipped in 1.0.</p>
+      </div>
+
+      <h3 id="dtos">Data transfer objects (12)</h3>
+      <p>9 category-reading DTOs (<code>WeighbridgeReadingDTO</code>, <code>GpsPositionDTO</code>, <code>FuelTransactionDTO</code>, <code>RfidScanDTO</code>, <code>BiometricEventDTO</code>, <code>BarcodeScanDTO</code>, <code>QrScanDTO</code>, <code>PlcSignalDTO</code>, <code>SensorReadingDTO</code>) plus <code>DeviceHealthDTO</code>, <code>DeviceDiagnosticsDTO</code>, and <code>DriverMetadataDTO</code>. Every one is <code>final readonly class</code> with constructor-promoted properties — this is exactly right for a value object crossing a package boundary: <code>final</code> removes any Liskov risk from third-party subclassing, and <code>readonly</code> makes the immutability guarantee compiler-enforced, not a convention.</p>
+
+      <div class="callout crit">
+        <span class="callout-label">Immutability defect — blocking</span>
+        <p>All 12 DTOs type their timestamp fields as <code>Carbon\Carbon</code> — the <strong>mutable</strong> Carbon class. <code>readonly</code> only prevents reassigning the property; it does not stop <code>$reading->capturedAt->addDay()</code> from mutating the shared Carbon object in place, silently corrupting a value object every consumer assumes is frozen. <strong>Fix:</strong> switch every DTO's timestamp property to <code>Carbon\CarbonImmutable</code> — a drop-in, API-compatible swap (all read methods are identical; only the mutator methods now return new instances instead of mutating). Free before 1.0; after 1.0 it's technically source-compatible but is a real behavior change some consumer could be inadvertently depending on, which makes it exactly the kind of fix that belongs in a pre-freeze review rather than a point release.</p>
+      </div>
+
+      <div class="callout finding">
+        <span class="callout-label">Dependency — blocking</span>
+        <p><code>nesbot/carbon</code> is used directly in every DTO but is <strong>not a direct Composer dependency anywhere in the current codebase</strong> — it's pulled in transitively via <code>laravel/framework</code>. A pure-PHP package cannot rely on a transitive dependency of an application that may not always be Laravel. <code>tanaki/integration-contracts</code> must declare <code>"nesbot/carbon": "^3.0"</code> explicitly in its own <code>composer.json</code>.</p>
+      </div>
+
+      <p><strong>Structural evolution risk (all 12):</strong> constructor-promoted properties are positional as well as named. Nothing in the current codebase constructs a DTO positionally today (verified by usage), but nothing prevents a third party from doing so once these ship publicly. <strong>Policy for §03:</strong> every future DTO field addition must be appended at the end of the constructor with a default value — inserting a field in the middle, even an optional one, silently breaks positional-argument callers. Named-argument construction should be the documented, recommended convention in §05 specifically to make this policy low-risk in practice.</p>
+
+      <h3 id="enums">Enumerations (4)</h3>
+      <div class="callout crit">
+        <span class="callout-label">Structural blocker to the plugin-ecosystem goal — highest priority in this entire review</span>
+        <p><code>DeviceCategory</code> and <code>ProtocolType</code> are native PHP backed enums. Native enums are <strong>closed</strong> — PHP has no enum inheritance, and a third-party package cannot add a case to an enum it doesn't own. This directly contradicts the stated goal of the plugin ecosystem: a manufacturer building a CCTV, AI-camera, or PLC-variant driver that doesn't fit the 9 existing categories has no legal value to return from <code>getCategory(): DeviceCategory</code>, and Tanaki would have to cut a new Contracts release for every category the ecosystem wants to grow into — recreating, at the taxonomy level, exactly the central bottleneck this whole initiative exists to remove.</p>
+        <p style="margin-top:10px;"><strong>Recommendation:</strong> before freeze, convert <code>DeviceCategory</code> and <code>ProtocolType</code> from native enums into extensible value objects — <code>final readonly class</code> with a private constructor, named static factories for the known built-in cases (<code>DeviceCategory::weighbridge()</code> replacing <code>DeviceCategory::Weighbridge</code>), and a public <code>DeviceCategory::custom(string $key, string $label): self</code> escape hatch, compared by <code>->equals()</code> rather than <code>===</code>/<code>match</code>. This is the same shape Doctrine and Flysystem use for open-ended taxonomies precisely because native enums can't do it. The trade-off is real and worth stating plainly: it gives up native <code>match</code> exhaustiveness and <code>::cases()</code> reflection. <code>DeviceStatus</code> and <code>ConnectionMedium</code> do <em>not</em> need this treatment — device lifecycle state and link-layer medium are closed sets by nature, not something a manufacturer needs to extend, and keeping them as simple native enums is correct.</p>
+      </div>
+
+      <div class="callout crit">
+        <span class="callout-label">Dependency — blocking</span>
+        <p>All 4 enums <code>implement Filament\Support\Contracts\HasLabel</code> — a UI-framework dependency inside a contract a hardware manufacturer implements against. A driver author has no reason to have Filament installed. <strong>Fix:</strong> strip <code>HasLabel</code>/<code>getLabel()</code> from all 4 enums in Contracts. Label presentation moves to the application layer (an app-side lookup/match, or explicit <code>-&gt;options()</code> callbacks on the Filament form/table components that currently free-ride on auto-detection). This is a small, mechanical, one-time migration cost inside Tanaki Hub itself — worth paying now, because removing an interface from a public enum after 1.0 is a binary-breaking change for any driver package that does <code>instanceof HasLabel</code>.</p>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Enum</th><th>Cases</th><th>Extensibility need</th><th>Verdict</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">DeviceCategory</td><td>9</td><td>High — new hardware categories are the whole point</td><td><span class="pill crit">Convert to open value object</span></td></tr>
+            <tr><td class="mono">ProtocolType</td><td>11</td><td>Medium — a manufacturer may need a proprietary transport</td><td><span class="pill crit">Convert to open value object</span></td></tr>
+            <tr><td class="mono">DeviceStatus</td><td>4</td><td>None — closed lifecycle state</td><td><span class="pill ok">Keep as native enum</span></td></tr>
+            <tr><td class="mono">ConnectionMedium</td><td>6</td><td>Low — new physical media are rare and Tanaki-controlled additions are fine</td><td><span class="pill ok">Keep as native enum</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>Versioning note for the two kept as native enums:</strong> adding a new case to a closed backed enum is source-compatible for consumers matching on individual cases, but is <strong>binary/behavior-breaking for any <code>match</code> expression without a <code>default</code> arm</strong> — <code>UnhandledMatchError</code> at runtime the moment the new case reaches old code. §05 must instruct driver authors to always include a <code>default</code> arm when matching on <code>DeviceStatus</code>/<code>ConnectionMedium</code>, and §03 must classify "add an enum case" as a minor-version change, never a patch.</p>
+
+      <h3 id="events">Event contracts (12)</h3>
+      <p>9 data events (one per reading DTO, e.g. <code>WeighbridgeReadingCaptured</code>) + <code>DeviceCameOnline</code>, <code>DeviceWentOffline</code>, <code>DeviceHealthCheckFailed</code>.</p>
+
+      <div class="callout crit">
+        <span class="callout-label">Dependency — blocking, verified zero-behavior-change fix</span>
+        <p>All 12 event classes use one or more of <code>Illuminate\Foundation\Events\Dispatchable</code>, <code>Illuminate\Broadcasting\InteractsWithSockets</code>, <code>Illuminate\Queue\SerializesModels</code> — three Laravel Framework traits baked into what needs to be a pure-PHP data contract. Checked against actual usage, not assumption: a repo-wide search found <strong>zero call sites</strong> using any event's static <code>::dispatch()</code> sugar — the sole real dispatch path, <code>ProcessDeviceReadingJob::handle()</code>, calls the plain <code>event(new $this->eventClass($this->dto))</code>, which accepts <em>any</em> object. No event implements <code>ShouldBroadcast</code>, so <code>InteractsWithSockets</code>' broadcast-channel resolution is never exercised. No event carries an Eloquent model (they carry DTOs), so <code>SerializesModels</code> has nothing to rehydrate. <strong>All three traits can be removed from all 12 events with zero runtime behavior change</strong> — this was verified against the actual call site, not inferred. The Laravel dispatch convenience these traits provided moves to Core, which already owns the one call site that constructs and fires these events.</p>
+      </div>
+
+      <div class="callout finding">
+        <span class="callout-label">Design gap — recommended fix before freeze</span>
+        <p><code>DeviceCameOnline</code> and <code>DeviceWentOffline</code> carry only <code>string $vendorKey</code> — the driver <em>type</em>, not the specific device instance, and no timestamp. A company running two Teltonika GPS units gets an indistinguishable <code>DeviceWentOffline('teltonika')</code> regardless of which one dropped, and a listener has no <code>occurredAt</code> to record. Adding <code>string $deviceId</code> and <code>CarbonImmutable $occurredAt</code> to both constructors now is additive-in-spirit but is still a constructor signature change — free today (nothing external depends on it yet), a breaking change the moment a third party's listener is written against the current two-argument-free shape.</p>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Event</th><th>Carries</th><th>Traits found (all removable)</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">WeighbridgeReadingCaptured / GpsPositionReported</td><td class="mono">1 DTO</td><td class="mono">Dispatchable, InteractsWithSockets, SerializesModels</td></tr>
+            <tr><td class="mono">FuelTransactionRecorded / RfidTagScanned / BiometricEventOccurred / BarcodeScanned / QrCodeScanned / PlcSignalReceived / SensorReadingReceived</td><td class="mono">1 DTO</td><td class="mono">Dispatchable, InteractsWithSockets, SerializesModels</td></tr>
+            <tr><td class="mono">DeviceCameOnline</td><td class="mono">vendorKey <span class="pill warn">missing deviceId/timestamp</span></td><td class="mono">Dispatchable</td></tr>
+            <tr><td class="mono">DeviceWentOffline</td><td class="mono">vendorKey <span class="pill warn">missing deviceId/timestamp</span></td><td class="mono">Dispatchable</td></tr>
+            <tr><td class="mono">DeviceHealthCheckFailed</td><td class="mono">vendorKey, DeviceHealthDTO</td><td class="mono">Dispatchable</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>Naming convention:</strong> consistent past-tense throughout (Captured/Reported/Recorded/Scanned/Occurred/Received/CameOnline/WentOffline/Failed) — no violations found; keep this convention documented in §02 for third-party event additions, if any are ever allowed (they currently aren't — see §Extension Guide).</p>
+
+      <h3 id="attribute">Attribute (1)</h3>
+      <div class="type-card">
+        <div class="type-card-head"><span class="type-name">#[IntegrationDriver]</span><span class="pill warn">Stable after fix</span></div>
+        <p class="type-purpose">Tags a driver class for discovery and is the single source of truth for its metadata — <code>AbstractDeviceDriver::getMetadata()</code> reads it back via reflection rather than requiring drivers to redeclare the same facts twice.</p>
+        <div class="verdict-strip">
+          <span class="verdict"><b>Target:</b> TARGET_CLASS only — correct, an attribute per method/property was never needed here</span>
+        </div>
+        <p class="type-risk"><b class="tag">Consistency — blocking</b>All 6 constructor-promoted properties are plain <code>public</code>, not <code>readonly</code> — the one immutability inconsistency in the whole package, next to 12 DTOs that are all correctly <code>readonly</code>. An attribute instance is built once by Reflection and never legitimately mutated afterward; mark all 6 properties <code>readonly</code> before freeze (zero behavior change, since nothing currently mutates them). <b class="tag" style="color:var(--warn)">Versioning</b>3 of 6 constructor parameters have defaults (<code>version</code>, <code>capabilities</code>, <code>displayName</code>/<code>description</code>); any future parameter must be appended with a default for the same reason as the DTOs — PHP attribute arguments are an ordinary constructor call.</p>
+      </div>
+
+      <h3 id="exceptions">Exceptions (4)</h3>
+      <p><code>DeviceOfflineException</code>, <code>DriverNotFoundException</code>, <code>InvalidPayloadException</code>, <code>ProtocolNotImplementedException</code> — each <code>extends RuntimeException</code> directly, each with a named static constructor (<code>::forDevice()</code>, <code>::forVendor()</code>, etc.) rather than a public <code>__construct()</code>, which is good practice: it keeps the message format an implementation detail instead of a signature third parties depend on positionally.</p>
+      <div class="callout finding">
+        <span class="callout-label">Hierarchy gap — recommended addition before freeze</span>
+        <p>There is no common Tanaki-specific type to catch. A third-party driver author who wants to catch "any failure originating from the integration layer" today can only catch <code>RuntimeException</code>, which is far too broad — it would also catch unrelated exceptions from their own code in the same try block. PHP has no multiple class inheritance, so the fix isn't a shared base class; it's a marker interface (the pattern Doctrine, Guzzle, and Symfony all use for exactly this): add <code>IntegrationExceptionInterface extends \Throwable</code>, have all 4 exceptions implement it. Purely additive, zero risk, but must exist from 1.0.0 — adding it later means pre-existing exception classes gain an interface, which is binary-safe but fragments "some Tanaki exceptions are catchable via the marker, some aren't" during the gap.</p>
+      </div>
+
+      <h3 id="classification">Stability classification</h3>
+      <p>Every type gets one of five labels going into 1.0. <strong>Stable</strong>: frozen shape, changes only via the versioning rules in §03. <strong>Extension Point</strong>: stable, and specifically the interface/type a third party is expected to implement or extend. <strong>Experimental</strong>: ships in 1.0 for real use but reserves the right to change in a minor version, flagged via PHPDoc <code>@experimental</code>. <strong>Internal</strong>: public visibility for technical reasons (cross-namespace access within Contracts) but never meant for outside use. <strong>Deprecated</strong>: none at 1.0 — listed for completeness of the classification scheme.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Type</th><th>Classification</th><th>Condition</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">DeviceDriverInterface + 3 segregated interfaces</td><td><span class="pill info">Extension Point</span></td><td>—</td></tr>
+            <tr><td class="mono">9 category interfaces</td><td><span class="pill info">Extension Point</span></td><td>WeighbridgeDriverInterface ships renamed</td></tr>
+            <tr><td class="mono">ProtocolAdapterInterface</td><td><span class="pill info">Extension Point</span></td><td>Implemented by protocol packages, not driver packages directly</td></tr>
+            <tr><td class="mono">DeviceRegistryInterface, DriverFactoryInterface</td><td><span class="pill ok">Stable</span></td><td>Ships with array return types, not Collection</td></tr>
+            <tr><td class="mono">12 DTOs</td><td><span class="pill ok">Stable</span></td><td>Ships with CarbonImmutable</td></tr>
+            <tr><td class="mono">DeviceCategory, ProtocolType</td><td><span class="pill warn">Experimental</span></td><td>Ships as open value objects; @experimental for 1 minor cycle while the custom() escape hatch gets real third-party use before hardening the shape further</td></tr>
+            <tr><td class="mono">DeviceStatus, ConnectionMedium</td><td><span class="pill ok">Stable</span></td><td>Native enums, closed sets</td></tr>
+            <tr><td class="mono">12 event contracts</td><td><span class="pill ok">Stable</span></td><td>Ships trait-free; DeviceCameOnline/WentOffline ship with deviceId+occurredAt</td></tr>
+            <tr><td class="mono">#[IntegrationDriver]</td><td><span class="pill info">Extension Point</span></td><td>Ships with readonly properties</td></tr>
+            <tr><td class="mono">4 exceptions + IntegrationExceptionInterface</td><td><span class="pill ok">Stable</span></td><td>Marker interface ships in 1.0.0, not added later</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="sdk-guide">
+      <div class="sec-head"><span class="sec-num">02</span><h2>SDK design guide</h2></div>
+      <p class="sec-dek">The rules a driver author is expected to follow, and the rules Tanaki commits to following when evolving this package. Not a tutorial — see §05 for that.</p>
+
+      <h4>Namespace map</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Current</th><th>Proposed public namespace</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">App\IntegrationEngine\Contracts\*</td><td class="mono">Tanaki\IntegrationContracts\Contract\*</td></tr>
+            <tr><td class="mono">App\IntegrationEngine\Contracts\Categories\*</td><td class="mono">Tanaki\IntegrationContracts\Contract\Category\*</td></tr>
+            <tr><td class="mono">App\IntegrationEngine\DTOs\*</td><td class="mono">Tanaki\IntegrationContracts\DTO\*</td></tr>
+            <tr><td class="mono">App\IntegrationEngine\Enums\*</td><td class="mono">Tanaki\IntegrationContracts\Enum\*</td></tr>
+            <tr><td class="mono">App\IntegrationEngine\Events\*</td><td class="mono">Tanaki\IntegrationContracts\Event\*</td></tr>
+            <tr><td class="mono">App\IntegrationEngine\Attributes\*</td><td class="mono">Tanaki\IntegrationContracts\Attribute\*</td></tr>
+            <tr><td class="mono">App\IntegrationEngine\Exceptions\*</td><td class="mono">Tanaki\IntegrationContracts\Exception\*</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Singular segment names (<code>Contract</code>, <code>DTO</code>, <code>Enum</code>, <code>Event</code>, <code>Exception</code>) rather than the current plurals — matches PSR-4 convention in League/Symfony packages and drops the redundant "Contracts" folder living one level inside a package that is itself named <em>contracts</em>.</p>
+
+      <h4>Naming conventions ratified for 1.0</h4>
+      <ul>
+        <li>Category interfaces: <code>{Category}DriverInterface</code>, single parse method named <code>parseX(): XDTO</code> — see the <code>captureWeight</code> rename above.</li>
+        <li>DTOs: <code>{Noun}DTO</code>, always <code>final readonly class</code>, always end with <code>array $rawVendorPayload = []</code>.</li>
+        <li>Events: past-tense, <code>{Noun}{PastTenseVerb}</code>.</li>
+        <li>Exceptions: <code>{Failure}Exception</code>, named static constructors only, no public general-purpose constructor.</li>
+      </ul>
+
+      <h4>Composition over inheritance — the rule, not just a preference</h4>
+      <p>Every extension point in this package is an interface, not an abstract class. Contracts ships zero abstract classes on purpose: an abstract base class in a versioned public package is a much sharper compatibility hazard than an interface, because adding a method to an abstract class either breaks every subclass (if declared abstract) or is silently inheritable (if concrete) in a way that's easy to get wrong across a major-version boundary. <code>AbstractDeviceDriver</code> stays exactly where it is — in <code>tanaki/integration-core</code>, a convenience base class Tanaki controls the versioning of, that drivers may use but are never required to extend, since they only have to satisfy the interfaces in Contracts.</p>
+
+      <h4>Dependency policy for this package</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Dependency</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">php</td><td><span class="pill ok">Required</span></td><td>^8.2 — matches current app floor, no change</td></tr>
+            <tr><td class="mono">nesbot/carbon</td><td><span class="pill warn">Currently transitive only</span></td><td>Declare directly as ^3.0, switch DTOs to CarbonImmutable</td></tr>
+            <tr><td class="mono">filament/filament</td><td><span class="pill crit">Present, must be removed</span></td><td>Strip HasLabel from all 4 enums</td></tr>
+            <tr><td class="mono">illuminate/*</td><td><span class="pill crit">Present via event traits</span></td><td>Strip Dispatchable/InteractsWithSockets/SerializesModels</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>After the fixes above, Contracts' entire dependency graph is <code>php: ^8.2</code> and <code>nesbot/carbon: ^3.0</code> — nothing else. That is the target state this whole review exists to reach.</p>
+    </section>
+
+    <section id="versioning">
+      <div class="sec-head"><span class="sec-num">03</span><h2>Versioning strategy</h2></div>
+      <p class="sec-dek">Standard SemVer 2.0.0, with explicit rulings on the PHP-specific edge cases that generic SemVer guidance glosses over — interfaces, enums, and attributes each break differently than classes.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Change</th><th>Bump</th><th>Reasoning</th></tr></thead>
+          <tbody>
+            <tr><td>Add a method to any interface</td><td><span class="pill crit">Major</span></td><td>Breaks every existing implementer — binary and source breaking</td></tr>
+            <tr><td>Add a new interface (extension point)</td><td><span class="pill ok">Minor</span></td><td>Purely additive; nothing depends on it yet</td></tr>
+            <tr><td>Add an optional constructor parameter (with default) to a DTO/Attribute, appended last</td><td><span class="pill ok">Minor</span></td><td>Source-compatible for named-argument and existing positional callers</td></tr>
+            <tr><td>Add a required constructor parameter, or insert one before the end</td><td><span class="pill crit">Major</span></td><td>Breaks positional construction — forbidden pre-1.0 fix; disallowed entirely post-1.0 without a major bump</td></tr>
+            <tr><td>Add a case to a closed native enum (DeviceStatus, ConnectionMedium)</td><td><span class="pill warn">Minor, documented loudly</span></td><td>Source-safe, but breaks any <code>match</code> without a <code>default</code> arm — release notes must call this out explicitly every time</td></tr>
+            <tr><td>Add a named factory case to DeviceCategory/ProtocolType (open value objects)</td><td><span class="pill ok">Minor</span></td><td>Purely additive by design — this is the entire reason they were converted</td></tr>
+            <tr><td>Add a new event class</td><td><span class="pill ok">Minor</span></td><td>Additive; existing listeners unaffected</td></tr>
+            <tr><td>Change an event constructor signature</td><td><span class="pill crit">Major</span></td><td>Breaks any code constructing the event directly (tests, simulators)</td></tr>
+            <tr><td>Add a new exception class implementing IntegrationExceptionInterface</td><td><span class="pill ok">Minor</span></td><td>Additive; interface-level catches remain valid</td></tr>
+            <tr><td>Narrow a return type or widen a parameter type</td><td><span class="pill crit">Major</span></td><td>PHP variance rules make this backward-incompatible for implementers even though it looks like a narrowing "improvement"</td></tr>
+            <tr><td>Widen a return type or narrow a parameter type (covariant/contravariant-safe direction)</td><td><span class="pill warn">Minor, case-by-case</span></td><td>Only safe if no implementer's override becomes invalid — verify against real driver code, not just theory, before shipping</td></tr>
+            <tr><td>Bump the PHP version floor</td><td><span class="pill crit">Major</span></td><td>Can silently drop support for an installed base</td></tr>
+            <tr><td>Documentation, PHPDoc, internal formatting</td><td><span class="pill ok">Patch</span></td><td>No compiled-code effect</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>Deprecation policy</h4>
+      <ol>
+        <li>A type or method is never removed in a minor release — only in the next major.</li>
+        <li>Deprecation is announced at least one full minor version before the removing major — e.g. a method deprecated in 1.4 cannot be removed before 2.0, and 1.4's release notes must state the planned removal version.</li>
+        <li>Deprecated symbols get PHP's native <code>#[\Deprecated]</code> attribute (8.4+) or a PHPDoc <code>@deprecated</code> tag plus a <code>trigger_error(..., E_USER_DEPRECATED)</code> for earlier 8.2/8.3 support, so IDEs and CI both surface it.</li>
+        <li>Every deprecation entry in the changelog states the replacement API, not just that the old one is going away.</li>
+      </ol>
+
+      <h4>Minimum support window</h4>
+      <p>Once 2.0 ships, 1.x receives security and critical-bugfix patches for a minimum of 12 months — long enough that a hardware manufacturer on a slow release cadence isn't forced into an emergency major-version migration.</p>
+    </section>
+
+    <section id="compat-matrix">
+      <div class="sec-head"><span class="sec-num">04</span><h2>Compatibility matrix</h2></div>
+      <p class="sec-dek">What's guaranteed to a third-party driver package across a version bump, stated as promises Tanaki is making, not just rules Tanaki is following.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Guarantee</th><th>Within 1.x</th><th>Across 1.x → 2.0</th></tr></thead>
+          <tbody>
+            <tr><td>A driver compiled against 1.0 still implements all its interfaces correctly</td><td><span class="pill ok">Guaranteed</span></td><td><span class="pill crit">Not guaranteed — migration guide required</span></td></tr>
+            <tr><td>A driver's <code>composer.json</code> constraint <code>^1.0</code> keeps resolving to a working version</td><td><span class="pill ok">Guaranteed</span></td><td><span class="pill flat">N/A by definition of ^1.0</span></td></tr>
+            <tr><td>Existing DTO field reads keep working</td><td><span class="pill ok">Guaranteed</span></td><td><span class="pill warn">Only fields kept in the migration guide's mapping table</span></td></tr>
+            <tr><td>Existing DTO positional construction keeps working</td><td><span class="pill warn">Guaranteed only if fields were appended, per §03</span></td><td><span class="pill crit">Not guaranteed</span></td></tr>
+            <tr><td>Existing <code>match</code> on DeviceStatus/ConnectionMedium without a default arm</td><td><span class="pill warn">Not guaranteed if a case was added — see §03</span></td><td><span class="pill crit">Not guaranteed</span></td></tr>
+            <tr><td>Catching <code>IntegrationExceptionInterface</code> catches every Tanaki-thrown exception</td><td><span class="pill ok">Guaranteed</span></td><td><span class="pill ok">Guaranteed to remain the recommended pattern</span></td></tr>
+            <tr><td>PHP 8.2 support</td><td><span class="pill ok">Guaranteed for the 1.x line</span></td><td><span class="pill warn">Re-evaluated at 2.0 planning, announced one minor ahead</span></td></tr>
+            <tr><td>Zero Laravel/Filament dependency</td><td><span class="pill ok">Guaranteed — the entire point of this review</span></td><td><span class="pill ok">Guaranteed</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>Package support policy</h4>
+      <ul>
+        <li><strong>Supported PHP versions:</strong> current stable and the prior one at time of each release (matches Laravel's own support policy, so Tanaki Hub itself and third-party drivers stay aligned without extra coordination).</li>
+        <li><strong>Supported Core versions:</strong> <code>tanaki/integration-core</code> declares its own <code>tanaki/integration-contracts</code> constraint; a driver's manifest-declared <code>minimumCoreVersion</code> is validated transitively through Core's own Contracts constraint, so a driver never has to reason about Contracts versions directly — only Core's.</li>
+        <li><strong>Security patches:</strong> backported to every 1.x minor still inside its support window, not just the latest.</li>
+      </ul>
+    </section>
+
+    <section id="extension-guide">
+      <div class="sec-head"><span class="sec-num">05</span><h2>Extension guide</h2></div>
+      <p class="sec-dek">What a third party is meant to build against, and what they should never reach for.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>You are building…</th><th>Implement</th><th>Never</th></tr></thead>
+          <tbody>
+            <tr><td>A driver for an existing category (GPS, weighbridge, RFID, …)</td><td>The matching category interface</td><td>Extend <code>AbstractDeviceDriver</code> as a requirement — it's a Core convenience, not a contract</td></tr>
+            <tr><td>A driver for a category that doesn't exist yet</td><td><code>DeviceDriverInterface</code> directly + <code>DeviceCategory::custom(...)</code></td><td>Wait for Tanaki to ship a new category interface — you're not blocked</td></tr>
+            <tr><td>Support for a new transport protocol</td><td><code>ProtocolAdapterInterface</code> in your own <code>tanaki/protocol-*</code>-style package + <code>ProtocolType::custom(...)</code></td><td>Reuse an existing protocol package's adapter class by inheritance — compose it instead</td></tr>
+            <tr><td>Custom error handling for your driver</td><td>Extend one of the 4 shipped exceptions, or throw your own implementing <code>IntegrationExceptionInterface</code></td><td>Throw a bare <code>RuntimeException</code> — callers can't catch it selectively</td></tr>
+            <tr><td>A new domain event beyond the 12 shipped</td><td class="mono">Not currently an extension point</td><td>See below</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout">
+        <span class="callout-label">Why events are not an open extension point in 1.0</span>
+        <p>The 12 shipped events cover every category interface plus lifecycle. Letting third parties define arbitrary new event classes would mean business-side listeners in Tanaki Hub (and any other consuming app) would need to discover and subscribe to event classes they've never heard of — the opposite of the "business modules never know the vendor" principle this whole engine was built on. If a genuinely new event category is needed, it ships as a Tanaki-authored minor-version addition, informed by real third-party requests, not authored ad hoc per package.</p>
+      </div>
+
+      <h4>Contract test suite (design, not implementation)</h4>
+      <p>Each category interface should ship an abstract PHPUnit test case in Contracts itself (e.g. <code>WeighbridgeDriverContractTestCase</code>) that a manufacturer extends and points at their own driver — the same pattern <code>league/flysystem-adapter-test-utilities</code> uses. This lets a driver prove conformance without ever seeing Tanaki's own driver implementations, and gives Tanaki a mechanical way to verify a proposed interface change doesn't silently break the contract's own stated guarantees. Building the actual test cases is implementation work, out of scope for this document — recorded here so it's on the v1.0 checklist.</p>
+    </section>
+
+    <section id="adr">
+      <div class="sec-head"><span class="sec-num">06</span><h2>Architecture decision records</h2></div>
+      <p class="sec-dek">One ADR per real decision point, not one per type — 9 near-identical category interfaces share a single ADR (ADR-0003) rather than 9 rubber-stamped copies; decisions genuinely unique to one type get their own record.</p>
+
+      <div class="adr">
+        <div class="adr-head"><span class="adr-id mono">ADR-0001</span><h5 class="adr-title">Segregate the driver contract into four interfaces instead of one</h5><span class="pill ok">Accepted</span></div>
+        <div class="adr-body">
+          <h5>Context</h5><p>A single flat <code>DeviceDriverInterface</code> with 8+ methods would force every consumer — including code that only ever health-checks a device — to depend on the entire surface.</p>
+          <h5>Decision</h5><p>Split into <code>HealthCheckableInterface</code>, <code>DiagnosticsInterface</code>, <code>DriverMetadataInterface</code>, composed by <code>DeviceDriverInterface</code>.</p>
+          <h5>Consequences</h5><p>Every real driver still implements all four; the benefit is entirely on the consuming side (narrow type-hints) and for future extension points that can compose a subset.</p>
+          <h5>Status</h5><p>Already correctly implemented — ratified as-is, no change required.</p>
+        </div>
+      </div>
+
+      <div class="adr">
+        <div class="adr-head"><span class="adr-id mono">ADR-0002</span><h5 class="adr-title">DeviceRegistryInterface returns array, not Illuminate\Support\Collection</h5><span class="pill warn">Proposed</span></div>
+        <div class="adr-body">
+          <h5>Context</h5><p><code>driversForCategory()</code>/<code>all()</code> currently type-hint Collection, the only Laravel Framework dependency remaining in the interface layer.</p>
+          <h5>Decision</h5><p>Change both return types to plain <code>array</code>. Callers who want Collection ergonomics wrap the result themselves (<code>collect($registry->all())</code>) — free in a Laravel consumer, no-op cost in a non-Laravel one.</p>
+          <h5>Consequences</h5><p>Source-breaking for the two existing internal call sites (mechanical fix); removes the last framework dependency from this interface.</p>
+          <h5>Alternatives considered</h5><p>Move the interface to Core instead of Contracts — rejected: business/admin code should be able to depend on the registry contract via Dependency Inversion without depending on Core's concrete implementation.</p>
+        </div>
+      </div>
+
+      <div class="adr">
+        <div class="adr-head"><span class="adr-id mono">ADR-0003</span><h5 class="adr-title">Category interfaces follow parseX(array): XDTO; WeighbridgeDriverInterface renamed to match</h5><span class="pill warn">Proposed</span></div>
+        <div class="adr-body">
+          <h5>Context</h5><p>8 of 9 category interfaces already follow a consistent <code>parseX()</code> convention; <code>captureWeight()</code> is a same-shape outlier with no functional justification.</p>
+          <h5>Decision</h5><p>Rename to <code>parseReading(array $rawPayload): WeighbridgeReadingDTO</code> before 1.0.0.</p>
+          <h5>Consequences</h5><p>Breaks the one existing first-party driver (mechanical one-line fix); prevents a permanent naming wart in a frozen interface.</p>
+        </div>
+      </div>
+
+      <div class="adr">
+        <div class="adr-head"><span class="adr-id mono">ADR-0004</span><h5 class="adr-title">DeviceCategory and ProtocolType become open value objects, not native enums</h5><span class="pill warn">Proposed</span></div>
+        <div class="adr-body">
+          <h5>Context</h5><p>Native PHP enums cannot be extended by third-party code. The plugin ecosystem's core premise is that manufacturers can add hardware support without a Tanaki release.</p>
+          <h5>Decision</h5><p><code>final readonly class</code> with private constructor, named static factories for built-in cases, and a public <code>custom(string $key, string $label): self</code> factory. DeviceStatus and ConnectionMedium remain native enums — their sets are closed by nature.</p>
+          <h5>Consequences</h5><p>Loses native <code>match</code> exhaustiveness checking and <code>::cases()</code> reflection for these two types specifically; gains genuine third-party extensibility, which is the more important property for these two specifically.</p>
+          <h5>Alternatives considered</h5><p>Add an <code>Other</code> case plus a free-text sibling field — rejected as a leaky, harder-to-query half-measure compared to a proper open value object.</p>
+        </div>
+      </div>
+
+      <div class="adr">
+        <div class="adr-head"><span class="adr-id mono">ADR-0005</span><h5 class="adr-title">Enums (and all Contracts types) drop the Filament HasLabel dependency</h5><span class="pill warn">Proposed</span></div>
+        <div class="adr-body">
+          <h5>Context</h5><p>All 4 enums implement <code>Filament\Support\Contracts\HasLabel</code>, pulling a UI framework into a package hardware manufacturers build against.</p>
+          <h5>Decision</h5><p>Remove <code>HasLabel</code>/<code>getLabel()</code> from Contracts entirely; label presentation becomes an app-layer concern in Tanaki Hub.</p>
+          <h5>Consequences</h5><p>One-time mechanical migration inside the app wherever Filament auto-detected labels from these enums; permanently removes Contracts' only UI-framework dependency.</p>
+        </div>
+      </div>
+
+      <div class="adr">
+        <div class="adr-head"><span class="adr-id mono">ADR-0006</span><h5 class="adr-title">Event contracts ship as plain PHP objects; Laravel dispatch traits removed</h5><span class="pill warn">Proposed</span></div>
+        <div class="adr-body">
+          <h5>Context</h5><p>12 event classes carry Dispatchable/InteractsWithSockets/SerializesModels. Verified against the one real dispatch call site (<code>ProcessDeviceReadingJob</code>, which calls plain <code>event()</code>): none of the three traits' behavior is exercised anywhere in the codebase today.</p>
+          <h5>Decision</h5><p>Strip all three traits from all 12 events. <code>DeviceCameOnline</code>/<code>DeviceWentOffline</code> additionally gain <code>string $deviceId</code> and <code>CarbonImmutable $occurredAt</code> constructor parameters.</p>
+          <h5>Consequences</h5><p>Verified zero runtime behavior change for the trait removal. The two new constructor parameters are a breaking signature change, applied now while free rather than after third parties construct these events directly (e.g. in simulators/tests).</p>
+        </div>
+      </div>
+
+      <div class="adr">
+        <div class="adr-head"><span class="adr-id mono">ADR-0007</span><h5 class="adr-title">All 12 DTOs use CarbonImmutable, not Carbon</h5><span class="pill warn">Proposed</span></div>
+        <div class="adr-body">
+          <h5>Context</h5><p><code>readonly</code> on a DTO property prevents reassignment but not mutation of the mutable Carbon object it points to — an immutability gap at the object-graph level.</p>
+          <h5>Decision</h5><p>Type every DTO timestamp property as <code>Carbon\CarbonImmutable</code>; declare <code>nesbot/carbon</code> as a direct dependency rather than relying on Laravel's transitive install.</p>
+          <h5>Consequences</h5><p>API-compatible for every read-only usage found in the codebase (identical method surface); any code relying on in-place mutation, if it exists, would need to switch to reassignment — none was found.</p>
+        </div>
+      </div>
+
+      <div class="adr">
+        <div class="adr-head"><span class="adr-id mono">ADR-0008</span><h5 class="adr-title">#[IntegrationDriver] attribute properties become readonly</h5><span class="pill warn">Proposed</span></div>
+        <div class="adr-body">
+          <h5>Context</h5><p>The attribute's 6 constructor-promoted properties are plain public, inconsistent with the readonly guarantee every DTO in the package carries.</p>
+          <h5>Decision</h5><p>Mark all 6 <code>readonly</code>.</p>
+          <h5>Consequences</h5><p>Zero behavior change — nothing currently mutates an attribute instance post-reflection.</p>
+        </div>
+      </div>
+
+      <div class="adr">
+        <div class="adr-head"><span class="adr-id mono">ADR-0009</span><h5 class="adr-title">Introduce IntegrationExceptionInterface as a catch-all marker</h5><span class="pill warn">Proposed</span></div>
+        <div class="adr-body">
+          <h5>Context</h5><p>4 exceptions each extend RuntimeException directly with no common Tanaki-specific supertype; PHP has no multiple class inheritance.</p>
+          <h5>Decision</h5><p>Add a marker interface extending <code>\Throwable</code>; all 4 exceptions implement it, effective from 1.0.0.</p>
+          <h5>Consequences</h5><p>Purely additive. Must ship at 1.0.0 rather than a later minor, so no exception type ever exists without it.</p>
+        </div>
+      </div>
+
+      <div class="adr">
+        <div class="adr-head"><span class="adr-id mono">ADR-0010</span><h5 class="adr-title">Contracts declares zero abstract classes — composition-only extension points</h5><span class="pill ok">Accepted</span></div>
+        <div class="adr-body">
+          <h5>Context</h5><p>An abstract base class in a versioned public package is harder to evolve safely than an interface — adding a concrete method is fine, but the temptation to add abstract methods (which breaks every subclass) is a standing hazard.</p>
+          <h5>Decision</h5><p>Every extension point in Contracts is an interface. <code>AbstractDeviceDriver</code> stays in Core as an optional convenience, never a requirement.</p>
+          <h5>Consequences</h5><p>Already the current design — ratified, not changed.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="checklist">
+      <div class="sec-head"><span class="sec-num">07</span><h2>v1.0 release checklist</h2></div>
+      <p class="sec-dek">Every box below traces to a specific finding above. Package extraction (the previously-approved migration Phase 0) does not begin until this list is clear.</p>
+
+      <div class="phase">
+        <input type="checkbox" disabled>
+        <div class="phase-body"><p class="phase-title">Change DeviceRegistryInterface's two Collection return types to array</p><p>ADR-0002 · fixes the one remaining Laravel dependency in the interface layer</p></div>
+      </div>
+      <div class="phase">
+        <input type="checkbox" disabled>
+        <div class="phase-body"><p class="phase-title">Rename WeighbridgeDriverInterface::captureWeight() to parseReading()</p><p>ADR-0003 · one-line call-site fix in GenericHttpWeighbridgeDriver</p></div>
+      </div>
+      <div class="phase">
+        <input type="checkbox" disabled>
+        <div class="phase-body"><p class="phase-title">Convert DeviceCategory and ProtocolType to open value objects with a custom() factory</p><p>ADR-0004 · the structural blocker; do this before anything else on this list, since it may reshape call sites elsewhere</p></div>
+      </div>
+      <div class="phase">
+        <input type="checkbox" disabled>
+        <div class="phase-body"><p class="phase-title">Remove Filament\Support\Contracts\HasLabel from all 4 enums; move label presentation into the app layer</p><p>ADR-0005</p></div>
+      </div>
+      <div class="phase">
+        <input type="checkbox" disabled>
+        <div class="phase-body"><p class="phase-title">Strip Dispatchable / InteractsWithSockets / SerializesModels from all 12 event classes</p><p>ADR-0006 · verified zero behavior change against the live ProcessDeviceReadingJob call site</p></div>
+      </div>
+      <div class="phase">
+        <input type="checkbox" disabled>
+        <div class="phase-body"><p class="phase-title">Add deviceId and occurredAt to DeviceCameOnline and DeviceWentOffline</p><p>ADR-0006</p></div>
+      </div>
+      <div class="phase">
+        <input type="checkbox" disabled>
+        <div class="phase-body"><p class="phase-title">Switch all 12 DTO timestamp fields from Carbon to CarbonImmutable; declare nesbot/carbon as a direct dependency</p><p>ADR-0007</p></div>
+      </div>
+      <div class="phase">
+        <input type="checkbox" disabled>
+        <div class="phase-body"><p class="phase-title">Mark all 6 #[IntegrationDriver] constructor properties readonly</p><p>ADR-0008</p></div>
+      </div>
+      <div class="phase">
+        <input type="checkbox" disabled>
+        <div class="phase-body"><p class="phase-title">Add IntegrationExceptionInterface; implement it on all 4 exceptions</p><p>ADR-0009</p></div>
+      </div>
+      <div class="phase">
+        <input type="checkbox" disabled>
+        <div class="phase-body"><p class="phase-title">Rename namespaces per the §02 map; update composer.json to declare php ^8.2 and nesbot/carbon ^3.0 only</p><p>§02 SDK Design Guide</p></div>
+      </div>
+      <div class="phase">
+        <input type="checkbox" disabled>
+        <div class="phase-body"><p class="phase-title">Write the abstract contract-test-case suite (one per category interface)</p><p>§05 Extension Guide — required before any third party can self-certify a driver</p></div>
+      </div>
+      <div class="phase">
+        <input type="checkbox" disabled>
+        <div class="phase-body"><p class="phase-title">Re-run the full grep-verified blast-radius check from the architecture review after all renames above</p><p>Confirms no additional touchpoints were introduced by this round of changes</p></div>
+      </div>
+      <div class="phase">
+        <input type="checkbox" disabled>
+        <div class="phase-body"><p class="phase-title">Publish this document's §01–§06 as the package's committed docs/ directory before tagging 1.0.0</p><p>The reference third parties build against — must ship with the code, not stay a design artifact</p></div>
+      </div>
+
+      <div class="callout ok" style="margin-top:24px;">
+        <span class="callout-label">What happens after this list clears</span>
+        <p>Migration Phase 0 from the approved architecture review — extracting <code>tanaki/integration-contracts</code> as a path package — begins exactly where it left off, with one difference: the extraction now carries the fixed shapes above from day one instead of extracting today's shapes and having to break them again in a 2.0. No further architecture decisions are implied or requested by this document; it is a stability gate on the package already approved, not a new proposal.</p>
+      </div>
+    </section>
+
+    <footer class="doc-footer">tanaki/integration-contracts — Public API Review &amp; Stability Analysis · Design document, no source changes included · Package extraction remains paused pending checklist completion</footer>
+  </main>
+</div>

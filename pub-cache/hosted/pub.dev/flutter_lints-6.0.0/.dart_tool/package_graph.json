@@ -1,0 +1,21 @@
+{
+  "roots": [
+    "flutter_lints"
+  ],
+  "packages": [
+    {
+      "name": "flutter_lints",
+      "version": "6.0.0",
+      "dependencies": [
+        "lints"
+      ],
+      "devDependencies": []
+    },
+    {
+      "name": "lints",
+      "version": "6.1.0",
+      "dependencies": []
+    }
+  ],
+  "configVersion": 1
+}

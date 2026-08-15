@@ -1,0 +1,29 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('lab_documents', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('company_id')->nullable()->constrained()->cascadeOnDelete();
+            $table->string('documentable_type');
+            $table->unsignedBigInteger('documentable_id');
+            $table->string('category');
+            $table->string('file_path');
+            $table->foreignId('uploaded_by_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamps();
+
+            $table->index(['documentable_type', 'documentable_id']);
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('lab_documents');
+    }
+};

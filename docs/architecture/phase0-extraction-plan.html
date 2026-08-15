@@ -1,0 +1,305 @@
+<title>Phase 0 — Extraction Plan, Risk Analysis &amp; Rollback Plan</title>
+<style>
+  @media (prefers-color-scheme: light) { :root { color-scheme: light; } }
+  @media (prefers-color-scheme: dark)  { :root { color-scheme: dark; } }
+  :root {
+    --bg: #F1F4F7; --surface: #FFFFFF; --surface-2: #E7ECF1; --ink: #101B2D; --ink-muted: #45536B;
+    --line: #D3DBE3; --blueprint: #2C5C8A; --blueprint-soft: #E4EDF4; --signal: #B85C2C; --signal-soft: #F6E8DE;
+    --ok: #2F7A54; --ok-soft: #E3F0E9; --warn: #A6791F; --warn-soft: #F5EAD6; --crit: #A6342F; --crit-soft: #F5E0E0;
+    --shadow: 0 1px 2px rgba(16,27,45,.06), 0 8px 24px rgba(16,27,45,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0E1826; --surface: #142032; --surface-2: #1B2A40; --ink: #E8EDF3; --ink-muted: #93A3BA;
+      --line: #28384F; --blueprint: #7FB2DE; --blueprint-soft: #1D3348; --signal: #E08A52; --signal-soft: #3A2A1E;
+      --ok: #74C39A; --ok-soft: #17301F; --warn: #E0B45E; --warn-soft: #362A15; --crit: #E3847F; --crit-soft: #341C1B;
+      --shadow: 0 1px 2px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.35); }
+  }
+  :root[data-theme="light"] { --bg: #F1F4F7; --surface: #FFFFFF; --surface-2: #E7ECF1; --ink: #101B2D; --ink-muted: #45536B;
+    --line: #D3DBE3; --blueprint: #2C5C8A; --blueprint-soft: #E4EDF4; --signal: #B85C2C; --signal-soft: #F6E8DE;
+    --ok: #2F7A54; --ok-soft: #E3F0E9; --warn: #A6791F; --warn-soft: #F5EAD6; --crit: #A6342F; --crit-soft: #F5E0E0;
+    --shadow: 0 1px 2px rgba(16,27,45,.06), 0 8px 24px rgba(16,27,45,.06); }
+  :root[data-theme="dark"] { --bg: #0E1826; --surface: #142032; --surface-2: #1B2A40; --ink: #E8EDF3; --ink-muted: #93A3BA;
+    --line: #28384F; --blueprint: #7FB2DE; --blueprint-soft: #1D3348; --signal: #E08A52; --signal-soft: #3A2A1E;
+    --ok: #74C39A; --ok-soft: #17301F; --warn: #E0B45E; --warn-soft: #362A15; --crit: #E3847F; --crit-soft: #341C1B;
+    --shadow: 0 1px 2px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.35); }
+  * { box-sizing: border-box; } html, body { margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif; font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .mono { font-family: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, monospace; font-variant-numeric: tabular-nums; }
+  a { color: var(--blueprint); }
+  .shell { display: flex; max-width: 1320px; margin: 0 auto; align-items: flex-start; }
+  .toc { position: sticky; top: 0; align-self: flex-start; width: 264px; flex: 0 0 264px; height: 100vh; overflow-y: auto; padding: 28px 18px 40px 28px; border-right: 1px solid var(--line); }
+  .toc::-webkit-scrollbar { width: 8px; } .toc::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+  .toc-brand { display: flex; align-items: center; gap: 9px; margin-bottom: 4px; }
+  .toc-mark { width: 22px; height: 22px; border-radius: 4px; background: var(--blueprint); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .toc-mark svg { width: 13px; height: 13px; }
+  .toc-brand-text { font-family: ui-monospace, monospace; font-size: 12.5px; font-weight: 600; letter-spacing: .02em; color: var(--ink-muted); }
+  .toc-title { font-size: 15px; font-weight: 700; line-height: 1.35; margin: 14px 0 4px; text-wrap: balance; }
+  .toc-status { display: inline-flex; align-items: center; gap: 6px; margin: 4px 0 22px; font-family: ui-monospace, monospace; font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--signal); background: var(--signal-soft); padding: 4px 8px; border-radius: 4px; }
+  .toc-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--signal); }
+  .toc nav { display: flex; flex-direction: column; gap: 1px; }
+  .toc nav a { color: var(--ink-muted); text-decoration: none; font-size: 13px; padding: 5px 8px; border-radius: 5px; display: flex; gap: 8px; }
+  .toc nav a:hover { background: var(--surface-2); color: var(--ink); }
+  .toc nav a .n { font-family: ui-monospace, monospace; color: var(--signal); font-size: 11.5px; min-width: 18px; }
+  .content { flex: 1 1 auto; min-width: 0; padding: 48px 56px 120px; }
+  @media (max-width: 900px) { .toc { display: none; } .content { padding: 32px 20px 100px; } }
+  .doc-header { margin-bottom: 48px; }
+  .doc-eyebrow { font-family: ui-monospace, monospace; font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--blueprint); margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+  .doc-eyebrow::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  h1.doc-title { font-size: clamp(26px, 3.6vw, 38px); font-weight: 800; letter-spacing: -.01em; line-height: 1.12; margin: 0 0 14px; text-wrap: balance; }
+  .doc-sub { font-size: 17px; color: var(--ink-muted); max-width: 66ch; margin: 0 0 26px; text-wrap: balance; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .meta-chip { display: inline-flex; align-items: center; gap: 7px; background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 7px 11px; font-size: 12.5px; box-shadow: var(--shadow); }
+  .meta-chip .k { color: var(--ink-muted); font-family: ui-monospace, monospace; font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; }
+  .meta-chip .v { font-weight: 600; }
+  .meta-chip.constraint { border-color: var(--crit); background: var(--crit-soft); } .meta-chip.constraint .v { color: var(--crit); }
+  section { margin: 0 0 60px; scroll-margin-top: 24px; }
+  .sec-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 6px; }
+  .sec-num { font-family: ui-monospace, monospace; font-size: 15px; font-weight: 700; color: var(--signal); }
+  h2 { font-size: 23px; font-weight: 800; letter-spacing: -.005em; margin: 0; text-wrap: balance; }
+  .sec-dek { color: var(--ink-muted); font-size: 15px; max-width: 68ch; margin: 10px 0 24px; }
+  h3 { font-size: 15.5px; font-weight: 700; margin: 28px 0 10px; }
+  p { max-width: 70ch; margin: 0 0 14px; } p.wide { max-width: none; }
+  ul, ol { max-width: 70ch; padding-left: 22px; margin: 0 0 16px; } li { margin-bottom: 6px; }
+  strong { font-weight: 700; }
+  code:not(pre code) { font-family: ui-monospace, monospace; font-size: .88em; background: var(--surface-2); padding: .12em .4em; border-radius: 4px; border: 1px solid var(--line); }
+  .callout { border: 1px solid var(--line); border-left: 3px solid var(--blueprint); background: var(--surface); border-radius: 8px; padding: 16px 18px; margin: 18px 0; box-shadow: var(--shadow); max-width: 70ch; }
+  .callout.finding { border-left-color: var(--signal); } .callout.crit { border-left-color: var(--crit); background: var(--crit-soft); } .callout.ok { border-left-color: var(--ok); }
+  .callout .callout-label { font-family: ui-monospace, monospace; font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-muted); margin-bottom: 6px; display: block; }
+  .callout p:last-child { margin-bottom: 0; }
+  .table-wrap { overflow-x: auto; margin: 16px 0 26px; border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); }
+  table { width: 100%; border-collapse: collapse; background: var(--surface); font-size: 13px; min-width: 640px; }
+  thead th { text-align: left; font-size: 10.6px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-muted); background: var(--surface-2); padding: 9px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  tbody td { padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody td.mono { font-size: 11.8px; font-family: ui-monospace, monospace; }
+  .pill { display: inline-flex; align-items: center; gap: 5px; font-size: 10.6px; font-weight: 600; padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
+  .pill::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
+  .pill.ok { color: var(--ok); background: var(--ok-soft); } .pill.ok::before { background: var(--ok); }
+  .pill.warn { color: var(--warn); background: var(--warn-soft); } .pill.warn::before { background: var(--warn); }
+  .pill.crit { color: var(--crit); background: var(--crit-soft); } .pill.crit::before { background: var(--crit); }
+  .pill.info { color: var(--blueprint); background: var(--blueprint-soft); } .pill.info::before { background: var(--blueprint); }
+  .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin: 20px 0 8px; }
+  .stat-card { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 15px 17px; box-shadow: var(--shadow); }
+  .stat-num { font-family: ui-monospace, monospace; font-size: 26px; font-weight: 700; color: var(--blueprint); line-height: 1; }
+  .stat-label { font-size: 11px; color: var(--ink-muted); margin-top: 6px; }
+  .phase { display: grid; grid-template-columns: 30px 1fr; gap: 12px; padding: 13px 0; border-top: 1px solid var(--line); align-items: start; }
+  .phase:first-of-type { border-top: none; }
+  .phase .num { font-family: ui-monospace, monospace; font-size: 12px; font-weight: 700; color: var(--signal); }
+  .phase-title { font-size: 13.8px; font-weight: 600; margin: 0 0 3px; }
+  .phase-body p { margin: 0; font-size: 12.8px; color: var(--ink-muted); }
+  footer.doc-footer { border-top: 1px solid var(--line); margin-top: 60px; padding-top: 24px; color: var(--ink-muted); font-size: 12.5px; }
+  ::selection { background: var(--blueprint-soft); }
+</style>
+
+<div class="shell">
+  <aside class="toc">
+    <div class="toc-brand">
+      <span class="toc-mark"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 8V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2M3 8h18M3 8v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8"/><path d="M9 12h6"/></svg></span>
+      <span class="toc-brand-text">TANAKI HUB</span>
+    </div>
+    <div class="toc-title">Phase 0 — Extraction Plan, Risk Analysis &amp; Rollback Plan</div>
+    <span class="toc-status">Pre-implementation — no files moved yet</span>
+    <nav>
+      <a href="#summary"><span class="n">—</span>Summary</a>
+      <a href="#baseline"><span class="n">00</span>Captured baseline</a>
+      <a href="#plan"><span class="n">01</span>Extraction plan</a>
+      <a href="#adapter"><span class="n">02</span>The one required adapter</a>
+      <a href="#risk"><span class="n">03</span>Risk analysis</a>
+      <a href="#rollback"><span class="n">04</span>Rollback plan</a>
+      <a href="#sequence"><span class="n">05</span>Execution sequence</a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <header class="doc-header" id="summary">
+      <div class="doc-eyebrow">Pre-Implementation Plan · Zero files moved yet</div>
+      <h1 class="doc-title">Extracting tanaki/integration-contracts — the plan, before a single file moves</h1>
+      <p class="doc-sub">50 files, 6 source directories, ~17 application consumers. Every one accounted for below, with its destination, dependencies, risk level, and compatibility strategy — before anything is touched.</p>
+      <div class="meta-row">
+        <span class="meta-chip"><span class="k">Files extracted</span><span class="v">50</span></span>
+        <span class="meta-chip"><span class="k">App consumers to update</span><span class="v">17 + 9 tests</span></span>
+        <span class="meta-chip"><span class="k">Git repository</span><span class="v">None — manual backup used</span></span>
+        <span class="meta-chip constraint"><span class="k">Business modules</span><span class="v">0 touched</span></span>
+      </div>
+    </header>
+
+    <section id="baseline">
+      <div class="sec-head"><span class="sec-num">00</span><h2>Captured baseline (before touching anything)</h2></div>
+      <p class="sec-dek">There is no git repository in this project, so there is no commit to diff against or revert to. Two things were done first, before this plan was even written, to make "no regression" a checkable claim rather than an assertion:</p>
+      <div class="stat-row">
+        <div class="stat-card"><div class="stat-num">1710ms</div><div class="stat-label">Avg. full boot time (3 runs, ±15ms)</div></div>
+        <div class="stat-card"><div class="stat-num">98.3MB</div><div class="stat-label">Peak memory, boot + one driver resolve</div></div>
+        <div class="stat-card"><div class="stat-num">12,298</div><div class="stat-label">Classes in the optimized autoloader</div></div>
+        <div class="stat-card"><div class="stat-num">4.1MB</div><div class="stat-label">vendor/composer/ autoload directory size</div></div>
+      </div>
+      <p>Captured via a repeatable script (<code>perf_baseline.php</code>) that boots the full framework, resolves the driver registry and factory, and instantiates the generic HTTP weighbridge driver — the same script will run again after extraction for a like-for-like comparison in §07 of the follow-up report.</p>
+      <div class="callout finding">
+        <span class="callout-label">Rollback mechanism, given there is no git history</span>
+        <p>A full manual backup of every file this extraction touches — all 6 source directories, <code>IntegratedDevice.php</code>, <code>RecordWeighbridgeReading.php</code>, both <code>composer.json</code>/<code>composer.lock</code>, and the 9 test files — was copied to a timestamped directory <strong>outside</strong> the project root before any edit began. This is the actual rollback mechanism referenced throughout §04, not a hypothetical.</p>
+      </div>
+    </section>
+
+    <section id="plan">
+      <div class="sec-head"><span class="sec-num">01</span><h2>Extraction plan</h2></div>
+      <p class="sec-dek">Every file, grouped by family (identical destination pattern, dependencies, and risk within a family) — but every filename is listed individually as required. Destination root: <code>packages/tanaki/integration-contracts/src/</code>, namespace root: <code>Tanaki\IntegrationContracts\</code>.</p>
+
+      <h3>Contract/ — 7 files</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>File</th><th>Destination</th><th>Depends on</th><th>Risk</th><th>Adapter</th><th>Compatibility strategy</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">Contracts/DeviceDriverInterface.php</td><td class="mono">src/Contract/DeviceDriverInterface.php</td><td class="mono">3 sibling interfaces, Enum/DeviceCategory</td><td><span class="pill warn">Medium</span></td><td>None</td><td>Namespace-only change; every implementer updates its <code>use</code> statement, signature unchanged</td></tr>
+            <tr><td class="mono">Contracts/DeviceRegistryInterface.php</td><td class="mono">src/Contract/DeviceRegistryInterface.php</td><td class="mono">Enum/DeviceCategory</td><td><span class="pill ok">Low</span></td><td>None</td><td>Already returns plain array (ADR-0002) — no Laravel type leak to fix here</td></tr>
+            <tr><td class="mono">Contracts/DiagnosticsInterface.php</td><td class="mono">src/Contract/DiagnosticsInterface.php</td><td class="mono">DTO/DeviceDiagnosticsDTO</td><td><span class="pill ok">Low</span></td><td>None</td><td>Namespace-only</td></tr>
+            <tr><td class="mono">Contracts/DriverFactoryInterface.php</td><td class="mono">src/Contract/DriverFactoryInterface.php</td><td class="mono">DeviceDriverInterface</td><td><span class="pill ok">Low</span></td><td>None</td><td>Namespace-only</td></tr>
+            <tr><td class="mono">Contracts/DriverMetadataInterface.php</td><td class="mono">src/Contract/DriverMetadataInterface.php</td><td class="mono">DTO/DriverMetadataDTO</td><td><span class="pill ok">Low</span></td><td>None</td><td>Namespace-only</td></tr>
+            <tr><td class="mono">Contracts/HealthCheckableInterface.php</td><td class="mono">src/Contract/HealthCheckableInterface.php</td><td class="mono">DTO/DeviceHealthDTO</td><td><span class="pill ok">Low</span></td><td>None</td><td>Namespace-only</td></tr>
+            <tr><td class="mono">Contracts/ProtocolAdapterInterface.php</td><td class="mono">src/Contract/ProtocolAdapterInterface.php</td><td class="mono">Enum/ProtocolType</td><td><span class="pill warn">Medium</span></td><td>None</td><td>Implemented by 10 app-side Protocol adapter classes that stay in the app — each needs its <code>use</code> statement updated (see §01 Core-layer consumers)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Contract/Category/ — 9 files</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>File</th><th>Destination</th><th>Risk</th><th>Compatibility strategy</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">Contracts/Categories/WeighbridgeDriverInterface.php</td><td class="mono">src/Contract/Category/WeighbridgeDriverInterface.php</td><td><span class="pill warn">Medium</span></td><td>Already renamed to <code>parseReading()</code> (ADR-0003) — namespace-only change now; one app-side implementer (<code>GenericHttpWeighbridgeDriver</code>) updates its import</td></tr>
+            <tr><td class="mono">GpsTrackerDriverInterface.php, FuelControllerDriverInterface.php, RfidReaderDriverInterface.php, BiometricDriverInterface.php, BarcodeScannerDriverInterface.php, QrReaderDriverInterface.php, PlcDriverInterface.php, IotSensorDriverInterface.php</td><td class="mono">src/Contract/Category/*.php</td><td><span class="pill ok">Low</span></td><td>Namespace-only — no app-side implementers exist yet for these 8 (only the weighbridge category has a real driver today), so blast radius is the interface file itself</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>DTO/ — 12 files</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>File</th><th>Destination</th><th>Risk</th><th>Compatibility strategy</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">DTOs/WeighbridgeReadingDTO.php</td><td class="mono">src/DTO/WeighbridgeReadingDTO.php</td><td><span class="pill warn">Medium</span></td><td>Constructed by <code>GenericHttpWeighbridgeDriver</code> and consumed by <code>RecordWeighbridgeReading</code> — both update imports; DTO's own shape (readonly, CarbonImmutable per ADR-0007) is unchanged, so no data-shape risk, only import-path risk</td></tr>
+            <tr><td class="mono">GpsPositionDTO.php, FuelTransactionDTO.php, RfidScanDTO.php, BiometricEventDTO.php, BarcodeScanDTO.php, QrScanDTO.php, PlcSignalDTO.php, SensorReadingDTO.php, DeviceHealthDTO.php, DeviceDiagnosticsDTO.php, DriverMetadataDTO.php</td><td class="mono">src/DTO/*.php</td><td><span class="pill ok">Low</span></td><td>Namespace-only; consumed only within the engine's own Core-layer files (AbstractDeviceDriver, Registry) which are already being updated in the same pass</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Enum/ — 4 files</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>File</th><th>Destination</th><th>Risk</th><th>Adapter required</th><th>Compatibility strategy</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">Enums/DeviceCategory.php</td><td class="mono">src/Enum/DeviceCategory.php</td><td><span class="pill crit">High</span></td><td><strong>Yes — see §02</strong></td><td>Drops <code>Castable</code>/<code>Illuminate\Contracts</code> to become truly zero-dependency; <code>IntegratedDevice</code>'s Eloquent cast moves to a new app-side adapter class instead</td></tr>
+            <tr><td class="mono">Enums/ProtocolType.php</td><td class="mono">src/Enum/ProtocolType.php</td><td><span class="pill crit">High</span></td><td><strong>Yes — see §02</strong></td><td>Same treatment as DeviceCategory</td></tr>
+            <tr><td class="mono">Enums/DeviceStatus.php</td><td class="mono">src/Enum/DeviceStatus.php</td><td><span class="pill ok">Low</span></td><td>None</td><td>Native enum — Eloquent's built-in enum cast works regardless of namespace, no adapter needed</td></tr>
+            <tr><td class="mono">Enums/ConnectionMedium.php</td><td class="mono">src/Enum/ConnectionMedium.php</td><td><span class="pill ok">Low</span></td><td>None</td><td>Same as DeviceStatus</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Event/ — 12 files</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>File</th><th>Destination</th><th>Risk</th><th>Compatibility strategy</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">Events/WeighbridgeReadingCaptured.php</td><td class="mono">src/Event/WeighbridgeReadingCaptured.php</td><td><span class="pill warn">Medium</span></td><td>Dispatched via the plain <code>event()</code> helper (already trait-free per ADR-0006) and caught by <code>RecordWeighbridgeReading::handle(WeighbridgeReadingCaptured $event)</code> — the listener's type-hint import updates, Laravel's event dispatcher matches by class name regardless of which Composer package the class is autoloaded from</td></tr>
+            <tr><td class="mono">DeviceCameOnline.php, DeviceWentOffline.php, DeviceHealthCheckFailed.php</td><td class="mono">src/Event/*.php</td><td><span class="pill ok">Low</span></td><td>Fired only from Core-layer files being updated in the same pass; no external listener registered on these today</td></tr>
+            <tr><td class="mono">GpsPositionReported.php, FuelTransactionRecorded.php, RfidTagScanned.php, BiometricEventOccurred.php, BarcodeScanned.php, QrCodeScanned.php, PlcSignalReceived.php, SensorReadingReceived.php</td><td class="mono">src/Event/*.php</td><td><span class="pill ok">Low</span></td><td>Namespace-only; no listener exists for these yet (only the weighbridge category has a wired business listener today)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Attribute/ &amp; Exception/ — 6 files</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>File</th><th>Destination</th><th>Risk</th><th>Compatibility strategy</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">Attributes/IntegrationDriver.php</td><td class="mono">src/Attribute/IntegrationDriver.php</td><td><span class="pill warn">Medium</span></td><td>Read via Reflection by both <code>DriverDiscoveryService</code> and <code>AbstractDeviceDriver::resolveAttribute()</code> — Reflection resolves attributes by FQCN, unaffected by which package a class autoloads from; both call sites update their import</td></tr>
+            <tr><td class="mono">Exceptions/IntegrationExceptionInterface.php</td><td class="mono">src/Exception/IntegrationExceptionInterface.php</td><td><span class="pill ok">Low</span></td><td>Marker interface, no behavior</td></tr>
+            <tr><td class="mono">DeviceOfflineException.php, DriverNotFoundException.php, InvalidPayloadException.php, ProtocolNotImplementedException.php</td><td class="mono">src/Exception/*.php</td><td><span class="pill ok">Low</span></td><td>Thrown/caught only within Core-layer files updated in the same pass</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Application-side consumers (stay in the app, imports updated)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>File</th><th>What changes</th><th>Risk</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">Drivers/AbstractDeviceDriver.php</td><td>7 `use` statements repointed; logic untouched</td><td><span class="pill warn">Medium</span></td></tr>
+            <tr><td class="mono">Drivers/Weighbridge/GenericHttpWeighbridgeDriver.php</td><td>4 `use` statements repointed; logic untouched</td><td><span class="pill warn">Medium</span></td></tr>
+            <tr><td class="mono">Protocols/*.php (10 files incl. AbstractUnimplementedProtocolAdapter)</td><td>1-2 `use` statements each repointed (ProtocolAdapterInterface, ProtocolType)</td><td><span class="pill ok">Low</span></td></tr>
+            <tr><td class="mono">Discovery/DriverDiscoveryService.php</td><td>2 `use` statements repointed</td><td><span class="pill warn">Medium — central to the whole discovery mechanism</span></td></tr>
+            <tr><td class="mono">Registry/DeviceRegistry.php, Factory/DeviceDriverFactory.php</td><td>2-3 `use` statements each repointed</td><td><span class="pill warn">Medium</span></td></tr>
+            <tr><td class="mono">Providers/IntegrationEngineServiceProvider.php</td><td>4 `use` statements repointed; container bindings unchanged</td><td><span class="pill crit">High — boot-time wiring, any mistake here breaks the whole engine</span></td></tr>
+            <tr><td class="mono">Console/Commands/ListDriversCommand.php, DeviceHealthCheckCommand.php, InstallDriverCommand.php</td><td>1-2 `use` statements each repointed</td><td><span class="pill ok">Low</span></td></tr>
+            <tr><td class="mono">Models/IntegratedDevice.php</td><td>4 enum imports repointed; category/protocol casts repointed to the two new Cast adapter classes (§02)</td><td><span class="pill crit">High — the one file where the Contracts/Core boundary and the Eloquent/DB boundary meet</span></td></tr>
+            <tr><td class="mono">Listeners/Weighbridge/RecordWeighbridgeReading.php</td><td>1 `use` statement repointed — the one business-module file touched, and only its import line, per the "do not change business modules" instruction</td><td><span class="pill warn">Medium</span></td></tr>
+            <tr><td class="mono">9 test files under tests/Unit &amp; tests/Feature/IntegrationEngine</td><td>Imports repointed to the package namespace</td><td><span class="pill ok">Low</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="adapter">
+      <div class="sec-head"><span class="sec-num">02</span><h2>The one required adapter</h2></div>
+      <p class="sec-dek">Everything above is a namespace-only change except one real design decision, surfaced here before implementation rather than discovered mid-move.</p>
+      <div class="callout crit">
+        <span class="callout-label">DeviceCategory/ProtocolType's Eloquent Castable conflicts with "zero Laravel dependency"</span>
+        <p>The Public API Review (twice) required <code>tanaki/integration-contracts</code> to have no Laravel dependency at all — "pure PHP." The SDK-stabilization pass then had <code>DeviceCategory</code>/<code>ProtocolType</code> implement <code>Illuminate\Contracts\Database\Eloquent\Castable</code> specifically so <code>IntegratedDevice</code>'s <code>$casts</code> array needed zero changes. Both were correct decisions <em>in their own phase</em> — but they now collide: a truly pure-PHP package cannot implement a Laravel contract interface.</p>
+        <p style="margin-top:10px;"><strong>Resolution:</strong> the package versions of <code>DeviceCategory</code>/<code>ProtocolType</code> drop <code>Castable</code> entirely — zero Illuminate dependency, as originally promised. The cast logic moves to two new app-side classes, <code>App\IntegrationEngine\Casts\DeviceCategoryCast</code> and <code>ProtocolTypeCast</code> (implementing <code>CastsAttributes</code> directly), and <code>IntegratedDevice.php</code>'s <code>$casts</code> array points at those instead of at the enum classes themselves. This is the one place this extraction touches application behavior beyond a bare import-path swap — declared here, before implementation, exactly as the instructions require.</p>
+      </div>
+      <p>This keeps the package's dependency graph to exactly <code>php: ^8.2</code> and <code>nesbot/carbon: ^3.0</code> — nothing else — which is the target state every prior review round has been building toward.</p>
+    </section>
+
+    <section id="risk">
+      <div class="sec-head"><span class="sec-num">03</span><h2>Risk analysis</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Risk</th><th>Likelihood</th><th>Impact</th><th>Mitigation</th></tr></thead>
+          <tbody>
+            <tr><td>A `use` statement is missed, causing a fatal "class not found" at boot</td><td><span class="pill warn">Medium</span></td><td><span class="pill crit">High — whole app down</span></td><td>Scripted, not hand-edited, namespace rewrite across all consumer files; <code>php -l</code> on every touched file; full boot smoke-test before any old file is deleted</td></tr>
+            <tr><td>Composer path-repository symlink/junction doesn't work on this Windows environment</td><td><span class="pill ok">Low — pre-tested</span></td><td><span class="pill warn">Medium</span></td><td>Directory-junction creation was tested live on this exact machine before writing this plan (§00) — confirmed working without elevated privileges</td></tr>
+            <tr><td>IntegratedDevice's Eloquent cast breaks silently (wrong type read back from DB)</td><td><span class="pill warn">Medium</span></td><td><span class="pill crit">High — silent data corruption risk</span></td><td>New Cast adapter classes covered by the existing <code>IntegratedDeviceCastTest</code> suite, re-run against the new import paths before old files are deleted</td></tr>
+            <tr><td>No git history — a bad edit can't be `git revert`ed</td><td><span class="pill warn">Medium</span></td><td><span class="pill crit">High</span></td><td>Full manual filesystem backup taken outside the project root before any edit (§00); originals are not deleted until every validation step is green (§04, §06)</td></tr>
+            <tr><td>Removing the root composer.json's direct <code>nesbot/carbon</code> requirement (now the package's concern) breaks something else in the app that assumed it was direct</td><td><span class="pill ok">Low</span></td><td><span class="pill warn">Medium</span></td><td>Carbon remains available transitively via <code>laravel/framework</code> exactly as it was before this engine existed — verified by grepping every other Carbon call site in the app, none of which declare a direct dependency either</td></tr>
+            <tr><td>Performance regression from the extra autoload indirection (path repo vs. direct PSR-4)</td><td><span class="pill ok">Low</span></td><td><span class="pill ok">Low</span></td><td>Composer's optimized autoloader flattens path-repository packages into the same classmap as any other dependency — no runtime indirection; measured, not assumed (§07 of the follow-up report)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="rollback">
+      <div class="sec-head"><span class="sec-num">04</span><h2>Rollback plan</h2></div>
+      <p class="sec-dek">Produced before implementation, as required. If any validation step in §06 fails, this is the exact recovery procedure — no improvisation.</p>
+      <ol>
+        <li><strong>Stop immediately.</strong> Do not attempt a partial fix under pressure — that's how a recoverable failure becomes an unrecoverable one.</li>
+        <li><strong>Identify the failure boundary.</strong> Was it before or after old files were deleted (§Sequence step 9)? This determines which of the two recovery paths below applies.</li>
+        <li>
+          <strong>If old files have not been deleted yet</strong> (the safe majority of the window): revert <code>composer.json</code>'s <code>repositories</code>/<code>require</code> entries, run <code>composer update</code>, and the app falls back to the original <code>App\IntegrationEngine\*</code> files untouched on disk. Any consumer file whose <code>use</code> statements were already repointed gets restored from the backup directory captured in §00.
+        </li>
+        <li>
+          <strong>If old files have already been deleted</strong> (only happens after §06 passes green, so this path should never be needed — but if a later, unrelated step still fails): restore the entire backup directory's contents over the current <code>app/IntegrationEngine</code>, <code>app/Models/IntegratedDevice.php</code>, <code>app/Listeners/Weighbridge/RecordWeighbridgeReading.php</code>, and both composer files, then run <code>composer update</code>.
+        </li>
+        <li><strong>Re-run the validation checklist (§06 of the follow-up report)</strong> against the restored state to confirm the rollback itself didn't introduce a new problem.</li>
+        <li><strong>Explain the cause in plain terms before attempting the fix again</strong> — per instruction, no automatic retry.</li>
+      </ol>
+      <div class="callout ok">
+        <span class="callout-label">Why this order is safe</span>
+        <p>Old source files are deleted <em>only</em> as the second-to-last step, after every functional validation has already passed against the package-backed version running side-by-side with the untouched originals still on disk. There is no point in the sequence where the app depends on a half-migrated state without a complete, untouched fallback still present.</p>
+      </div>
+    </section>
+
+    <section id="sequence">
+      <div class="sec-head"><span class="sec-num">05</span><h2>Execution sequence</h2></div>
+      <div class="phase"><span class="num mono">1</span><div class="phase-body"><p class="phase-title">Create the package skeleton</p><p>packages/tanaki/integration-contracts/ — copy + namespace-rewrite all 50 files; strip Castable per §02</p></div></div>
+      <div class="phase"><span class="num mono">2</span><div class="phase-body"><p class="phase-title">Scaffold the package's own metadata</p><p>composer.json, README, CHANGELOG, LICENSE, phpunit.xml, phpstan.neon, CI workflow, UPGRADE.md, and the package's own isolated test suite</p></div></div>
+      <div class="phase"><span class="num mono">3</span><div class="phase-body"><p class="phase-title">Create the two Cast adapter classes</p><p>app/IntegrationEngine/Casts/DeviceCategoryCast.php, ProtocolTypeCast.php</p></div></div>
+      <div class="phase"><span class="num mono">4</span><div class="phase-body"><p class="phase-title">Wire the root composer.json</p><p>Path repository + require tanaki/integration-contracts ^1.0; remove the now-redundant direct nesbot/carbon entry; composer update</p></div></div>
+      <div class="phase"><span class="num mono">5</span><div class="phase-body"><p class="phase-title">Repoint every application consumer's imports</p><p>Scripted namespace rewrite across the 17 app files + 9 test files enumerated in §01 — originals still on disk throughout</p></div></div>
+      <div class="phase"><span class="num mono">6</span><div class="phase-body"><p class="phase-title">Run the full validation checklist</p><p>Boot, composer install, autoload generation, tests, discovery, generic HTTP driver, event flow, queue, health checks, diagnostics, Artisan commands — all against the package, originals still present</p></div></div>
+      <div class="phase"><span class="num mono">7</span><div class="phase-body"><p class="phase-title">Only once every check above is green: delete the 6 original source directories</p><p>The app now runs entirely through the Composer package</p></div></div>
+      <div class="phase"><span class="num mono">8</span><div class="phase-body"><p class="phase-title">Re-run validation once more post-deletion</p><p>Confirms no file was still being read from the old location by coincidence</p></div></div>
+      <div class="phase"><span class="num mono">9</span><div class="phase-body"><p class="phase-title">Performance report, documentation, final checklist</p><p>Compared against the §00 baseline</p></div></div>
+    </section>
+
+    <footer class="doc-footer">Phase 0 — Extraction Plan, Risk Analysis &amp; Rollback Plan · Produced before any file was moved, per instruction</footer>
+  </main>
+</div>

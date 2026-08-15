@@ -1,0 +1,32 @@
+@php use App\Filament\Resources\PhysicalStockCountResource; @endphp
+<x-filament-panels::page>
+    <x-slot name="heading"></x-slot>
+    <x-slot name="subheading"></x-slot>
+    <x-slot name="header"></x-slot>
+
+    @include('filament.construction.partials.styles')
+    @include('filament.construction.partials.native-table-styles')
+    @include('filament.construction.partials.header', [
+        'icon' => '<path stroke-linecap="round" stroke-linejoin="round" d="M9 14.25l6-6m4.5-3.493V21.75l-3.75-1.875-3.75 1.875-3.75-1.875-3.75 1.875V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0c1.1.128 1.907 1.077 1.907 2.185zM9.75 9h.008v.008H9.75V9zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 4.5h.008v.008h-.008V13.5zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />',
+        'title' => 'Physical Stock Count',
+        'subtitle' => 'Scheduled and ad hoc stock counts with variance reconciliation',
+    ])
+
+    <div class="table-section">
+        <div class="table-header-custom">
+            <div class="table-title">Stock Counts</div>
+            <div class="table-results">
+                @php $records = $this->getTable()->getRecords(); @endphp
+                @if ($records->firstItem() && $records->lastItem() && $records->total())
+                    Showing <strong>{{ $records->firstItem() }}-{{ $records->lastItem() }}</strong> of <strong>{{ $records->total() }}</strong> results
+                @else
+                    No results
+                @endif
+            </div>
+        </div>
+
+        <div class="tanaki-native-table">
+            {{ $this->table }}
+        </div>
+    </div>
+</x-filament-panels::page>

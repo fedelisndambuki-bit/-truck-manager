@@ -1,0 +1,832 @@
+<title>Plugin Ecosystem Architecture Review — Tanaki Integration Engine</title>
+<style>
+  @media (prefers-color-scheme: light) { :root { color-scheme: light; } }
+  @media (prefers-color-scheme: dark)  { :root { color-scheme: dark; } }
+
+  :root {
+    --bg: #F1F4F7;
+    --surface: #FFFFFF;
+    --surface-2: #E7ECF1;
+    --ink: #101B2D;
+    --ink-muted: #45536B;
+    --line: #D3DBE3;
+    --blueprint: #2C5C8A;
+    --blueprint-soft: #E4EDF4;
+    --signal: #B85C2C;
+    --signal-soft: #F6E8DE;
+    --ok: #2F7A54;
+    --ok-soft: #E3F0E9;
+    --warn: #A6791F;
+    --warn-soft: #F5EAD6;
+    --crit: #A6342F;
+    --crit-soft: #F5E0E0;
+    --shadow: 0 1px 2px rgba(16,27,45,.06), 0 8px 24px rgba(16,27,45,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0E1826;
+      --surface: #142032;
+      --surface-2: #1B2A40;
+      --ink: #E8EDF3;
+      --ink-muted: #93A3BA;
+      --line: #28384F;
+      --blueprint: #7FB2DE;
+      --blueprint-soft: #1D3348;
+      --signal: #E08A52;
+      --signal-soft: #3A2A1E;
+      --ok: #74C39A;
+      --ok-soft: #17301F;
+      --warn: #E0B45E;
+      --warn-soft: #362A15;
+      --crit: #E3847F;
+      --crit-soft: #341C1B;
+      --shadow: 0 1px 2px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #F1F4F7; --surface: #FFFFFF; --surface-2: #E7ECF1; --ink: #101B2D; --ink-muted: #45536B;
+    --line: #D3DBE3; --blueprint: #2C5C8A; --blueprint-soft: #E4EDF4; --signal: #B85C2C; --signal-soft: #F6E8DE;
+    --ok: #2F7A54; --ok-soft: #E3F0E9; --warn: #A6791F; --warn-soft: #F5EAD6; --crit: #A6342F; --crit-soft: #F5E0E0;
+    --shadow: 0 1px 2px rgba(16,27,45,.06), 0 8px 24px rgba(16,27,45,.06);
+  }
+  :root[data-theme="dark"] {
+    --bg: #0E1826; --surface: #142032; --surface-2: #1B2A40; --ink: #E8EDF3; --ink-muted: #93A3BA;
+    --line: #28384F; --blueprint: #7FB2DE; --blueprint-soft: #1D3348; --signal: #E08A52; --signal-soft: #3A2A1E;
+    --ok: #74C39A; --ok-soft: #17301F; --warn: #E0B45E; --warn-soft: #362A15; --crit: #E3847F; --crit-soft: #341C1B;
+    --shadow: 0 1px 2px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.35);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, "Liberation Mono", monospace; font-variant-numeric: tabular-nums; }
+
+  a { color: var(--blueprint); }
+
+  /* ---------- shell layout ---------- */
+  .shell { display: flex; max-width: 1280px; margin: 0 auto; align-items: flex-start; }
+  .toc {
+    position: sticky; top: 0; align-self: flex-start;
+    width: 268px; flex: 0 0 268px; height: 100vh; overflow-y: auto;
+    padding: 28px 18px 40px 28px; border-right: 1px solid var(--line);
+  }
+  .toc::-webkit-scrollbar { width: 8px; }
+  .toc::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+  .toc-brand { display: flex; align-items: center; gap: 9px; margin-bottom: 4px; }
+  .toc-mark {
+    width: 22px; height: 22px; border-radius: 4px; background: var(--blueprint);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .toc-mark svg { width: 13px; height: 13px; }
+  .toc-brand-text { font-family: ui-monospace, "Cascadia Code", monospace; font-size: 12.5px; font-weight: 600; letter-spacing: .02em; color: var(--ink-muted); }
+  .toc-title { font-size: 15px; font-weight: 700; line-height: 1.35; margin: 14px 0 4px; text-wrap: balance; }
+  .toc-status {
+    display: inline-flex; align-items: center; gap: 6px; margin: 4px 0 22px;
+    font-family: ui-monospace, monospace; font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--signal); background: var(--signal-soft); padding: 4px 8px; border-radius: 4px;
+  }
+  .toc-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--signal); }
+  .toc nav { display: flex; flex-direction: column; gap: 1px; }
+  .toc nav a {
+    color: var(--ink-muted); text-decoration: none; font-size: 13px; padding: 5px 8px; border-radius: 5px;
+    display: flex; gap: 8px;
+  }
+  .toc nav a:hover { background: var(--surface-2); color: var(--ink); }
+  .toc nav a .n { font-family: ui-monospace, monospace; color: var(--signal); font-size: 11.5px; min-width: 16px; }
+  .toc nav .sub { padding-left: 24px; font-size: 12.3px; }
+
+  .content { flex: 1 1 auto; min-width: 0; padding: 48px 56px 120px; }
+  @media (max-width: 900px) {
+    .toc { display: none; }
+    .content { padding: 32px 20px 100px; }
+  }
+
+  /* ---------- header block ---------- */
+  .doc-header { margin-bottom: 56px; }
+  .doc-eyebrow {
+    font-family: ui-monospace, monospace; font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--blueprint); margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
+  }
+  .doc-eyebrow::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  h1.doc-title {
+    font-size: clamp(28px, 4vw, 40px); font-weight: 800; letter-spacing: -.01em; line-height: 1.1;
+    margin: 0 0 14px; text-wrap: balance;
+  }
+  .doc-sub { font-size: 17px; color: var(--ink-muted); max-width: 62ch; margin: 0 0 26px; text-wrap: balance; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .meta-chip {
+    display: inline-flex; align-items: center; gap: 7px; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 7px; padding: 7px 11px; font-size: 12.5px; box-shadow: var(--shadow);
+  }
+  .meta-chip .k { color: var(--ink-muted); font-family: ui-monospace, monospace; font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; }
+  .meta-chip .v { font-weight: 600; }
+  .meta-chip.constraint { border-color: var(--crit); background: var(--crit-soft); }
+  .meta-chip.constraint .v { color: var(--crit); }
+
+  /* ---------- sections ---------- */
+  section { margin: 0 0 64px; scroll-margin-top: 24px; }
+  .sec-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 6px; }
+  .sec-num { font-family: ui-monospace, monospace; font-size: 15px; font-weight: 700; color: var(--signal); }
+  h2 { font-size: 24px; font-weight: 800; letter-spacing: -.005em; margin: 0; text-wrap: balance; }
+  .sec-dek { color: var(--ink-muted); font-size: 15px; max-width: 68ch; margin: 10px 0 26px; }
+  h3 { font-size: 16.5px; font-weight: 700; margin: 30px 0 10px; }
+  h4 { font-size: 13.5px; font-weight: 700; margin: 20px 0 8px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-muted); }
+  p { max-width: 68ch; margin: 0 0 14px; }
+  p.wide { max-width: none; }
+  ul, ol { max-width: 68ch; padding-left: 22px; margin: 0 0 16px; }
+  li { margin-bottom: 6px; }
+  strong { font-weight: 700; }
+  code:not(pre code) {
+    font-family: ui-monospace, "Cascadia Code", monospace; font-size: .9em; background: var(--surface-2);
+    padding: .12em .4em; border-radius: 4px; border: 1px solid var(--line);
+  }
+
+  /* ---------- callouts ---------- */
+  .callout { border: 1px solid var(--line); border-left: 3px solid var(--blueprint); background: var(--surface); border-radius: 8px; padding: 16px 18px; margin: 18px 0; box-shadow: var(--shadow); max-width: 68ch; }
+  .callout.finding { border-left-color: var(--signal); }
+  .callout.risk-crit { border-left-color: var(--crit); background: var(--crit-soft); }
+  .callout .callout-label { font-family: ui-monospace, monospace; font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-muted); margin-bottom: 6px; display: block; }
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* ---------- diagrams ---------- */
+  .diagram-card { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 22px 20px 8px; margin: 20px 0 28px; box-shadow: var(--shadow); overflow-x: auto; }
+  .diagram-card .cap { font-size: 12.5px; color: var(--ink-muted); padding: 12px 4px 4px; border-top: 1px solid var(--line); margin-top: 14px; }
+  pre.mermaid { margin: 0; display: flex; justify-content: center; }
+
+  /* ---------- tables ---------- */
+  .table-wrap { overflow-x: auto; margin: 18px 0 26px; border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); }
+  table { width: 100%; border-collapse: collapse; background: var(--surface); font-size: 13.5px; min-width: 560px; }
+  thead th {
+    text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-muted);
+    background: var(--surface-2); padding: 10px 14px; border-bottom: 1px solid var(--line); white-space: nowrap;
+  }
+  tbody td { padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody td.mono { font-size: 12.5px; }
+
+  .pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
+  .pill::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
+  .pill.ok { color: var(--ok); background: var(--ok-soft); } .pill.ok::before { background: var(--ok); }
+  .pill.warn { color: var(--warn); background: var(--warn-soft); } .pill.warn::before { background: var(--warn); }
+  .pill.crit { color: var(--crit); background: var(--crit-soft); } .pill.crit::before { background: var(--crit); }
+  .pill.info { color: var(--blueprint); background: var(--blueprint-soft); } .pill.info::before { background: var(--blueprint); }
+
+  /* ---------- package cards ---------- */
+  .pkg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; margin: 18px 0 28px; }
+  .pkg-card { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 15px 16px; box-shadow: var(--shadow); }
+  .pkg-tier { font-family: ui-monospace, monospace; font-size: 10px; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; display: inline-block; padding: 2px 7px; border-radius: 4px; }
+  .pkg-tier.contracts { color: var(--blueprint); background: var(--blueprint-soft); }
+  .pkg-tier.core { color: var(--ink); background: var(--surface-2); }
+  .pkg-tier.protocol { color: var(--signal); background: var(--signal-soft); }
+  .pkg-tier.driver { color: var(--ok); background: var(--ok-soft); }
+  .pkg-name { font-family: ui-monospace, monospace; font-size: 13.5px; font-weight: 600; margin-bottom: 6px; word-break: break-word; }
+  .pkg-desc { font-size: 12.5px; color: var(--ink-muted); line-height: 1.5; }
+
+  /* ---------- phase timeline ---------- */
+  .phase { display: grid; grid-template-columns: 84px 1fr; gap: 18px; padding: 20px 0; border-top: 1px solid var(--line); }
+  .phase:last-child { border-bottom: 1px solid var(--line); }
+  .phase-tag { font-family: ui-monospace, monospace; font-size: 12px; font-weight: 700; color: var(--signal); padding-top: 2px; }
+  .phase-title { font-size: 15.5px; font-weight: 700; margin: 0 0 6px; }
+  .phase-body p { margin-bottom: 8px; font-size: 14px; }
+  .phase-guarantee { display: flex; gap: 8px; align-items: flex-start; margin-top: 10px; font-size: 13px; background: var(--ok-soft); color: var(--ok); border-radius: 7px; padding: 8px 11px; max-width: 62ch; }
+
+  footer.doc-footer { border-top: 1px solid var(--line); margin-top: 60px; padding-top: 24px; color: var(--ink-muted); font-size: 12.5px; }
+
+  ::selection { background: var(--blueprint-soft); }
+</style>
+
+<div class="shell">
+  <aside class="toc">
+    <div class="toc-brand">
+      <span class="toc-mark"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M4 17V7l8-4 8 4v10l-8 4-8-4Z"/><path d="M4 7l8 4 8-4M12 11v10"/></svg></span>
+      <span class="toc-brand-text">TANAKI HUB</span>
+    </div>
+    <div class="toc-title">Plugin Ecosystem Architecture Review</div>
+    <span class="toc-status">Awaiting approval</span>
+    <nav>
+      <a href="#summary"><span class="n">—</span>Executive summary</a>
+      <a href="#current"><span class="n">01</span>Current architecture</a>
+      <a href="#proposed"><span class="n">02</span>Proposed architecture</a>
+      <a href="#deps"><span class="n">03</span>Package dependency graph</a>
+      <a href="#migration"><span class="n">04</span>Migration strategy</a>
+      <a href="#compat"><span class="n">05</span>Backward compatibility</a>
+      <a href="#risk"><span class="n">06</span>Risk assessment</a>
+      <a href="#sequence"><span class="n">07</span>Sequence diagrams</a>
+      <a href="#packages"><span class="n">08</span>Package structure</a>
+      <a href="#discovery"><span class="n">09</span>Auto-discovery design</a>
+      <a href="#registry"><span class="n">10</span>Plugin registry</a>
+      <a href="#capabilities"><span class="n">11</span>Capability model</a>
+      <a href="#manifest"><span class="n">12</span>Plugin manifest</a>
+      <a href="#lifecycle"><span class="n">13</span>Plugin lifecycle</a>
+      <a href="#console"><span class="n">14</span>Integration Console</a>
+      <a href="#marketplace"><span class="n">15</span>Marketplace</a>
+      <a href="#testing"><span class="n">16</span>Testing strategy</a>
+      <a href="#docs"><span class="n">17</span>Documentation plan</a>
+      <a href="#next"><span class="n">—</span>Approval checkpoint</a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <header class="doc-header" id="summary">
+      <div class="doc-eyebrow">Architecture Review · No code in this document</div>
+      <h1 class="doc-title">Evolving the Integration Engine into a Composer-installable plugin ecosystem</h1>
+      <p class="doc-sub">A gap analysis and migration design for <code>composer require tanaki/teltonika-driver</code> to work with zero changes inside the main application — without rewriting, replacing, or breaking anything currently shipping.</p>
+      <div class="meta-row">
+        <span class="meta-chip"><span class="k">Prepared&nbsp;by</span><span class="v">Chief Software Architect</span></span>
+        <span class="meta-chip"><span class="k">Subject</span><span class="v">Tanaki Integration Engine</span></span>
+        <span class="meta-chip"><span class="k">Status</span><span class="v">Design only</span></span>
+        <span class="meta-chip constraint"><span class="k">Constraint</span><span class="v">Zero breaking changes</span></span>
+      </div>
+    </header>
+
+    <section>
+      <p class="wide" style="max-width:70ch; font-size:16px;">The Integration Engine shipped and verified last phase — driver interfaces, protocol adapters, discovery, registry, health checks, retries, reconnect, events, queueing, one working driver — is the production foundation. Nothing here proposes rewriting it. This review answers one question precisely: <strong>what, specifically, blocks a third-party Composer package from becoming a driver today, and what is the smallest, safest set of changes that removes those blockers.</strong> Two concrete blockers were found (§1), a five-tier package graph resolves both without touching the engine's public behavior (§2–3), and the migration is sequenced so every phase ships independently and reversibly (§4).</p>
+    </section>
+
+    <section id="current">
+      <div class="sec-head"><span class="sec-num">01</span><h2>Current architecture</h2></div>
+      <p class="sec-dek">Everything the engine does today lives inside the host application's own namespace. That's correct for a first phase — it's wrong as a foundation for distributable packages, for two specific, fixable reasons.</p>
+
+      <div class="diagram-card">
+        <pre class="mermaid">
+flowchart TB
+    subgraph HOST["Tanaki Hub — app/ (single Composer root package)"]
+      direction TB
+      subgraph IE["App\\IntegrationEngine\\"]
+        C["Contracts/<br/>Interfaces · DTOs · Enums · Events · Attribute · Exceptions"]
+        P["Protocols/<br/>Http · Tcp · Udp · WebSocket · Mqtt · 6 honest stubs"]
+        D["Drivers/<br/>AbstractDeviceDriver · GenericHttpWeighbridgeDriver"]
+        R["Registry · Factory · DriverDiscoveryService<br/>(scans app_path('IntegrationEngine/Drivers') only)"]
+        SP["IntegrationEngineServiceProvider"]
+      end
+      M["App\\Models\\IntegratedDevice"]
+      L["App\\Listeners\\Weighbridge\\RecordWeighbridgeReading"]
+    end
+    D -- implements --> C
+    P -- implements --> C
+    R -- reflects #IntegrationDriver on --> D
+    SP -- registers into --> R
+    SP -- binds ProtocolAdapterInterface contextually --> P
+    L -- subscribes to event from --> C
+    M -- vendor_key / config --> R
+    style HOST fill:transparent,stroke:#2C5C8A,stroke-width:1.5px
+        </pre>
+        <div class="cap">Fig. 1 — every box above compiles into one Composer root package. There is no seam a second package could attach to.</div>
+      </div>
+
+      <h3>Blocker A — discovery only ever looks inside the host app</h3>
+      <p><code>DriverDiscoveryService</code> resolves its scan path as <code>app_path('IntegrationEngine/Drivers')</code> and, for every file it finds, reconstructs the class name by literally prepending <code>App\IntegrationEngine\Drivers\</code>. A package installed to <code>vendor/tanaki/teltonika-driver/</code> is never visited by the scan, and even if the path were widened, the hardcoded namespace prefix would resolve to a class that doesn't exist.</p>
+
+      <h3>Blocker B — the contracts a package would implement aren't a package</h3>
+      <p><code>WeighbridgeDriverInterface</code>, the DTOs, the events, the <code>#[IntegrationDriver]</code> attribute — all declared under <code>App\IntegrationEngine\Contracts</code>, the host application's own root namespace. A standalone package cannot reasonably <code>implement</code> an interface that lives inside the application consuming it; that's a circular dependency, not a plugin boundary.</p>
+
+      <div class="callout finding">
+        <span class="callout-label">Two findings that make the migration cheaper than it looks</span>
+        <p><strong>1.</strong> Grepping the full codebase for every class under <code>App\IntegrationEngine\*</code> turns up exactly two references outside the engine itself: <code>IntegratedDevice</code>'s enum casts, and the one Weighbridge listener's event import. Every other one of the ~55 files that reference these namespaces <em>is</em> the engine. The strict "business modules never touch hardware" boundary enforced last phase means a namespace migration's blast radius is almost perfectly self-contained.</p>
+        <p><strong>2.</strong> <code>DeviceRegistryInterface</code> currently type-hints <code>Illuminate\Support\Collection</code> in two return types — the one place a Laravel Framework dependency leaked into what needs to become pure-PHP contracts. Small, but it has to be named and fixed, not discovered mid-extraction. Laravel's <code>Dispatchable</code>/<code>InteractsWithSockets</code>/<code>SerializesModels</code> traits on the nine event classes are the same category of issue at larger scale — see §4, Phase 1.</p>
+      </div>
+    </section>
+
+    <section id="proposed">
+      <div class="sec-head"><span class="sec-num">02</span><h2>Proposed architecture</h2></div>
+      <p class="sec-dek">Five tiers, each with one rule about what it's allowed to depend on. The rule, not the diagram, is what makes third-party packages possible.</p>
+
+      <div class="diagram-card">
+        <pre class="mermaid">
+flowchart BT
+    CT["tanaki/integration-contracts<br/>pure PHP · zero Laravel dependency"]
+    CORE["tanaki/integration-core<br/>Laravel package · Registry, Factory, Discovery,<br/>Lifecycle, Logging, Config, Health/Diagnostics runtime"]
+    PROTO["Protocol packages<br/>tanaki/protocol-tcp · -udp · -http · -websocket · -mqtt<br/>tanaki/protocol-rs232 · -rs485 · -usb · -modbus · -canbus"]
+    DRV["Driver packages<br/>tanaki/teltonika-driver · -avery-driver · -mettler-driver<br/>-piusi-driver · -zkteco-driver · -queclink-driver"]
+    LOCAL["First-party local drivers<br/>app/IntegrationEngine/Drivers/* (unchanged mechanism)"]
+    APP["Tanaki Hub application"]
+
+    CORE --> CT
+    PROTO --> CT
+    DRV --> CT
+    DRV --> CORE
+    LOCAL --> CT
+    LOCAL --> CORE
+    APP --> CORE
+    APP -. "composer require, per site" .-> DRV
+    APP -. "composer require, per protocol" .-> PROTO
+    APP --> LOCAL
+
+    style CT fill:#E4EDF4,stroke:#2C5C8A,color:#101B2D
+    style CORE fill:#E7ECF1,stroke:#45536B,color:#101B2D
+    style PROTO fill:#F6E8DE,stroke:#B85C2C,color:#101B2D
+    style DRV fill:#E3F0E9,stroke:#2F7A54,color:#101B2D
+    style LOCAL fill:#FFFFFF,stroke:#D3DBE3,color:#101B2D
+    style APP fill:#FFFFFF,stroke:#101B2D,stroke-width:2px,color:#101B2D
+        </pre>
+        <div class="cap">Fig. 2 — arrows are "depends on." A driver package never has an edge to <strong>APP</strong> — that's the whole point. Dotted edges are the two <em>optional, per-deployment</em> installs; every solid edge is a permanent dependency declared in a package's own <code>composer.json</code>.</div>
+      </div>
+
+      <p>The rule that makes this work, stated plainly: <strong>the contracts a driver implements must never live in a place that requires depending on the thing consuming it.</strong> Everything else in this document follows from moving <code>Contracts/</code> out of the app first.</p>
+    </section>
+
+    <section id="deps">
+      <div class="sec-head"><span class="sec-num">03</span><h2>Package dependency graph</h2></div>
+      <p class="sec-dek">The same five tiers, drawn as an actual Composer graph with version constraints, so it's unambiguous what <code>composer require tanaki/teltonika-driver</code> pulls in.</p>
+
+      <div class="diagram-card">
+        <pre class="mermaid">
+graph LR
+    App["tanaki-hub/app<br/>(private, not published)"]
+    Core["tanaki/integration-core<br/>^1.0"]
+    CT["tanaki/integration-contracts<br/>^1.0"]
+    PHttp["tanaki/protocol-http<br/>^1.0"]
+    PTcp["tanaki/protocol-tcp<br/>^1.0"]
+    PMqtt["tanaki/protocol-mqtt<br/>^1.0"]
+    Tel["tanaki/teltonika-driver<br/>^1.0"]
+    Avery["tanaki/avery-driver<br/>^1.0"]
+    Piusi["tanaki/piusi-driver<br/>^1.0"]
+
+    App --> Core
+    App -.->|"optional, per site"| Tel
+    App -.->|"optional, per site"| Avery
+    App -.->|"optional, per site"| Piusi
+    Core --> CT
+    Tel --> CT
+    Tel --> Core
+    Tel --> PTcp
+    Avery --> CT
+    Avery --> Core
+    Avery --> PTcp
+    Piusi --> CT
+    Piusi --> Core
+    Piusi --> PMqtt
+    PHttp --> CT
+    PTcp --> CT
+    PMqtt --> CT
+
+    linkStyle default stroke:#93A3BA
+        </pre>
+        <div class="cap">Fig. 3 — <code>tanaki/integration-contracts</code> is the only node every package eventually reaches; that convergence is deliberate, not incidental, and is what lets Core validate a driver's declared <code>minimum core version</code> against itself (§13) using ordinary semver, not a custom mechanism.</div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Package</th><th>Requires</th><th>Laravel dependency</th><th>Published as</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">tanaki/integration-contracts</td><td class="mono">php: ^8.2, nesbot/carbon</td><td><span class="pill ok">none</span></td><td>Public, semver-tagged</td></tr>
+            <tr><td class="mono">tanaki/integration-core</td><td class="mono">integration-contracts, illuminate/support, illuminate/queue, symfony/finder, composer/semver</td><td><span class="pill info">required</span></td><td>Public, semver-tagged</td></tr>
+            <tr><td class="mono">tanaki/protocol-tcp / -udp</td><td class="mono">integration-contracts</td><td><span class="pill ok">none</span></td><td>Public — pure PHP, ext-sockets only</td></tr>
+            <tr><td class="mono">tanaki/protocol-http</td><td class="mono">integration-contracts, psr/http-client</td><td><span class="pill warn">PSR-18, not Laravel-specific</span></td><td>Public</td></tr>
+            <tr><td class="mono">tanaki/protocol-websocket / -mqtt</td><td class="mono">integration-contracts, textalk/websocket or php-mqtt/client</td><td><span class="pill ok">none</span></td><td>Public — thin wrappers over already-portable libraries</td></tr>
+            <tr><td class="mono">tanaki/protocol-rs232 / -rs485 / -usb / -modbus / -canbus</td><td class="mono">integration-contracts</td><td><span class="pill ok">none</span></td><td>Public — ships honest "not implemented here" stubs until real hardware access exists, exactly like today</td></tr>
+            <tr><td class="mono">tanaki/{vendor}-driver</td><td class="mono">integration-contracts, integration-core, one or more protocol packages</td><td><span class="pill info">via core</span></td><td>Public — third-party publishable</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="migration">
+      <div class="sec-head"><span class="sec-num">04</span><h2>Migration strategy</h2></div>
+      <p class="sec-dek">Eight phases. Every phase is independently shippable, independently reversible, and leaves the previous phase's guarantee intact. Nothing here is "big bang."</p>
+
+      <div class="phase">
+        <div class="phase-tag mono">PHASE 0</div>
+        <div class="phase-body">
+          <p class="phase-title">Extract <code class="mono">tanaki/integration-contracts</code> as a path package</p>
+          <p>Move <code>Contracts/</code>, <code>DTOs/</code>, <code>Enums/</code>, <code>Events/</code>, <code>Attributes/</code>, <code>Exceptions/</code> into <code>packages/tanaki/integration-contracts/</code> inside the same repository, with its own <code>composer.json</code>. The host app requires it via a Composer <strong>path repository</strong> (symlinked into <code>vendor/</code>) — same repo, same deploy, same CI, zero network dependency, fully reversible by deleting one <code>composer.json</code> entry. Fix the two Laravel leaks found in §1 here: swap <code>Illuminate\Support\Collection</code> return types for plain <code>array</code>, and replace the event classes' <code>Dispatchable</code>/<code>InteractsWithSockets</code>/<code>SerializesModels</code> traits with plain, trait-free value classes — the Laravel dispatch behavior moves to Core (Phase 1), not lost, relocated.</p>
+          <div class="phase-guarantee">✓ App behavior identical. Only <code>use</code> statements change (mechanical, covered by the existing <code>php -l</code> + grep verification pattern). No DB, config, or command surface touched.</div>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-tag mono">PHASE 1</div>
+        <div class="phase-body">
+          <p class="phase-title">Extract <code class="mono">tanaki/integration-core</code> as a path package</p>
+          <p><code>DeviceRegistry</code>, <code>DeviceDriverFactory</code>, <code>DriverDiscoveryService</code>, <code>AbstractDeviceDriver</code>, <code>ProcessDeviceReadingJob</code>, <code>IntegrationEngineServiceProvider</code> move to <code>packages/tanaki/integration-core/</code>. This is where the Laravel-specific event dispatch bridge lives now — Core wraps each pure Contracts event value object in a thin Laravel event before calling <code>event()</code>, so <code>App\Listeners\Weighbridge\RecordWeighbridgeReading</code>'s <code>handle()</code> signature does not change. Core also gains the <code>DriverRegistrar</code> helper introduced in §9, used by both the existing filesystem scanner and, from Phase 3 onward, every package driver's own service provider.</p>
+          <div class="phase-guarantee">✓ Same singletons, same config keys, same 5 Artisan commands, same hourly schedule entry, same log channel. <code>bootstrap/providers.php</code> now points at <code>Tanaki\IntegrationCore\Providers\IntegrationEngineServiceProvider</code> instead of the <code>App\</code> one — a one-line change.</div>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-tag mono">PHASE 2</div>
+        <div class="phase-body">
+          <p class="phase-title">Extract protocol packages, lowest-risk first</p>
+          <p><code>TcpProtocolAdapter</code> and <code>UdpProtocolAdapter</code> first — they already have zero Laravel dependency (raw <code>ext-sockets</code> calls), so extraction is a pure file move. <code>WebSocketProtocolAdapter</code> and <code>MqttProtocolAdapter</code> next — already thin wrappers over portable libraries. <code>HttpProtocolAdapter</code> last and with one real decision: keep the Laravel <code>Http</code> facade (pragmatic — Tanaki Hub and most early driver authors are Laravel apps) or swap to a PSR-18 client for maximum portability. Recommendation: PSR-18, because §"Architectural requirements" explicitly cites League/Flysystem as the model, and PSR-18 is what makes a driver installable in a non-Laravel PHP app later without asking. The six unimplemented protocols move as-is — they remain honest stubs, nothing about their behavior changes.</p>
+          <div class="phase-guarantee">✓ <code>ProtocolAdapterInterface</code> itself does not change, so no driver written against it needs to change.</div>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-tag mono">PHASE 3</div>
+        <div class="phase-body">
+          <p class="phase-title">Prove the package-driver path with one real package before building six</p>
+          <p><code>GenericHttpWeighbridgeDriver</code> becomes <code>tanaki/generic-http-driver</code> — chosen deliberately because it's the one driver already verified end-to-end. It ships its own tiny <code>GenericHttpDriverServiceProvider</code>, declared in <code>extra.laravel.providers</code>, calling Core's <code>DriverRegistrar::register(...)</code> on boot. <code>composer require tanaki/generic-http-driver</code> is run against a real checkout of the app, and the exact same tinker sequence used to verify Phase 1 of the original engine (discover → list → install → simulate a reading → confirm a real <code>WeighbridgeTicket</code> row) is re-run against the package-installed version. This is the phase that either confirms the whole design or surfaces a problem — deliberately sequenced before any of the six named vendor drivers are attempted.</p>
+          <div class="phase-guarantee">✓ The local filesystem scanner keeps working, unmodified, for any driver not extracted yet — both mechanisms are proven to coexist by construction, not by assertion.</div>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-tag mono">PHASE 4</div>
+        <div class="phase-body">
+          <p class="phase-title">Plugin registry — package-level, distinct from device-level</p>
+          <p>New <code>driver_packages</code> table and <code>DriverPackage</code> model (§10), additive to — never replacing — <code>IntegratedDevice</code>. <code>IntegratedDevice</code> continues to mean "a physical device a company owns"; <code>DriverPackage</code> means "a driver, installed or not, enabled or not, in this environment." Every column in <code>integrated_devices</code> stays exactly as-is.</p>
+          <div class="phase-guarantee">✓ Purely additive migration. No existing table altered.</div>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-tag mono">PHASE 5</div>
+        <div class="phase-body">
+          <p class="phase-title">Capability index</p>
+          <p><code>DriverMetadataDTO</code> gains a richer sibling, <code>DriverManifest</code> (§12) — additive fields, existing consumers of <code>DriverMetadataDTO</code> untouched. A <code>CapabilityResolver</code> in Core indexes installed drivers by capability tag, so a business module can ask "which installed device can report fuel level" without ever naming a vendor.</p>
+          <div class="phase-guarantee">✓ New query surface only. Nothing that reads <code>getCapabilities(): array</code> today breaks — the return shape is unchanged, just newly indexed.</div>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-tag mono">PHASE 6</div>
+        <div class="phase-body">
+          <p class="phase-title">Integration Console (admin UI)</p>
+          <p>New Filament cluster, read-mostly against data Phases 1–5 already produce. No engine changes required to ship this — it's a consumer of the registry, not a dependency of it.</p>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-tag mono">PHASE 7</div>
+        <div class="phase-body">
+          <p class="phase-title">Marketplace data model (design only, per current instruction — no downloads)</p>
+          <p>A read-only feed the Console's Marketplace tab queries. Explicitly out of scope for execution until named.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="compat">
+      <div class="sec-head"><span class="sec-num">05</span><h2>Backward compatibility strategy</h2></div>
+      <p class="sec-dek">"Backward compatible" is being held to a specific, checkable definition here — not "nothing changes," but "nothing that anything outside the engine depends on changes."</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Surface</th><th>Guarantee</th><th>Verified by</th></tr></thead>
+          <tbody>
+            <tr><td>DB schema (<code>integrated_devices</code>)</td><td><span class="pill ok">Unchanged</span></td><td>No migration touches this table; new tables are additive</td></tr>
+            <tr><td>Artisan commands &amp; signatures</td><td><span class="pill ok">Unchanged</span></td><td>Same 5 commands, same options, same hourly schedule entry</td></tr>
+            <tr><td><code>config/integration-engine.php</code> keys</td><td><span class="pill ok">Unchanged</span></td><td>New keys are additive with defaults</td></tr>
+            <tr><td><code>WeighbridgeReadingCaptured</code> → listener contract</td><td><span class="pill ok">Unchanged</span></td><td><code>RecordWeighbridgeReading::handle()</code> signature untouched — Core's dispatch bridge absorbs the internal event-class relocation</td></tr>
+            <tr><td>Internal namespaces (<code>App\IntegrationEngine\*</code>)</td><td><span class="pill warn">Will change</span></td><td>Confined to the ~55 files that <em>are</em> the engine, per the grep finding in §1 — nothing outside it references these paths except the 2 already-identified touchpoints, both updated in the same commit</td></tr>
+            <tr><td>Local first-party driver mechanism</td><td><span class="pill ok">Unchanged behavior, relocated code</span></td><td>Phase 3 re-runs the original verification suite against it after the move</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout">
+        <span class="callout-label">Why path repositories, not immediate Packagist publication</span>
+        <p>Every extraction phase uses a Composer <strong>path repository</strong> — the "package" is a real, separately-namespaced, separately-tested directory, but it deploys inside the same repo and the same release as everything else, with a symlink into <code>vendor/</code>. This gets 100% of the architectural benefit (real package boundary, real dependency direction, real backward-compat pressure) with 0% of the release-coordination risk. Publishing to Packagist under the <code>tanaki/</code> vendor name is a separate, later, non-technical decision — the code doesn't need to change when that happens.</p>
+      </div>
+    </section>
+
+    <section id="risk">
+      <div class="sec-head"><span class="sec-num">06</span><h2>Risk assessment</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Risk</th><th>Likelihood</th><th>Impact</th><th>Mitigation</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Namespace migration silently misses a reference</td>
+              <td><span class="pill warn">Low</span></td>
+              <td><span class="pill crit">High if it happens</span></td>
+              <td>Grep-verified blast radius (§1) plus the same <code>php -l</code> + <code>route:list</code> + tinker regression pattern already used and proven in the original build, re-run after every phase</td>
+            </tr>
+            <tr>
+              <td>Two service providers (local scanner + package provider) race or double-register the same vendor key</td>
+              <td><span class="pill warn">Medium</span></td>
+              <td><span class="pill warn">Medium</span></td>
+              <td><code>DeviceRegistry::register()</code> becomes idempotent-by-key with a boot-time collision check that logs and refuses a silent overwrite (§9)</td>
+            </tr>
+            <tr>
+              <td>Third-party driver package pins an incompatible Core version and breaks silently at runtime</td>
+              <td><span class="pill warn">Medium</span></td>
+              <td><span class="pill crit">High</span></td>
+              <td><code>composer/semver</code>-based compatibility check against the manifest's declared minimum Core version, enforced at registration time, not discovered at first use (§13)</td>
+            </tr>
+            <tr>
+              <td>Extracting <code>HttpProtocolAdapter</code> off the Laravel <code>Http</code> facade changes retry/timeout behavior subtly</td>
+              <td><span class="pill warn">Medium</span></td>
+              <td><span class="pill warn">Medium</span></td>
+              <td>Phase 2 ships as its own reviewable unit with the existing adapter kept importable during a deprecation window rather than deleted same-commit</td>
+            </tr>
+            <tr>
+              <td>Path-repository symlinks don't survive a deploy pipeline that doesn't preserve symlinks</td>
+              <td><span class="pill warn">Low</span></td>
+              <td><span class="pill warn">Medium</span></td>
+              <td>Confirm the actual deploy mechanism (Herd/Forge/CI) before Phase 0 — flagged explicitly as an open question in §17, not assumed</td>
+            </tr>
+            <tr>
+              <td>A malicious or broken third-party package's service provider does something unsafe on boot</td>
+              <td><span class="pill warn">Low</span></td>
+              <td><span class="pill crit">High</span></td>
+              <td>Console's "Installed Drivers" (§14) requires explicit <strong>Enable</strong> after Composer install — a package being present in <code>vendor/</code> is not the same as it being trusted to run, mirroring how WordPress separates plugin upload from activation</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="sequence">
+      <div class="sec-head"><span class="sec-num">07</span><h2>Sequence diagrams</h2></div>
+      <p class="sec-dek">Two flows: how a package driver gets from <code>composer require</code> to registered, and how a runtime reading reaches business code identically whether it came from a package driver or a local one.</p>
+
+      <h3>Install-time: package auto-discovery</h3>
+      <div class="diagram-card">
+        <pre class="mermaid">
+sequenceDiagram
+    actor Op as Operator
+    participant Cmp as Composer
+    participant PM as Laravel PackageManifest
+    participant TSP as TeltonikaDriverServiceProvider
+    participant Reg as DeviceRegistrar (Core)
+    participant DR as DeviceRegistry
+
+    Op->>Cmp: composer require tanaki/teltonika-driver
+    Cmp->>Cmp: resolve tanaki/integration-contracts,<br/>tanaki/integration-core, tanaki/protocol-tcp
+    Cmp-->>Op: package installed to vendor/
+    Note over PM: next request / artisan command boots
+    PM->>PM: read extra.laravel.providers from<br/>every installed package's composer.json
+    PM->>TSP: instantiate + boot()
+    TSP->>Reg: register(TeltonikaDriver::class, manifest)
+    Reg->>Reg: validate composer/semver against<br/>manifest.minimum_core_version
+    Reg->>DR: DeviceRegistry::register('teltonika', class, category)
+    Reg->>DR: bind ProtocolAdapterInterface contextually<br/>for TeltonikaDriver::class
+    Note over DR: driver now resolvable via DriverFactory —<br/>no artisan command run, no cache rebuilt, no app file touched
+        </pre>
+        <div class="cap">Fig. 4 — everything after "package installed to vendor/" is Laravel's own, already-shipping package auto-discovery. No new discovery mechanism is invented for the package path; Core supplies one shared <code>DeviceRegistrar</code> helper so every third-party provider is three lines long.</div>
+      </div>
+
+      <h3>Runtime: local and package drivers converge on the same event bus</h3>
+      <div class="diagram-card">
+        <pre class="mermaid">
+sequenceDiagram
+    participant LD as Local driver<br/>(app/IntegrationEngine/Drivers)
+    participant PD as Package driver<br/>(tanaki/teltonika-driver)
+    participant Fac as DeviceDriverFactory
+    participant Job as ProcessDeviceReadingJob
+    participant Bus as Event bus
+    participant Lst as Business listener
+
+    par Local-scanned driver captures a reading
+        LD->>Fac: resolved by vendor_key (same call, same factory)
+    and Package driver captures a reading
+        PD->>Fac: resolved by vendor_key (same call, same factory)
+    end
+    Fac->>Job: dispatch(eventClass, dto)
+    Job->>Bus: event(new WeighbridgeReadingCaptured(dto))
+    Bus->>Lst: RecordWeighbridgeReading::handle(event)
+    Lst->>Lst: write WeighbridgeTicket
+    Note over Lst: Listener code cannot tell — and was never<br/>written to be able to tell — which path the reading came from
+        </pre>
+        <div class="cap">Fig. 5 — this is the proof obligation for the whole document: the business listener's code, unchanged since the original build, is the same regardless of which branch above fired.</div>
+      </div>
+    </section>
+
+    <section id="packages">
+      <div class="sec-head"><span class="sec-num">08</span><h2>Package structure in detail</h2></div>
+
+      <h3>Contracts — pure PHP, the only package every other package touches</h3>
+      <div class="pkg-grid">
+        <div class="pkg-card"><span class="pkg-tier contracts">contracts</span><div class="pkg-name">tanaki/integration-contracts</div><div class="pkg-desc">Interfaces (incl. the 3 segregated <code>HealthCheckable</code>/<code>Diagnostics</code>/<code>DriverMetadata</code> contracts and 9 category interfaces), DTOs, Enums, Events (trait-free value objects), the <code>#[IntegrationDriver]</code> attribute, Exceptions, the new <code>DriverManifest</code> value object. <strong>Dependency: PHP 8.2+ and Carbon only.</strong></div></div>
+      </div>
+
+      <h3>Core — the Laravel-aware runtime everything else plugs into</h3>
+      <div class="pkg-grid">
+        <div class="pkg-card"><span class="pkg-tier core">core</span><div class="pkg-name">tanaki/integration-core</div><div class="pkg-desc">Driver Registry, Driver Factory, Plugin Manager (§13), Driver Loader/Discovery (filesystem scan, unchanged mechanism), Health Monitoring, Diagnostics runtime, Retry/Reconnect logic (from <code>AbstractDeviceDriver</code>), Capability Resolver (§11), Protocol Registry, Configuration, Logging bridge, <code>DriverRegistrar</code> helper used by package service providers, semver-based Version Compatibility check.</div></div>
+      </div>
+
+      <h3>Protocol packages — independently installable</h3>
+      <div class="pkg-grid">
+        <div class="pkg-card"><span class="pkg-tier protocol">protocol</span><div class="pkg-name">tanaki/protocol-http</div><div class="pkg-desc">PSR-18 based. Real today, portable after Phase 2.</div></div>
+        <div class="pkg-card"><span class="pkg-tier protocol">protocol</span><div class="pkg-name">tanaki/protocol-tcp</div><div class="pkg-desc">ext-sockets. Already zero-dependency.</div></div>
+        <div class="pkg-card"><span class="pkg-tier protocol">protocol</span><div class="pkg-name">tanaki/protocol-udp</div><div class="pkg-desc">ext-sockets. Already zero-dependency.</div></div>
+        <div class="pkg-card"><span class="pkg-tier protocol">protocol</span><div class="pkg-name">tanaki/protocol-websocket</div><div class="pkg-desc">Wraps textalk/websocket.</div></div>
+        <div class="pkg-card"><span class="pkg-tier protocol">protocol</span><div class="pkg-name">tanaki/protocol-mqtt</div><div class="pkg-desc">Wraps php-mqtt/client.</div></div>
+        <div class="pkg-card"><span class="pkg-tier protocol">protocol</span><div class="pkg-name">tanaki/protocol-rs232</div><div class="pkg-desc">Honest stub until ext-dio or a system bridge exists.</div></div>
+        <div class="pkg-card"><span class="pkg-tier protocol">protocol</span><div class="pkg-name">tanaki/protocol-rs485</div><div class="pkg-desc">Honest stub, same reason as RS232.</div></div>
+        <div class="pkg-card"><span class="pkg-tier protocol">protocol</span><div class="pkg-name">tanaki/protocol-usb</div><div class="pkg-desc">Honest stub — needs a USB HID extension.</div></div>
+        <div class="pkg-card"><span class="pkg-tier protocol">protocol</span><div class="pkg-name">tanaki/protocol-modbus</div><div class="pkg-desc">Honest stub — needs a Modbus library + reachable device.</div></div>
+        <div class="pkg-card"><span class="pkg-tier protocol">protocol</span><div class="pkg-name">tanaki/protocol-canbus</div><div class="pkg-desc">Honest stub — needs SocketCAN or a vendor interface.</div></div>
+      </div>
+
+      <h3>Driver packages — third-party publishable, never depend on the app</h3>
+      <div class="pkg-grid">
+        <div class="pkg-card"><span class="pkg-tier driver">driver</span><div class="pkg-name">tanaki/generic-http-driver</div><div class="pkg-desc">The pilot extraction (Phase 3) — proves the whole path before any named vendor is attempted.</div></div>
+        <div class="pkg-card"><span class="pkg-tier driver">driver</span><div class="pkg-name">tanaki/teltonika-driver</div><div class="pkg-desc">GPS — depends on protocol-tcp or -mqtt depending on the unit family.</div></div>
+        <div class="pkg-card"><span class="pkg-tier driver">driver</span><div class="pkg-name">tanaki/queclink-driver</div><div class="pkg-desc">GPS — same category as Teltonika, different vendor protocol.</div></div>
+        <div class="pkg-card"><span class="pkg-tier driver">driver</span><div class="pkg-name">tanaki/avery-driver</div><div class="pkg-desc">Weighbridge — needs the vendor's real frame spec or hardware before it can be more than a scaffold.</div></div>
+        <div class="pkg-card"><span class="pkg-tier driver">driver</span><div class="pkg-name">tanaki/mettler-driver</div><div class="pkg-desc">Weighbridge — same caveat as Avery.</div></div>
+        <div class="pkg-card"><span class="pkg-tier driver">driver</span><div class="pkg-name">tanaki/piusi-driver</div><div class="pkg-desc">Fuel controller — likely MQTT or Modbus depending on model.</div></div>
+        <div class="pkg-card"><span class="pkg-tier driver">driver</span><div class="pkg-name">tanaki/zkteco-driver</div><div class="pkg-desc">Biometric — protocol TBD pending device access.</div></div>
+      </div>
+      <p style="font-size:13px; color:var(--ink-muted);">Named vendor drivers stay scaffolds — real interface implementation, honest "awaiting vendor spec/hardware" diagnostics message — until the same protocol documentation or test-hardware constraint from the original engine review is resolved per vendor. This document changes <em>where</em> that future work lands, not <em>whether</em> it can be fabricated without hardware to verify against.</p>
+    </section>
+
+    <section id="discovery">
+      <div class="sec-head"><span class="sec-num">09</span><h2>Auto-discovery design — two mechanisms, one registry</h2></div>
+      <p>Both mechanisms end at the same call: <code>DeviceRegistry::register($vendorKey, $driverClass, $category)</code>. Nothing about the registry itself needs to change for a second discovery path to exist — it was always just an array mutation with no opinion about who calls it.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th></th><th>Local scanner (existing, unchanged)</th><th>Package discovery (new)</th></tr></thead>
+          <tbody>
+            <tr><td>Trigger</td><td><code>integration-engine:driver:discover</code>, or live scan in local env</td><td>Laravel's package auto-discovery, on every boot</td></tr>
+            <tr><td>Mechanism</td><td>Symfony Finder walks <code>app/IntegrationEngine/Drivers</code>, Reflection reads <code>#[IntegrationDriver]</code></td><td>Package's own <code>ServiceProvider::boot()</code> calls <code>DriverRegistrar::register()</code> directly</td></tr>
+            <tr><td>Where the manifest comes from</td><td>Reflection on the attribute, same as today</td><td>The provider passes its own <code>DriverManifest</code> instance explicitly — no filesystem access needed</td></tr>
+            <tr><td>Collision handling</td><td>N/A — single source</td><td><code>DeviceRegistrar</code> checks <code>isRegistered()</code> first; a second registration of the same vendor key logs a warning and is refused, never silently overwrites</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="registry">
+      <div class="sec-head"><span class="sec-num">10</span><h2>Plugin registry — package-level, additive to <code>IntegratedDevice</code></h2></div>
+      <p>A new concept, deliberately distinct from the device inventory built last phase: <code>IntegratedDevice</code> answers <em>"which physical devices does this company own"</em>; the new <code>DriverPackage</code> answers <em>"which driver code is installed in this environment, and is it trusted to run."</em> One company's <code>IntegratedDevice</code> row references a <code>DriverPackage</code> by vendor key; it never embeds driver code or version info itself, which is what makes the device row stable while drivers update independently.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Source</th></tr></thead>
+          <tbody>
+            <tr><td>vendor_key, manufacturer, category</td><td>From the driver's manifest, captured at registration</td></tr>
+            <tr><td>version, minimum_core_version</td><td>Manifest, checked against installed Core via composer/semver at registration</td></tr>
+            <tr><td>status: <span class="pill ok">installed</span> / <span class="pill info">enabled</span> / <span class="pill warn">disabled</span> / <span class="pill crit">incompatible</span></td><td>Set by the Console; "installed" alone never implies "trusted to run" (§Risk)</td></tr>
+            <tr><td>supported_protocols, capabilities</td><td>Manifest</td></tr>
+            <tr><td>license, documentation_url</td><td>Manifest</td></tr>
+            <tr><td>last_health_status</td><td>Written by the existing hourly <code>device:health-check</code> sweep, unchanged mechanism, now also rolling up to package level</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="capabilities">
+      <div class="sec-head"><span class="sec-num">11</span><h2>Capability model</h2></div>
+      <p>The rule extends one that was already true by construction in the original build — no business listener has ever imported a vendor name. This phase makes it queryable, not just accidentally true. A capability is a plain string tag on the manifest (<code>supports_gps</code>, <code>supports_fuel_level</code>, <code>supports_engine_hours</code>, <code>supports_weighbridge</code>, <code>supports_biometrics</code>, <code>supports_rfid</code>, <code>supports_barcode</code>, <code>supports_qr</code>, <code>supports_can_bus</code>, <code>supports_plc</code>, <code>supports_mqtt</code>, <code>supports_offline_buffering</code>, <code>supports_live_streaming</code>, <code>supports_remote_configuration</code>) — deliberately a flat, extensible list rather than an enum, so a driver package can declare a capability Core has never heard of without a Core release. A business module asks the <code>CapabilityResolver</code> for "any enabled device with <code>supports_fuel_level</code>" and gets back device IDs, never class names.</p>
+    </section>
+
+    <section id="manifest">
+      <div class="sec-head"><span class="sec-num">12</span><h2>Plugin manifest — the contract a manufacturer builds against</h2></div>
+      <p><code>DriverManifest</code> lives in Contracts (pure PHP, so a manufacturer's build tooling never needs Laravel installed to validate against it) and is additive to the existing <code>DriverMetadataDTO</code> — every field below that already exists on <code>DriverMetadataDTO</code> keeps its name.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Type</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">vendorKey, displayName, category, version</td><td class="mono">string / DeviceCategory / string</td><td><span class="pill ok">existing</span></td></tr>
+            <tr><td class="mono">capabilities</td><td class="mono">string[]</td><td><span class="pill ok">existing</span></td></tr>
+            <tr><td class="mono">manufacturer</td><td class="mono">string</td><td><span class="pill info">new</span></td></tr>
+            <tr><td class="mono">minimumCoreVersion</td><td class="mono">string (semver constraint)</td><td><span class="pill info">new</span></td></tr>
+            <tr><td class="mono">supportedDevices</td><td class="mono">string[] (model numbers)</td><td><span class="pill info">new</span></td></tr>
+            <tr><td class="mono">supportedProtocols</td><td class="mono">ProtocolType[]</td><td><span class="pill info">new</span></td></tr>
+            <tr><td class="mono">configurationSchema</td><td class="mono">array (JSON-schema-shaped)</td><td><span class="pill info">new</span> — powers Console config validation, §14</td></tr>
+            <tr><td class="mono">permissions</td><td class="mono">string[]</td><td><span class="pill info">new</span> — e.g. <code>network:outbound</code>, <code>hardware:serial</code>, surfaced to an operator before enabling</td></tr>
+            <tr><td class="mono">documentationUrl, license</td><td class="mono">string</td><td><span class="pill info">new</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="lifecycle">
+      <div class="sec-head"><span class="sec-num">13</span><h2>Plugin lifecycle</h2></div>
+      <div class="diagram-card">
+        <pre class="mermaid">
+stateDiagram-v2
+    [*] --> Installed: composer require completes,<br/>package auto-registers into DeviceRegistry
+    Installed --> Incompatible: minimum_core_version check fails
+    Installed --> Disabled: operator has not enabled it yet (default)
+    Disabled --> Enabled: operator enables in Console,<br/>after reviewing declared permissions
+    Enabled --> Disabled: operator disables
+    Enabled --> Enabled: health check / diagnostics run continuously
+    Disabled --> Removed: composer remove
+    Incompatible --> Removed: composer remove
+    Enabled --> Upgrading: composer require tanaki/x-driver:^2.0
+    Upgrading --> Enabled: new version's manifest re-validated
+    Upgrading --> RolledBack: re-validation fails
+    RolledBack --> Enabled: composer require locked to previous version
+        </pre>
+        <div class="cap">Fig. 6 — "Installed" and "Enabled" are deliberately separate states (§Risk, malicious/broken package mitigation). Upgrade and rollback are both ordinary <code>composer require</code> operations at different version constraints; the state machine describes what Core does in response, not a custom package manager.</div>
+      </div>
+    </section>
+
+    <section id="console">
+      <div class="sec-head"><span class="sec-num">14</span><h2>Integration Console — admin UI design</h2></div>
+      <p>A new Filament cluster, consuming data the engine already produces or will produce in Phases 4–5. No engine change is a prerequisite for shipping this once those phases land.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Section</th><th>Reads from</th></tr></thead>
+          <tbody>
+            <tr><td>Installed Drivers</td><td><code>DriverPackage</code> rows + live <code>DeviceRegistry::all()</code></td></tr>
+            <tr><td>Available Drivers</td><td>Marketplace feed (§15)</td></tr>
+            <tr><td>Health Dashboard</td><td>Rollup of the existing hourly <code>device:health-check</code> sweep</td></tr>
+            <tr><td>Live Device Monitor</td><td>Polling today (matches the rest of the platform's existing convention); a genuine WebSocket candidate once broadcasting infrastructure is provisioned platform-wide — flagged, not assumed</td></tr>
+            <tr><td>Protocol Monitor</td><td>Per-protocol connection state from <code>ProtocolAdapterInterface::isConnected()</code> across active devices</td></tr>
+            <tr><td>Packet Viewer</td><td><code>DeviceDiagnosticsDTO.lastRawPayload</code> — already captured today, just not surfaced in a UI yet</td></tr>
+            <tr><td>Logs</td><td>The existing <code>integration-engine</code> log channel, tailed</td></tr>
+            <tr><td>Diagnostics</td><td><code>DeviceDriverInterface::runDiagnostics()</code>, on demand</td></tr>
+            <tr><td>Marketplace</td><td>§15</td></tr>
+            <tr><td>Configuration</td><td><code>DriverManifest.configurationSchema</code>-driven form, validated before write</td></tr>
+            <tr><td>Driver Updates</td><td>Composer's installed-versions API compared against the marketplace feed's latest tag</td></tr>
+            <tr><td>Licenses</td><td><code>DriverManifest.license</code>, aggregated</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="marketplace">
+      <div class="sec-head"><span class="sec-num">15</span><h2>Marketplace — data model only, no downloads</h2></div>
+      <p>Recommended shape: a curated feed, not a bespoke store — Composer packages typed <code>"type": "tanaki-driver"</code> in their own <code>composer.json</code> (Composer already supports arbitrary package types for exactly this kind of filtering), indexed the same way Packagist already indexes by type. The Console's Marketplace tab fetches that feed, renders each listing's manifest (name, manufacturer, capabilities, license, docs link), and — explicitly, per this instruction — stops there. The future "install from the UI" action is a single, well-scoped addition later: shell out to Composer (or its PHP API) with the selected package name, which is exactly why installation was designed as an ordinary <code>composer require</code> in every phase above rather than a custom mechanism — the marketplace has nothing special to build when that day comes, only a button to wire up.</p>
+    </section>
+
+    <section id="testing">
+      <div class="sec-head"><span class="sec-num">16</span><h2>Testing strategy</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Layer</th><th>Approach</th></tr></thead>
+          <tbody>
+            <tr><td>Contract tests</td><td><code>tanaki/integration-contracts</code> ships an abstract PHPUnit test case per category interface (e.g. <code>WeighbridgeDriverContractTestCase</code>) that any driver author extends and points at their own driver instance — the same shape as <code>league/flysystem-adapter-test-utilities</code>. A manufacturer proves conformance without ever seeing Tanaki's own driver code.</td></tr>
+            <tr><td>Unit tests</td><td>Registry, Factory, Discovery, CapabilityResolver, version-compatibility check — pure PHPUnit against Core in isolation</td></tr>
+            <tr><td>Integration tests</td><td>Orchestra Testbench spins up a minimal Laravel app per package to prove service-provider auto-discovery and registration actually happen end-to-end — the standard tool for testing Laravel packages outside a host app, used across the Spatie/League-for-Laravel ecosystem</td></tr>
+            <tr><td>Protocol simulators</td><td>A local TCP/UDP/MQTT server fixture (spun up in-process for the test run) replaying canned frames, so protocol adapters are tested without real hardware — same principle already applied to the generic-HTTP driver's own verification</td></tr>
+            <tr><td>Virtual / mock drivers</td><td>A <code>NullDriver</code> per category, returning canned DTOs with zero I/O, for business-module tests that need "a device exists" without any protocol at all</td></tr>
+            <tr><td>Package tests</td><td>Each extracted package keeps its own PHPUnit suite and CI job, runnable independently of the host app — proof that "depends only on Contracts/Core" is actually true, not just declared</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="docs">
+      <div class="sec-head"><span class="sec-num">17</span><h2>Documentation plan</h2></div>
+      <p>Outline for the third-party driver-authoring guide — full prose is a Phase 3+ deliverable (it needs the pilot package to exist first, so every example in it is real and copy-pasteable), but the structure is fixed now so nothing downstream is designed around documentation that doesn't exist yet:</p>
+      <ol>
+        <li><strong>Quickstart</strong> — <code>composer create-project</code> a driver skeleton, implement one category interface, run the contract test suite against it</li>
+        <li><strong>Choosing a category interface</strong> — the 9 category contracts, one worked example each</li>
+        <li><strong>Writing the manifest</strong> — every <code>DriverManifest</code> field, with the capability tag vocabulary from §11</li>
+        <li><strong>Protocol adapters</strong> — using an existing <code>tanaki/protocol-*</code> package vs. implementing <code>ProtocolAdapterInterface</code> directly for a protocol not yet published</li>
+        <li><strong>The service provider</strong> — the three-line <code>DriverRegistrar::register()</code> call, and what <code>extra.laravel.providers</code> needs to say</li>
+        <li><strong>Health checks &amp; diagnostics</strong> — what <code>AbstractDeviceDriver</code> gives for free vs. what a driver should override</li>
+        <li><strong>Passing contract tests</strong> — extending the shipped abstract test case</li>
+        <li><strong>Publishing</strong> — semver discipline against <code>minimumCoreVersion</code>, the <code>tanaki-driver</code> Composer package type for marketplace indexing</li>
+      </ol>
+    </section>
+
+    <section id="next">
+      <div class="sec-head"><span class="sec-num">—</span><h2>Approval checkpoint</h2></div>
+      <p>Per instruction, no code has been written or modified. This document is the complete review — diagrams, migration phases, risk table, backward-compatibility guarantees, package graph, and design for every section requested. One open question needs an answer before Phase 0 can start: <strong>what does the actual deploy pipeline do with symlinked path repositories</strong> (Risk table, row 5) — worth confirming before committing to that mechanism over a plain monorepo directory structure. Everything else above is ready to sequence into implementation phases on approval.</p>
+    </section>
+
+    <footer class="doc-footer">Tanaki Integration Engine — Plugin Ecosystem Architecture Review · Design document, no source changes included</footer>
+  </main>
+</div>
+
+<script type="module">
+  import mermaid from "https://esm.sh/mermaid@11?bundle";
+  function currentTheme() {
+    const stamped = document.documentElement.getAttribute('data-theme');
+    if (stamped === 'dark' || stamped === 'light') return stamped;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  function palette(theme) {
+    const dark = theme === 'dark';
+    return {
+      background: 'transparent',
+      primaryColor: dark ? '#1D3348' : '#E4EDF4',
+      primaryTextColor: dark ? '#E8EDF3' : '#101B2D',
+      primaryBorderColor: dark ? '#7FB2DE' : '#2C5C8A',
+      lineColor: dark ? '#93A3BA' : '#45536B',
+      secondaryColor: dark ? '#1B2A40' : '#E7ECF1',
+      tertiaryColor: dark ? '#142032' : '#FFFFFF',
+      fontFamily: '-apple-system, "Segoe UI", sans-serif',
+      fontSize: '13.5px',
+      actorBkg: dark ? '#1D3348' : '#E4EDF4',
+      actorBorder: dark ? '#7FB2DE' : '#2C5C8A',
+      actorTextColor: dark ? '#E8EDF3' : '#101B2D',
+      signalColor: dark ? '#93A3BA' : '#45536B',
+      signalTextColor: dark ? '#E8EDF3' : '#101B2D',
+      labelBoxBkgColor: dark ? '#1D3348' : '#E4EDF4',
+      labelTextColor: dark ? '#E8EDF3' : '#101B2D',
+      noteBkgColor: dark ? '#3A2A1E' : '#F6E8DE',
+      noteTextColor: dark ? '#E8EDF3' : '#101B2D',
+      noteBorderColor: dark ? '#E08A52' : '#B85C2C',
+    };
+  }
+  async function render() {
+    const theme = currentTheme();
+    mermaid.initialize({ startOnLoad: false, theme: 'base', themeVariables: palette(theme), securityLevel: 'loose' });
+    document.querySelectorAll('pre.mermaid').forEach((el, i) => {
+      if (!el.dataset.src) el.dataset.src = el.textContent;
+      el.removeAttribute('data-processed');
+      el.innerHTML = el.dataset.src;
+      el.id = 'mmd-' + i;
+    });
+    await mermaid.run({ querySelector: 'pre.mermaid' });
+  }
+  render();
+  new MutationObserver(render).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (!document.documentElement.getAttribute('data-theme')) render();
+  });
+</script>

@@ -1,0 +1,250 @@
+<title>Phase 0 Release Gate — tanaki/integration-contracts</title>
+<style>
+  @media (prefers-color-scheme: light) { :root { color-scheme: light; } }
+  @media (prefers-color-scheme: dark)  { :root { color-scheme: dark; } }
+  :root {
+    --bg: #F1F4F7; --surface: #FFFFFF; --surface-2: #E7ECF1; --ink: #101B2D; --ink-muted: #45536B;
+    --line: #D3DBE3; --blueprint: #2C5C8A; --blueprint-soft: #E4EDF4; --signal: #B85C2C; --signal-soft: #F6E8DE;
+    --ok: #2F7A54; --ok-soft: #E3F0E9; --warn: #A6791F; --warn-soft: #F5EAD6; --crit: #A6342F; --crit-soft: #F5E0E0;
+    --shadow: 0 1px 2px rgba(16,27,45,.06), 0 8px 24px rgba(16,27,45,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0E1826; --surface: #142032; --surface-2: #1B2A40; --ink: #E8EDF3; --ink-muted: #93A3BA;
+      --line: #28384F; --blueprint: #7FB2DE; --blueprint-soft: #1D3348; --signal: #E08A52; --signal-soft: #3A2A1E;
+      --ok: #74C39A; --ok-soft: #17301F; --warn: #E0B45E; --warn-soft: #362A15; --crit: #E3847F; --crit-soft: #341C1B;
+      --shadow: 0 1px 2px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.35); }
+  }
+  :root[data-theme="light"] { --bg: #F1F4F7; --surface: #FFFFFF; --surface-2: #E7ECF1; --ink: #101B2D; --ink-muted: #45536B;
+    --line: #D3DBE3; --blueprint: #2C5C8A; --blueprint-soft: #E4EDF4; --signal: #B85C2C; --signal-soft: #F6E8DE;
+    --ok: #2F7A54; --ok-soft: #E3F0E9; --warn: #A6791F; --warn-soft: #F5EAD6; --crit: #A6342F; --crit-soft: #F5E0E0;
+    --shadow: 0 1px 2px rgba(16,27,45,.06), 0 8px 24px rgba(16,27,45,.06); }
+  :root[data-theme="dark"] { --bg: #0E1826; --surface: #142032; --surface-2: #1B2A40; --ink: #E8EDF3; --ink-muted: #93A3BA;
+    --line: #28384F; --blueprint: #7FB2DE; --blueprint-soft: #1D3348; --signal: #E08A52; --signal-soft: #3A2A1E;
+    --ok: #74C39A; --ok-soft: #17301F; --warn: #E0B45E; --warn-soft: #362A15; --crit: #E3847F; --crit-soft: #341C1B;
+    --shadow: 0 1px 2px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.35); }
+  * { box-sizing: border-box; } html, body { margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif; font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .mono { font-family: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, monospace; font-variant-numeric: tabular-nums; }
+  a { color: var(--blueprint); }
+  .shell { display: flex; max-width: 1260px; margin: 0 auto; align-items: flex-start; }
+  .toc { position: sticky; top: 0; align-self: flex-start; width: 250px; flex: 0 0 250px; height: 100vh; overflow-y: auto; padding: 28px 18px 40px 28px; border-right: 1px solid var(--line); }
+  .toc::-webkit-scrollbar { width: 8px; } .toc::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+  .toc-brand { display: flex; align-items: center; gap: 9px; margin-bottom: 4px; }
+  .toc-mark { width: 22px; height: 22px; border-radius: 4px; background: var(--crit); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .toc-mark svg { width: 13px; height: 13px; }
+  .toc-brand-text { font-family: ui-monospace, monospace; font-size: 12.5px; font-weight: 600; letter-spacing: .02em; color: var(--ink-muted); }
+  .toc-title { font-size: 15px; font-weight: 700; line-height: 1.35; margin: 14px 0 4px; text-wrap: balance; }
+  .toc-status { display: inline-flex; align-items: center; gap: 6px; margin: 4px 0 22px; font-family: ui-monospace, monospace; font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--crit); background: var(--crit-soft); padding: 4px 8px; border-radius: 4px; }
+  .toc-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--crit); }
+  .toc nav { display: flex; flex-direction: column; gap: 1px; }
+  .toc nav a { color: var(--ink-muted); text-decoration: none; font-size: 13px; padding: 5px 8px; border-radius: 5px; display: flex; gap: 8px; align-items: center; justify-content: space-between; }
+  .toc nav a:hover { background: var(--surface-2); color: var(--ink); }
+  .toc nav a .n { font-family: ui-monospace, monospace; color: var(--ink-muted); font-size: 11.5px; min-width: 16px; }
+  .toc nav a .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .toc nav a .dot.ok { background: var(--ok); } .toc nav a .dot.warn { background: var(--warn); } .toc nav a .dot.crit { background: var(--crit); }
+  .content { flex: 1 1 auto; min-width: 0; padding: 48px 56px 120px; }
+  @media (max-width: 900px) { .toc { display: none; } .content { padding: 32px 20px 100px; } }
+  .doc-header { margin-bottom: 44px; }
+  .doc-eyebrow { font-family: ui-monospace, monospace; font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--crit); margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+  .doc-eyebrow::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  h1.doc-title { font-size: clamp(26px, 3.6vw, 38px); font-weight: 800; letter-spacing: -.01em; line-height: 1.12; margin: 0 0 14px; text-wrap: balance; }
+  .doc-sub { font-size: 17px; color: var(--ink-muted); max-width: 66ch; margin: 0 0 26px; text-wrap: balance; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .meta-chip { display: inline-flex; align-items: center; gap: 7px; background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 7px 11px; font-size: 12.5px; box-shadow: var(--shadow); }
+  .meta-chip .k { color: var(--ink-muted); font-family: ui-monospace, monospace; font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; }
+  .meta-chip .v { font-weight: 600; }
+  .meta-chip.crit { border-color: var(--crit); background: var(--crit-soft); } .meta-chip.crit .v { color: var(--crit); }
+
+  .gate-banner { border-radius: 12px; padding: 22px 24px; margin: 0 0 44px; box-shadow: var(--shadow); background: var(--crit-soft); border: 1px solid var(--crit); }
+  .gate-banner h2 { margin: 0 0 8px; font-size: 17px; color: var(--crit); }
+  .gate-banner p { margin: 0; font-size: 14px; max-width: 68ch; }
+
+  section { margin: 0 0 14px; scroll-margin-top: 24px; }
+  .item-card { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 18px 20px; margin: 0 0 14px; box-shadow: var(--shadow); }
+  .item-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+  .item-num { font-family: ui-monospace, monospace; font-size: 12px; color: var(--ink-muted); }
+  .item-title { font-size: 16px; font-weight: 700; flex: 1 1 auto; min-width: 200px; }
+  .item-body p { max-width: 72ch; margin: 0 0 10px; font-size: 14px; }
+  .item-body p:last-child { margin-bottom: 0; }
+
+  .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; white-space: nowrap; text-transform: uppercase; letter-spacing: .03em; }
+  .pill::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
+  .pill.ok { color: var(--ok); background: var(--ok-soft); } .pill.ok::before { background: var(--ok); }
+  .pill.warn { color: var(--warn); background: var(--warn-soft); } .pill.warn::before { background: var(--warn); }
+  .pill.crit { color: var(--crit); background: var(--crit-soft); } .pill.crit::before { background: var(--crit); }
+
+  .subgrid { display: grid; grid-template-columns: 90px 1fr; gap: 4px 14px; margin-top: 12px; font-size: 13.3px; }
+  .subgrid dt { font-family: ui-monospace, monospace; font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-muted); padding-top: 2px; }
+  .subgrid dd { margin: 0 0 8px; }
+
+  code:not(pre code) { font-family: ui-monospace, monospace; font-size: .88em; background: var(--surface-2); padding: .12em .4em; border-radius: 4px; border: 1px solid var(--line); }
+
+  .stop-banner { border-radius: 12px; padding: 24px 26px; margin: 40px 0 0; box-shadow: var(--shadow); background: var(--crit-soft); border: 2px solid var(--crit); }
+  .stop-banner h2 { margin: 0 0 10px; font-size: 18px; color: var(--crit); }
+  .stop-banner p { margin: 0 0 10px; font-size: 14.5px; max-width: 72ch; }
+  .stop-banner p:last-child { margin-bottom: 0; }
+
+  footer.doc-footer { border-top: 1px solid var(--line); margin-top: 60px; padding-top: 24px; color: var(--ink-muted); font-size: 12.5px; }
+  ::selection { background: var(--crit-soft); }
+</style>
+
+<div class="shell">
+  <aside class="toc">
+    <div class="toc-brand">
+      <span class="toc-mark"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+      <span class="toc-brand-text">RELEASE ENGINEERING</span>
+    </div>
+    <div class="toc-title">Phase 0 Release Gate</div>
+    <span class="toc-status">Gate: NOT PASSED</span>
+    <nav>
+      <a href="#i1"><span class="n">01</span>API stability<span class="dot warn"></span></a>
+      <a href="#i2"><span class="n">02</span>Backward compat<span class="dot ok"></span></a>
+      <a href="#i3"><span class="n">03</span>Package boundaries<span class="dot warn"></span></a>
+      <a href="#i4"><span class="n">04</span>Namespace strategy<span class="dot ok"></span></a>
+      <a href="#i5"><span class="n">05</span>Composer strategy<span class="dot warn"></span></a>
+      <a href="#i6"><span class="n">06</span>Versioning<span class="dot ok"></span></a>
+      <a href="#i7"><span class="n">07</span>Testing coverage<span class="dot warn"></span></a>
+      <a href="#i8"><span class="n">08</span>Documentation<span class="dot ok"></span></a>
+      <a href="#i9"><span class="n">09</span>Rollback plan<span class="dot ok"></span></a>
+      <a href="#i10"><span class="n">10</span>Deployment strategy<span class="dot crit"></span></a>
+      <a href="#i11"><span class="n">11</span>CI/CD readiness<span class="dot crit"></span></a>
+      <a href="#result"><span class="n">—</span>Gate result</a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <header class="doc-header">
+      <div class="doc-eyebrow">Release Gate · Evaluated against real evidence, not the plan</div>
+      <h1 class="doc-title">Phase 0 Release Gate — tanaki/integration-contracts</h1>
+      <p class="doc-sub">A note on timing first: Phase 0 has already been implemented, validated, and independently audited earlier in this engagement. This gate is not a pre-flight check on work not yet started — it's the formal release sign-off applied to what's actually on disk, which is exactly what a Release Engineering Lead should be doing before calling something "released" rather than merely "built." Two items fail it.</p>
+      <div class="meta-row">
+        <span class="meta-chip"><span class="k">Items ready</span><span class="v">4 / 11</span></span>
+        <span class="meta-chip"><span class="k">Ready with notes</span><span class="v">5 / 11</span></span>
+        <span class="meta-chip crit"><span class="k">Not ready</span><span class="v">2 / 11</span></span>
+      </div>
+    </header>
+
+    <div class="gate-banner">
+      <h2>Gate does not pass</h2>
+      <p>Per the instruction this gate was requested under: a Release Approval is only produced when every item is READY or READY WITH NOTES. Two items below are NOT READY. No Release Approval follows this report — see §Gate Result.</p>
+    </div>
+
+    <section id="i1">
+      <div class="item-card">
+        <div class="item-head"><span class="item-num mono">01</span><span class="item-title">API stability</span><span class="pill warn">Ready with notes</span></div>
+        <div class="item-body">
+          <p>All 9 blocking issues from the Public API Review were implemented and re-verified: registry return types, the naming-convention rename, the enum-to-value-object conversion, dropped Filament/Laravel coupling, trait-free events, <code>CarbonImmutable</code> DTOs, readonly attribute properties, and the exception marker interface. The resolution report confirmed all 9 ADRs resolved with passing tests.</p>
+          <p><strong>Note:</strong> <code>DeviceCategory</code> and <code>ProtocolType</code> ship deliberately marked <code>@experimental</code> for the 1.x line, by the review's own design — real third-party <code>custom()</code> usage was meant to inform the shape before it fully hardens. This is a known, accepted, documented condition, not an open defect — but it means two of the package's most-used types are not yet under the full compatibility guarantee the rest of the API carries.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="i2">
+      <div class="item-card">
+        <div class="item-head"><span class="item-num mono">02</span><span class="item-title">Backward compatibility</span><span class="pill ok">Ready</span></div>
+        <div class="item-body">
+          <p>Verified twice: with the original 6 source directories still present (proving the package path works before anything irreversible) and after their deletion (proving nothing was silently still reading the old location). 43/48 tests pass both times, identical to the pre-extraction baseline. The one business-module file touched (<code>RecordWeighbridgeReading.php</code>) required a single import-line change and was confirmed, via a live rolled-back-transaction script, to still write correct <code>WeighbridgeTicket</code> rows with zero logic changes.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="i3">
+      <div class="item-card">
+        <div class="item-head"><span class="item-num mono">03</span><span class="item-title">Package boundaries</span><span class="pill warn">Ready with notes</span></div>
+        <div class="item-body">
+          <p>The independent audit confirmed zero Illuminate/Filament code dependency (verified against the package's own resolved <code>vendor/</code> tree, not just a grep), zero circular dependencies (full internal edge graph enumerated, confirmed a strict DAG), and zero real <code>App\</code> coupling in executable code.</p>
+          <p><strong>Note:</strong> that same audit found one real boundary leak — <code>DriverNotFoundException</code>'s message hardcodes a Tanaki-Hub-specific Artisan command name (<code>php artisan integration-engine:driver:discover</code>), which is meaningless to a different Laravel app and doesn't exist for a non-Laravel consumer at all. Functionally harmless (the exception still throws and is catchable via the marker interface), but it's a genuine crack in the "framework-agnostic" boundary this package is supposed to guarantee.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="i4">
+      <div class="item-card">
+        <div class="item-head"><span class="item-num mono">04</span><span class="item-title">Namespace strategy</span><span class="pill ok">Ready</span></div>
+        <div class="item-body">
+          <p><code>Tanaki\IntegrationContracts\{Contract,Contract\Category,DTO,Enum,Event,Attribute,Exception}</code>, consistently applied across all 50 files. Verified with a component-wise, case-sensitive comparison of every namespace declaration against its literal on-disk directory path — the specific class of bug that stays invisible on Windows (case-insensitive filesystem, this development environment) and only surfaces on a case-sensitive Linux production filesystem. Zero mismatches found. Zero remaining references to the old <code>App\IntegrationEngine\{Contracts,DTOs,Enums,Events,Attributes,Exceptions}</code> namespace anywhere in the application or test suite.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="i5">
+      <div class="item-card">
+        <div class="item-head"><span class="item-num mono">05</span><span class="item-title">Composer strategy</span><span class="pill warn">Ready with notes</span></div>
+        <div class="item-body">
+          <p>Local Composer path repository, confirmed working via a real filesystem symlink (Windows created a genuine symlink here without elevated privileges — tested directly, not assumed). <code>composer install</code>, <code>dump-autoload</code>, and version resolution (<code>^1.0</code> against an explicit <code>"version": "1.0.0"</code>) all confirmed functioning.</p>
+          <p><strong>Note:</strong> the package's version number is a manually-maintained field in <code>composer.json</code> rather than Git-tag-derived, because this repository has no Git history at all. That's the correct choice given the constraint, but it's a standing process risk: nothing currently prevents a future release from shipping with a stale or forgotten version bump. This risk is inseparable from the Deployment Strategy and CI/CD gaps below — all three trace back to the same root cause (no version control), so closing one materially reduces the others.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="i6">
+      <div class="item-card">
+        <div class="item-head"><span class="item-num mono">06</span><span class="item-title">Versioning</span><span class="pill ok">Ready</span></div>
+        <div class="item-body">
+          <p>SemVer policy documented in the Public API Review with explicit rulings on PHP-specific edge cases (interface method additions, enum case additions and <code>match</code> exhaustiveness, attribute constructor parameters). <code>CHANGELOG.md</code> follows Keep a Changelog format with a dated 1.0.0 entry; <code>UPGRADE.md</code> exists as a separate document, ready for the first breaking change. Dependency constraints use SemVer-idiomatic caret ranges.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="i7">
+      <div class="item-card">
+        <div class="item-head"><span class="item-num mono">07</span><span class="item-title">Testing coverage</span><span class="pill warn">Ready with notes</span></div>
+        <div class="item-body">
+          <p>16 tests in the package's own isolated suite (zero Laravel loaded), passing with zero PHPUnit deprecations. 7 application-side test files cover the corrected API surface plus a full end-to-end pipeline test. PHPStan level 8 clean, zero suppressions. Coverage for the <em>current, single, first-party driver</em> is solid.</p>
+          <p><strong>Note:</strong> the abstract contract-test-case suite (one per category interface, letting a <em>third-party</em> driver author self-certify without seeing Tanaki's own driver code) was explicitly identified as required in the Public API Review's own checklist and has not been built. This doesn't block Phase 0's stated goal — nothing here changed application behavior — but it is a real gap the moment any external party is invited to build a driver, since there is currently no automated way to verify their driver actually satisfies the contract.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="i8">
+      <div class="item-card">
+        <div class="item-head"><span class="item-num mono">08</span><span class="item-title">Documentation</span><span class="pill ok">Ready</span></div>
+        <div class="item-body">
+          <p>Package-level: README (purpose, install, worked driver example), CHANGELOG, LICENSE, UPGRADE guide. Process-level: the extraction plan (produced before implementation), the completion report (produced after), and the independent audit — all three still on disk and cross-referenced. Documentation coverage exceeds what a typical 1.0.0 package ships with.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="i9">
+      <div class="item-card">
+        <div class="item-head"><span class="item-num mono">09</span><span class="item-title">Rollback plan</span><span class="pill ok">Ready</span></div>
+        <div class="item-body">
+          <p>Produced before implementation began, with a real mechanism behind it: since this repository has no Git history, a full manual filesystem backup of every file the extraction would touch was copied outside the project root before any edit. It was never needed — every validation step passed — but it still exists on disk as a live restore path, not a hypothetical one.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="i10">
+      <div class="item-card">
+        <div class="item-head"><span class="item-num mono">10</span><span class="item-title">Deployment strategy</span><span class="pill crit">Not ready</span></div>
+        <div class="item-body">
+          <p><strong>Reason:</strong> the very first architecture review that proposed this package structure, months before extraction, flagged an open question and said explicitly to confirm it <em>before Phase 0</em>: "what does the actual deploy pipeline do with symlinked path repositories?" That confirmation never happened. Everything validated in this engagement ran on one local Windows development machine. There is no evidence in this repository of a deploy pipeline, a hosting target, or a CI system of any kind — confirmed directly: no <code>.git</code> directory, no Forge/Envoyer config, no Procfile, no deploy scripts anywhere in the project.</p>
+          <p><strong>Risk:</strong> if the real deployment target is a case-sensitive Linux server (very likely for any non-Windows production host) and its deploy process doesn't preserve symlinks — common for zip-based or rsync-without-symlink-flag deploys — the path repository could silently resolve to a broken or missing package on first deploy, taking down every feature that depends on the Integration Engine. Namespace casing was independently verified correct (§04), which removes one failure mode, but the symlink-survival question remains entirely unverified outside this machine.</p>
+          <p><strong>Recommended action:</strong> before this is considered released beyond local development, confirm the actual target (Forge, a bare VPS, Docker, Vapor, something else), and either (a) confirm that target's deploy process preserves symlinks, or (b) switch the path repository to <code>"symlink": false</code> — already tested in this engagement and confirmed to work functionally, at the cost of needing <code>composer install</code> re-run after every package source edit rather than picking up changes live. Option (b) is the lower-risk default until (a) is confirmed.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="i11">
+      <div class="item-card">
+        <div class="item-head"><span class="item-num mono">11</span><span class="item-title">CI/CD readiness</span><span class="pill crit">Not ready</span></div>
+        <div class="item-body">
+          <p><strong>Reason:</strong> the package ships a complete GitHub Actions workflow (<code>.github/workflows/tests.yml</code>, PHP 8.2–8.4 matrix, tests + PHPStan) — but it has never executed, because this project has no Git repository and therefore no GitHub remote for Actions to run against. Its correctness (working-directory paths, script names, matrix versions) has only been verified indirectly, by me manually running the equivalent commands — not by the workflow file itself. There is also no CI configuration anywhere for the host application, so the broader question of "does a change to this package get caught by an automated check before it reaches anything real" currently has no answer at all.</p>
+          <p><strong>Risk:</strong> the first real test of this CI workflow will happen on whatever change first gets pushed to a real Git host — meaning any misconfiguration in it (a wrong working-directory path, a missing PHP extension in the matrix, a script name typo) will be discovered at that moment rather than now, on a change that may have nothing to do with the workflow itself. Combined with §10, there is currently no automated gate of any kind between "someone edits this package" and "the edited version reaches wherever it actually runs."</p>
+          <p><strong>Recommended action:</strong> initialize Git for this project (a prerequisite this finding shares with the version-strategy note in §05), push to a host with Actions enabled, and let the existing workflow file run for real at least once — including on a deliberately introduced failure (e.g., a syntax error) to confirm it actually fails loudly rather than silently passing. Until then, treat the CI workflow as unvalidated configuration, not working CI.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="result">
+      <div class="stop-banner">
+        <h2>Gate result: NOT PASSED — no Release Approval follows</h2>
+        <p>4 items are unconditionally Ready, 5 carry notes worth tracking but don't block release on their own, and 2 — Deployment Strategy and CI/CD Readiness — are Not Ready for the same underlying reason: this project has never been placed under version control, so nothing downstream of "code exists on a Windows dev machine" has ever been exercised or even had a target to exercise against.</p>
+        <p>Per the instruction this gate was run under, a Release Approval document is produced only when every item clears READY or READY WITH NOTES. That condition is not met. This report stops here, as instructed — no extraction implementation follows (none was pending; Phase 0's code is already in place), and no Phase 1 work begins.</p>
+        <p><strong>The direct path to a passing gate:</strong> initialize Git, confirm the real deployment target and its symlink behavior (or default to <code>symlink: false</code> in the meantime), and let the existing CI workflow run once for real. All three close together, since they share one root cause.</p>
+      </div>
+    </section>
+
+    <footer class="doc-footer">Phase 0 Release Gate — tanaki/integration-contracts · Gate not passed · No Release Approval issued · No code modified</footer>
+  </main>
+</div>

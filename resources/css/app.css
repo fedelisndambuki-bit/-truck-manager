@@ -1,0 +1,63 @@
+@import "tailwindcss";
+@import "@fortawesome/fontawesome-free/css/all.min.css";
+/* Your custom CSS below */
+
+/* Hide global scrollbars while preserving scroll functionality */
+html, body {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none;    /* Firefox */
+  scrollbar-color: transparent transparent; /* Firefox: hide thumb & track */
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;            /* Chrome, Safari, Opera */
+  width: 0 !important;
+  height: 0 !important;
+}
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb { background: transparent !important; border: none !important; }
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track { background: transparent !important; }
+
+/* Hide scrollbars on Filament sidebar and main content areas */
+.fi-sidebar,
+.fi-layout,
+.fi-main,
+.fi-page,
+.fi-page-content {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  scrollbar-color: transparent transparent;
+}
+.fi-sidebar::-webkit-scrollbar,
+.fi-layout::-webkit-scrollbar,
+.fi-main::-webkit-scrollbar,
+.fi-page::-webkit-scrollbar,
+.fi-page-content::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+.fi-sidebar::-webkit-scrollbar-thumb,
+.fi-layout::-webkit-scrollbar-thumb,
+.fi-main::-webkit-scrollbar-thumb,
+.fi-page::-webkit-scrollbar-thumb,
+.fi-page-content::-webkit-scrollbar-thumb { background: transparent !important; border: none !important; }
+.fi-sidebar::-webkit-scrollbar-track,
+.fi-layout::-webkit-scrollbar-track,
+.fi-main::-webkit-scrollbar-track,
+.fi-page::-webkit-scrollbar-track,
+.fi-page-content::-webkit-scrollbar-track { background: transparent !important; }
+
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  scrollbar-color: transparent transparent;
+}
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+*::-webkit-scrollbar-thumb { background: transparent !important; border: none !important; }
+*::-webkit-scrollbar-track { background: transparent !important; }

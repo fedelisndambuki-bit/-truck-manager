@@ -1,0 +1,343 @@
+@import "tailwindcss";
+
+/*
+ * Tanaki Hub — Authentication Experience.
+ * Loaded only on the login page (see tanaki-login.blade.php's @vite call),
+ * so nothing here leaks into the rest of the admin panel.
+ *
+ * Palette and every pixel value below are ported exactly from the approved
+ * reference design (tanaki_login.html) — colors intentionally do not match
+ * the original brief's palette section, since the reference supersedes it.
+ */
+@theme {
+    --color-tanaki-teal: #12b5a0;
+    --color-tanaki-teal-dark: #0e9686;
+    --color-tanaki-navy: #0b1420;
+    --color-tanaki-navy-2: #101c2c;
+    --color-tanaki-ink: #111827;
+    --color-tanaki-grey: #6b7280;
+    --color-tanaki-grey-light: #94a3b8;
+    --color-tanaki-border: #e2e8f0;
+    --color-tanaki-bg-right: #2f4f4f;
+
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ── Split layout ──────────────────────────────────────────────────
+   Hand-written and deliberately NOT a Tailwind utility class: Filament's
+   own bundled CSS (vendor/filament/filament/dist/app.css, loaded earlier
+   on this page for the panel chrome) ships its own `.grid-cols-1` rule
+   completely unlayered — outside any @layer block. Per the CSS Cascade
+   Layers spec, ANY unlayered rule beats EVERY layered rule unconditionally,
+   regardless of specificity, media-query match, or source order. Tailwind
+   v4 wraps all of its generated utilities (including arbitrary-value
+   classes like `lg:grid-cols-[1.05fr_1fr]`) inside `@layer utilities`, so
+   that utility could never win here no matter how it was written — the
+   layered/unlayered split decides it before specificity is even
+   considered. Writing this rule as plain, unlayered CSS (like every other
+   .tk-* class in this file) puts it on equal footing, and normal cascade
+   order (this file loads after Filament's) then lets it win correctly. ── */
+
+.tk-split {
+    display: grid;
+    grid-template-columns: 1fr;
+    /* Explicit default so text color never depends on the browser's own
+       dark-mode handling of unstyled elements (only observed on the plain
+       standalone pages here — Filament panel pages set their own base
+       color via Filament's bundled CSS, independent of this file). The
+       dark .tk-hero side overrides back to white via its own class. */
+    color: var(--color-tanaki-ink);
+}
+
+@media (min-width: 1024px) {
+    .tk-split {
+        grid-template-columns: 1fr 1fr;
+        /* Without an explicit row height, this row's default `auto` sizing
+           grows to fit the TALLEST item's full content — including
+           .tk-hero's, which is meant to clip/scroll internally instead.
+           Grid items also default to `min-height: auto`, which independently
+           forces the same over-growth by ignoring `overflow` entirely.
+           Locking the row to exactly one viewport height (via `minmax(0, 1fr)`
+           on a `height: 100vh` container) and pairing it with `.tk-hero`'s
+           `min-height: 0` below closes both gaps at once, so .tk-hero's own
+           overflow-y-auto is what handles any excess height — not the
+           document — matching the "panels stay independent" structure. */
+        grid-template-rows: minmax(0, 1fr);
+        height: 100vh;
+    }
+}
+
+/* Same cascade-layers issue as .tk-split above, on the same page: Filament's
+   own unlayered `.grid-cols-1` rule unconditionally beats a Tailwind
+   `sm:grid-cols-2` utility (layered), no matter the viewport, so the SSO
+   button row needs its own hand-written unlayered class too. */
+.tk-oauth-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+@media (min-width: 640px) {
+    .tk-oauth-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+}
+
+/* Same class of bug as .tk-split/.tk-oauth-grid above, confirmed by
+   inspecting the compiled stylesheet directly: `.lg\:grid` never gets
+   generated at all here (`.lg\:inline-grid` and `.lg\:grid-cols-4` both
+   compile fine, but plain `.lg\:grid` doesn't), so a `hidden lg:grid`
+   toggle on the module-card grid silently never turns back on at any
+   viewport width. Hand-writing the toggle sidesteps whatever swallows
+   that one utility. */
+.tk-module-grid {
+    display: none;
+}
+
+@media (min-width: 1024px) {
+    .tk-module-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+    }
+}
+
+/* ── Hero panel ────────────────────────────────────────────────────── */
+
+.tk-hero {
+    /* Pairs with .tk-split's `grid-template-rows: minmax(0, 1fr)` above:
+       grid items default to `min-height: auto`, which sizes to this panel's
+       full content (module grid + dashboard preview) regardless of
+       `overflow`, so without this override the row grows past 100vh and the
+       document scrolls instead of this panel. `min-height: 0` lets this
+       panel actually shrink to its 1fr row, so overflow-y-auto below is what
+       clips/scrolls any excess — not the page. */
+    min-height: 0;
+
+    /* Full, uncropped source photo, per explicit request — several rounds
+       of custom cropping (to remove a fake UI mockup baked into the
+       photo's own pixels, then to keep the truck in frame, then to keep
+       it a reasonable size) were reverted because none of them were what
+       was actually wanted. This trades away that mockup-hiding: the
+       baked-in dashboard cards may show through depending on viewport
+       proportions, since cover always displays the image's full height
+       on this tall/narrow panel with no vertical slack to crop around
+       them. */
+    background-image:
+        linear-gradient(180deg, rgba(8, 14, 22, 0.88) 0%, rgba(8, 14, 22, 0.55) 35%, rgba(8, 14, 22, 0.80) 78%, rgba(8, 14, 22, 0.95) 100%),
+        url('/images/hero/operations.png');
+    background-size: cover;
+    background-position: center center;
+}
+
+/* ── Feature grid ──────────────────────────────────────────────────── */
+
+.tk-feature {
+    /* Restrained glass: dark/black tint rather than a white-tinted pane, so
+       these read as quiet capability indicators sitting on the photo, not
+       bright UI chrome competing with it. */
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.tk-feature:hover {
+    background: rgba(0, 0, 0, 0.45);
+    border-color: rgba(18, 181, 160, 0.35);
+}
+
+.tk-feature svg {
+    color: var(--color-tanaki-teal);
+}
+
+/* ── Live preview card ─────────────────────────────────────────────── */
+
+.tk-preview-card {
+    /* Deliberately near-opaque, not fully solid: an earlier version used
+       72% opacity + a 6px blur, which let enough of the hero photo's own
+       shapes (equipment, structures, lights in that part of the frame)
+       bleed through — visible and blurred enough to read as a second,
+       ghosted dashboard layered behind the real one. At 92% opacity with
+       only a 3px blur, well under 10% of the photo's contrast can show
+       through, which reads as "dark glass" without reproducing that bug.
+       The soft shadow is what actually sells "floating over the photo". */
+    background: rgba(9, 15, 23, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    box-shadow: 0 24px 48px -20px rgba(0, 0, 0, 0.65);
+}
+
+.tk-stat {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tk-stat .tk-stat-val {
+    transition: opacity 0.3s ease;
+}
+
+/* ── Auth card ─────────────────────────────────────────────────────── */
+
+.tk-auth-card {
+    border: 1px solid rgba(15, 30, 45, 0.05);
+    box-shadow: 0 30px 70px -24px rgba(15, 30, 45, 0.18), 0 10px 28px -14px rgba(15, 30, 45, 0.1);
+}
+
+/* Plain <select> elements on public auth pages (e.g. request-access) render
+   their own chevron via an adjacent SVG, not a CSS background-image — the
+   browser's native select arrow plus any framework-injected background
+   chevron must both be fully suppressed, or they tile/duplicate visibly.
+   Written unlayered so it can't lose to an unlayered framework rule. */
+.tk-plain-select {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    background-image: none !important;
+}
+
+/* ── Filament form overrides, scoped to .tk-auth-form only ───────────
+   Restyles the Livewire-rendered email/password/remember fields and the
+   submit button to match the reference design pixel-for-pixel, without
+   touching Filament's form logic, validation, or the rest of the panel. ── */
+
+/* Space between fields (email / password / remember) */
+.tk-auth-form .fi-fo-component-ctn {
+    gap: 0.75rem;
+}
+
+.tk-auth-form .fi-fo-field-wrp-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-tanaki-ink);
+    margin-bottom: 5px;
+}
+
+.tk-auth-form .fi-input-wrp {
+    border-radius: 10px;
+    border: 1.5px solid var(--color-tanaki-border);
+    background: #ffffff;
+    min-height: 50px;
+}
+
+/* !important on both: Filament's own focus-ring utility on this element
+   compiles to `[&:not(:has(.fi-ac-action:focus))]:focus-within:ring-primary-600`
+   — the `:has()` inside `:not()` counts toward specificity, giving Filament's
+   selector 4 class-level selectors against this rule's 3, so its default
+   blue ring wins the cascade even though this rule loads later. Same
+   category of override fight as the submit button below, same fix. */
+.tk-auth-form .fi-input-wrp:focus-within {
+    border-color: var(--color-tanaki-teal) !important;
+    box-shadow: 0 0 0 3px rgba(18, 181, 160, 0.14) !important;
+}
+
+.tk-auth-form .fi-input {
+    padding-top: 0.6875rem;
+    padding-bottom: 0.6875rem;
+    font-size: 14px;
+    color: var(--color-tanaki-ink);
+}
+
+.tk-auth-form .fi-input::placeholder {
+    color: #a6afb8;
+}
+
+.tk-auth-form .fi-fo-field-wrp-hint a {
+    color: var(--color-tanaki-teal);
+    font-weight: 600;
+    font-size: 12px;
+    text-decoration: none;
+}
+
+.tk-auth-form .fi-fo-field-wrp-hint a:hover {
+    text-decoration: underline;
+}
+
+.tk-auth-form .fi-fo-checkbox-label {
+    font-size: 14px;
+    color: var(--color-tanaki-grey);
+}
+
+.tk-auth-form input[type='checkbox'] {
+    width: 15px;
+    height: 15px;
+    accent-color: var(--color-tanaki-teal);
+}
+
+/* Space around the submit button */
+.tk-auth-form .fi-form-actions {
+    margin-top: 0;
+}
+
+.tk-auth-form .fi-form-actions .fi-btn {
+    width: 100%;
+    min-height: 56px;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    background: #2f4f4f !important;
+    border: none !important;
+    box-shadow: 0 10px 20px -8px rgba(47, 79, 79, 0.55);
+    transition: opacity 0.15s ease;
+}
+
+.tk-auth-form .fi-form-actions .fi-btn:hover {
+    opacity: 0.92;
+}
+
+.tk-auth-form .fi-form-actions .fi-btn:focus-visible {
+    outline: 2px solid var(--color-tanaki-teal);
+    outline-offset: 2px;
+}
+
+.tk-auth-form .fi-form-actions .fi-btn[disabled] {
+    opacity: 0.6;
+}
+
+.tk-auth-form .fi-fo-field-wrp-error-message {
+    color: #dc2626;
+    font-size: 12.5px;
+    margin-top: 4px;
+}
+
+/* Filament's prefix-icon slot — align with the reference's inline left icon */
+.tk-auth-form .fi-input-wrp-prefix {
+    color: #9aa5b1;
+}
+
+/* ── OAuth buttons ─────────────────────────────────────────────────── */
+
+.tk-oauth-btn {
+    height: 50px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.tk-oauth-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px -8px rgba(15, 30, 45, 0.18);
+    border-color: var(--color-tanaki-teal);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tk-oauth-btn {
+        transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    .tk-oauth-btn:hover {
+        transform: none;
+    }
+}
+
+/* ── Motion preference ─────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+    .tk-stat .tk-stat-val {
+        transition: none !important;
+    }
+}

@@ -1,0 +1,21 @@
+<?php
+
+namespace App\Filament\Resources\ScopeOfWorkResource\Pages;
+
+use App\Filament\Resources\ScopeOfWorkResource;
+use Filament\Actions;
+use Filament\Resources\Pages\ListRecords;
+
+class ListScopeOfWorks extends ListRecords
+{
+    protected static string $resource = ScopeOfWorkResource::class;
+
+    protected static string $view = 'filament.resources.scope-of-work-resource.pages.list-scope-of-works';
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Actions\CreateAction::make()->label('Define Scope'),
+        ];
+    }
+}

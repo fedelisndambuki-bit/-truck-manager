@@ -1,0 +1,48 @@
+/* resources/css/filament-custom.css */
+
+/* 1. Global scrollbar removal */
+* {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+}
+
+::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+/* 2. Sidebar Color - DarkSlateGrey */
+.fi-sidebar,
+aside.fi-sidebar,
+.fi-sidebar nav,
+.fi-sidebar-content,
+.fi-sidebar-nav,
+.fi-sidebar-header {
+    background-color: #2f4f4f !important;
+}
+
+/* Ensure all text/icons inside the sidebar are white */
+.fi-sidebar * {
+    color: #ffffff !important;
+}
+
+/* Sidebar active item highlight */
+.fi-sidebar-item-active {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 3. Topbar background/text colours are owned by the HEAD_END render hook in
+   AdminPanelProvider (light/dark aware) — do not set them here too, it previously
+   fought with that hook for who controls `header.fi-topbar`. */
+
+/* 4. Restore Standard Content Padding (Fixes Sidebar Overlap) */
+/* We remove the !important 0 padding that caused the breakage */
+.fi-main {
+    padding-top: 1rem !important;
+}
+
+/* 5. Custom Button Styles */
+.fi-btn.fi-color-primary {
+    background-color: #2f4f4f !important;
+}

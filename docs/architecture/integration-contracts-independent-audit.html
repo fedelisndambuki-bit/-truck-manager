@@ -1,0 +1,256 @@
+<title>Independent Audit — tanaki/integration-contracts Reusability</title>
+<style>
+  @media (prefers-color-scheme: light) { :root { color-scheme: light; } }
+  @media (prefers-color-scheme: dark)  { :root { color-scheme: dark; } }
+  :root {
+    --bg: #F1F4F7; --surface: #FFFFFF; --surface-2: #E7ECF1; --ink: #101B2D; --ink-muted: #45536B;
+    --line: #D3DBE3; --blueprint: #2C5C8A; --blueprint-soft: #E4EDF4; --signal: #B85C2C; --signal-soft: #F6E8DE;
+    --ok: #2F7A54; --ok-soft: #E3F0E9; --warn: #A6791F; --warn-soft: #F5EAD6; --crit: #A6342F; --crit-soft: #F5E0E0;
+    --shadow: 0 1px 2px rgba(16,27,45,.06), 0 8px 24px rgba(16,27,45,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0E1826; --surface: #142032; --surface-2: #1B2A40; --ink: #E8EDF3; --ink-muted: #93A3BA;
+      --line: #28384F; --blueprint: #7FB2DE; --blueprint-soft: #1D3348; --signal: #E08A52; --signal-soft: #3A2A1E;
+      --ok: #74C39A; --ok-soft: #17301F; --warn: #E0B45E; --warn-soft: #362A15; --crit: #E3847F; --crit-soft: #341C1B;
+      --shadow: 0 1px 2px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.35); }
+  }
+  :root[data-theme="light"] { --bg: #F1F4F7; --surface: #FFFFFF; --surface-2: #E7ECF1; --ink: #101B2D; --ink-muted: #45536B;
+    --line: #D3DBE3; --blueprint: #2C5C8A; --blueprint-soft: #E4EDF4; --signal: #B85C2C; --signal-soft: #F6E8DE;
+    --ok: #2F7A54; --ok-soft: #E3F0E9; --warn: #A6791F; --warn-soft: #F5EAD6; --crit: #A6342F; --crit-soft: #F5E0E0;
+    --shadow: 0 1px 2px rgba(16,27,45,.06), 0 8px 24px rgba(16,27,45,.06); }
+  :root[data-theme="dark"] { --bg: #0E1826; --surface: #142032; --surface-2: #1B2A40; --ink: #E8EDF3; --ink-muted: #93A3BA;
+    --line: #28384F; --blueprint: #7FB2DE; --blueprint-soft: #1D3348; --signal: #E08A52; --signal-soft: #3A2A1E;
+    --ok: #74C39A; --ok-soft: #17301F; --warn: #E0B45E; --warn-soft: #362A15; --crit: #E3847F; --crit-soft: #341C1B;
+    --shadow: 0 1px 2px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.35); }
+  * { box-sizing: border-box; } html, body { margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif; font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .mono { font-family: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, monospace; font-variant-numeric: tabular-nums; }
+  a { color: var(--blueprint); }
+  .shell { display: flex; max-width: 1280px; margin: 0 auto; align-items: flex-start; }
+  .toc { position: sticky; top: 0; align-self: flex-start; width: 258px; flex: 0 0 258px; height: 100vh; overflow-y: auto; padding: 28px 18px 40px 28px; border-right: 1px solid var(--line); }
+  .toc::-webkit-scrollbar { width: 8px; } .toc::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+  .toc-brand { display: flex; align-items: center; gap: 9px; margin-bottom: 4px; }
+  .toc-mark { width: 22px; height: 22px; border-radius: 4px; background: var(--signal); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .toc-mark svg { width: 13px; height: 13px; }
+  .toc-brand-text { font-family: ui-monospace, monospace; font-size: 12.5px; font-weight: 600; letter-spacing: .02em; color: var(--ink-muted); }
+  .toc-title { font-size: 15px; font-weight: 700; line-height: 1.35; margin: 14px 0 4px; text-wrap: balance; }
+  .toc-status { display: inline-flex; align-items: center; gap: 6px; margin: 4px 0 22px; font-family: ui-monospace, monospace; font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--signal); background: var(--signal-soft); padding: 4px 8px; border-radius: 4px; }
+  .toc-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--signal); }
+  .toc nav { display: flex; flex-direction: column; gap: 1px; }
+  .toc nav a { color: var(--ink-muted); text-decoration: none; font-size: 13px; padding: 5px 8px; border-radius: 5px; display: flex; gap: 8px; }
+  .toc nav a:hover { background: var(--surface-2); color: var(--ink); }
+  .toc nav a .n { font-family: ui-monospace, monospace; color: var(--signal); font-size: 11.5px; min-width: 18px; }
+  .content { flex: 1 1 auto; min-width: 0; padding: 48px 56px 120px; }
+  @media (max-width: 900px) { .toc { display: none; } .content { padding: 32px 20px 100px; } }
+  .doc-header { margin-bottom: 48px; }
+  .doc-eyebrow { font-family: ui-monospace, monospace; font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--signal); margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+  .doc-eyebrow::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  h1.doc-title { font-size: clamp(26px, 3.6vw, 38px); font-weight: 800; letter-spacing: -.01em; line-height: 1.12; margin: 0 0 14px; text-wrap: balance; }
+  .doc-sub { font-size: 17px; color: var(--ink-muted); max-width: 66ch; margin: 0 0 26px; text-wrap: balance; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .meta-chip { display: inline-flex; align-items: center; gap: 7px; background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 7px 11px; font-size: 12.5px; box-shadow: var(--shadow); }
+  .meta-chip .k { color: var(--ink-muted); font-family: ui-monospace, monospace; font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; }
+  .meta-chip .v { font-weight: 600; }
+  .meta-chip.warn { border-color: var(--warn); background: var(--warn-soft); } .meta-chip.warn .v { color: var(--warn); }
+  section { margin: 0 0 54px; scroll-margin-top: 24px; }
+  .sec-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 6px; }
+  .sec-num { font-family: ui-monospace, monospace; font-size: 15px; font-weight: 700; color: var(--signal); }
+  h2 { font-size: 22px; font-weight: 800; letter-spacing: -.005em; margin: 0; text-wrap: balance; }
+  .sec-dek { color: var(--ink-muted); font-size: 15px; max-width: 68ch; margin: 10px 0 22px; }
+  h3 { font-size: 15px; font-weight: 700; margin: 22px 0 8px; }
+  p { max-width: 70ch; margin: 0 0 14px; }
+  ul, ol { max-width: 70ch; padding-left: 22px; margin: 0 0 16px; } li { margin-bottom: 6px; }
+  strong { font-weight: 700; }
+  code:not(pre code) { font-family: ui-monospace, monospace; font-size: .88em; background: var(--surface-2); padding: .12em .4em; border-radius: 4px; border: 1px solid var(--line); }
+
+  .verdict-card { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 16px 18px; margin: 14px 0; box-shadow: var(--shadow); }
+  .verdict-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+  .verdict-title { font-size: 14.5px; font-weight: 700; flex: 1 1 auto; min-width: 200px; }
+  .verdict-body { font-size: 13.5px; color: var(--ink-muted); }
+  .verdict-body strong { color: var(--ink); }
+  .evidence { font-family: ui-monospace, monospace; font-size: 11.8px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; margin-top: 8px; white-space: pre-wrap; }
+
+  .pill { display: inline-flex; align-items: center; gap: 5px; font-size: 10.8px; font-weight: 700; padding: 3px 9px; border-radius: 20px; white-space: nowrap; text-transform: uppercase; letter-spacing: .03em; }
+  .pill::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
+  .pill.ok { color: var(--ok); background: var(--ok-soft); } .pill.ok::before { background: var(--ok); }
+  .pill.warn { color: var(--warn); background: var(--warn-soft); } .pill.warn::before { background: var(--warn); }
+  .pill.crit { color: var(--crit); background: var(--crit-soft); } .pill.crit::before { background: var(--crit); }
+
+  .callout { border: 1px solid var(--line); border-left: 3px solid var(--blueprint); background: var(--surface); border-radius: 8px; padding: 16px 18px; margin: 18px 0; box-shadow: var(--shadow); max-width: 70ch; }
+  .callout.finding { border-left-color: var(--signal); background: var(--signal-soft); } .callout.ok { border-left-color: var(--ok); } .callout.crit { border-left-color: var(--crit); background: var(--crit-soft); }
+  .callout .callout-label { font-family: ui-monospace, monospace; font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-muted); margin-bottom: 6px; display: block; }
+  .callout p:last-child { margin-bottom: 0; }
+
+  .table-wrap { overflow-x: auto; margin: 16px 0 26px; border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); }
+  table { width: 100%; border-collapse: collapse; background: var(--surface); font-size: 13.3px; min-width: 560px; }
+  thead th { text-align: left; font-size: 10.8px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-muted); background: var(--surface-2); padding: 9px 13px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  tbody td { padding: 10px 13px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody td.mono { font-size: 12.3px; font-family: ui-monospace, monospace; }
+
+  .verdict-banner { border-radius: 12px; padding: 22px 24px; margin: 20px 0; box-shadow: var(--shadow); }
+  .verdict-banner.ok { background: var(--ok-soft); border: 1px solid var(--ok); }
+  .verdict-banner h3 { margin: 0 0 8px; font-size: 16px; color: var(--ok); }
+  .verdict-banner p { margin: 0; font-size: 14px; }
+
+  footer.doc-footer { border-top: 1px solid var(--line); margin-top: 60px; padding-top: 24px; color: var(--ink-muted); font-size: 12.5px; }
+  ::selection { background: var(--signal-soft); }
+</style>
+
+<div class="shell">
+  <aside class="toc">
+    <div class="toc-brand">
+      <span class="toc-mark"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>
+      <span class="toc-brand-text">INDEPENDENT AUDIT</span>
+    </div>
+    <div class="toc-title">tanaki/integration-contracts — Reusability Audit</div>
+    <span class="toc-status">2 findings, 0 blocking to reuse</span>
+    <nav>
+      <a href="#summary"><span class="n">—</span>Verdict</a>
+      <a href="#method"><span class="n">00</span>Audit method</a>
+      <a href="#laravel"><span class="n">01</span>Hidden Laravel dependencies</a>
+      <a href="#app"><span class="n">02</span>Hidden application dependencies</a>
+      <a href="#circular"><span class="n">03</span>Circular dependencies</a>
+      <a href="#semver"><span class="n">04</span>Semantic versioning</a>
+      <a href="#public"><span class="n">05</span>Suitable for public release</a>
+      <a href="#laravel-other"><span class="n">06</span>A different Laravel app</a>
+      <a href="#non-laravel"><span class="n">07</span>A non-Laravel PHP app</a>
+      <a href="#findings"><span class="n">08</span>Findings summary</a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <header class="doc-header" id="summary">
+      <div class="doc-eyebrow">Independent Audit · External-maintainer stance · No code modified</div>
+      <h1 class="doc-title">Is tanaki/integration-contracts actually reusable, or does it just look that way?</h1>
+      <p class="doc-sub">Reviewed as if I had never seen this code before, with the explicit goal of breaking the reusability claim. Two real findings survived; neither is a code-coupling defect, and neither blocks reuse by another Laravel app or a non-Laravel PHP app.</p>
+      <div class="meta-row">
+        <span class="meta-chip"><span class="k">Files audited</span><span class="v">50 source + 5 metadata</span></span>
+        <span class="meta-chip"><span class="k">Illuminate/Laravel refs found</span><span class="v">0 in code</span></span>
+        <span class="meta-chip"><span class="k">Circular deps found</span><span class="v">0</span></span>
+        <span class="meta-chip warn"><span class="k">Findings</span><span class="v">2 — see §08</span></span>
+      </div>
+    </header>
+
+    <section id="method">
+      <div class="sec-head"><span class="sec-num">00</span><h2>Audit method</h2></div>
+      <p class="sec-dek">Every claim below is backed by a command actually run against the package as it sits on disk, not a re-read of the design documents that shipped it. Where a check produced a false positive from my own tooling, that's disclosed too — an audit that hides its own mistakes isn't independent.</p>
+      <p>Four categories of evidence were gathered: (1) static grep/reflection sweeps of <code>src/</code> for forbidden references, (2) a component-wise, case-sensitive comparison of every namespace declaration against its actual on-disk directory — the specific failure mode that stays invisible during development on Windows (case-insensitive) and only surfaces on a case-sensitive Linux production filesystem, (3) a live execution test in a PHP process that loads <em>only</em> this package's own Composer autoloader — not Tanaki Hub's — to settle the non-Laravel question by demonstration rather than by argument, and (4) inspection of the package's own resolved <code>vendor/</code> tree, which is the most honest witness available: if a hidden Laravel dependency existed, Composer's own resolver would have had to install it.</p>
+    </section>
+
+    <section id="laravel">
+      <div class="sec-head"><span class="sec-num">01</span><h2>Hidden Laravel dependencies — none found</h2></div>
+      <div class="verdict-card">
+        <div class="verdict-head"><span class="verdict-title">grep for Illuminate / Laravel / Filament across src/</span><span class="pill ok">Clean</span></div>
+        <div class="verdict-body">18 matches, all inside doc-comments <em>explaining the absence</em> of a Laravel dependency (e.g. "No Filament\Support\Contracts\HasLabel here"). Zero matches in an actual <code>use</code> statement, type-hint, or function call.</div>
+      </div>
+      <div class="verdict-card">
+        <div class="verdict-head"><span class="verdict-title">composer.json require block</span><span class="pill ok">Clean</span></div>
+        <div class="verdict-body">Exactly <code>php: ^8.2</code> and <code>nesbot/carbon: ^3.0</code>. Carbon itself has no Laravel dependency — it's a standalone date library usable in any PHP context.</div>
+      </div>
+      <div class="verdict-card">
+        <div class="verdict-head"><span class="verdict-title">The package's own resolved vendor/ tree — the decisive check</span><span class="pill ok">Clean</span></div>
+        <div class="verdict-body">Ran <code>composer install</code> inside the package directory in isolation. If any class anywhere in <code>src/</code> referenced an Illuminate symbol, Composer's dependency resolver would have had no way to satisfy it and the install would have failed, or a hidden requirement would appear in the lock file. It didn't.</div>
+        <div class="evidence">vendor/ contents: autoload.php, bin, carbonphp, composer, myclabs, nesbot,
+nikic, phar-io, phpstan, phpunit, psr, sebastian, staabm, symfony, theseer
+— zero illuminate/*, zero laravel/*</div>
+      </div>
+    </section>
+
+    <section id="app">
+      <div class="sec-head"><span class="sec-num">02</span><h2>Hidden application dependencies — one real finding</h2></div>
+      <div class="verdict-card">
+        <div class="verdict-head"><span class="verdict-title">grep for App\, BaseModel, MultiTenantScope, IntegratedDevice, or any Tanaki Hub class name</span><span class="pill ok">Clean in code</span></div>
+        <div class="verdict-body">2 matches, both inside doc-comments referencing "IntegratedDevice" as illustrative context for a reader (e.g. "recorded as metadata on IntegratedDevice for diagnostics/operations"). No import, no type-hint, no runtime reference. A genuinely external maintainer reading these two comments would learn about a foreign class name they've never seen — a minor documentation smell worth polishing, but not a dependency: nothing fails, nothing imports it, nothing requires it to exist.</div>
+      </div>
+      <div class="callout finding">
+        <span class="callout-label">Finding — a real, if narrow, leak: DriverNotFoundException's message assumes a Laravel-Artisan host</span>
+        <p><code>DriverNotFoundException::forVendor()</code> returns: <em>"No driver is registered for vendor key [{vendorKey}]. Run <code>php artisan integration-engine:driver:discover</code> if a new driver class was just added."</em> This is not a code coupling — the exception constructs and throws correctly regardless of host — but it is a genuine hidden application assumption baked into <strong>user-facing text returned by the public API</strong>: it assumes (a) the host is Laravel, since non-Laravel PHP has no <code>artisan</code> at all, and (b) the host has a command literally named <code>integration-engine:driver:discover</code>, which doesn't exist in this package — it lives in Tanaki Hub's own application layer and hasn't even been extracted into <code>integration-core</code> yet. A different Laravel application integrating this package would see advice for a command it doesn't have. Confirmed via direct grep across all 4 exception classes — <strong>this is the only one of the four with this problem</strong>; <code>DeviceOfflineException</code>, <code>InvalidPayloadException</code>, and <code>ProtocolNotImplementedException</code> all have clean, host-agnostic messages.</p>
+      </div>
+    </section>
+
+    <section id="circular">
+      <div class="sec-head"><span class="sec-num">03</span><h2>Circular dependencies — none found</h2></div>
+      <p>Every internal cross-namespace <code>use</code> statement in the package was enumerated directly (37 edges) and reduced to a namespace-level graph:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Namespace</th><th>Depends on (internal)</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">Enum</td><td class="mono">— (leaf)</td></tr>
+            <tr><td class="mono">DTO</td><td class="mono">Enum</td></tr>
+            <tr><td class="mono">Contract</td><td class="mono">Enum, DTO</td></tr>
+            <tr><td class="mono">Contract\Category</td><td class="mono">Contract, DTO</td></tr>
+            <tr><td class="mono">Event</td><td class="mono">DTO</td></tr>
+            <tr><td class="mono">Attribute</td><td class="mono">— (leaf)</td></tr>
+            <tr><td class="mono">Exception</td><td class="mono">— (leaf, aside from the in-namespace marker interface)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>A strict DAG: <code>Enum → DTO → {Contract, Event} → Contract\Category</code>, with <code>Attribute</code> and <code>Exception</code> disconnected leaves. No edge points back toward a lower layer. At the Composer level, the package's own <code>composer.json</code> contains no reference to the root application's package name or to its own path repository — checked directly, not assumed — so there is no cycle at the dependency-graph level either.</p>
+    </section>
+
+    <section id="semver">
+      <div class="sec-head"><span class="sec-num">04</span><h2>Semantic versioning principles — followed</h2></div>
+      <ul>
+        <li><code>composer.json</code> declares <code>"version": "1.0.0"</code> explicitly — correct and necessary here specifically because this project has no Git history to infer a version from (confirmed: no <code>.git</code> anywhere in the repository). Composer's own documentation names this exact scenario as the intended use of the <code>version</code> key; this is not a smell.</li>
+        <li>Both of the package's own dependency constraints (<code>php: ^8.2</code>, <code>nesbot/carbon: ^3.0</code>) use caret constraints — the SemVer-idiomatic choice, allowing compatible upgrades without a manual bump.</li>
+        <li><code>CHANGELOG.md</code> follows Keep a Changelog structure with a dated 1.0.0 entry categorized under Added/Notes.</li>
+        <li><code>UPGRADE.md</code> exists as a distinct document from the changelog, ready for the first breaking 2.0 change — the versioning policy this ships under (documented separately, in the prior Public API Review) requires exactly this split.</li>
+        <li>The two open value objects (<code>DeviceCategory</code>, <code>ProtocolType</code>) are explicitly marked experimental in the classification carried into this package, which is itself a SemVer-correct move: it reserves the right to adjust their shape within the 1.x line without violating the compatibility promise made to everything else.</li>
+      </ul>
+    </section>
+
+    <section id="public">
+      <div class="sec-head"><span class="sec-num">05</span><h2>Suitable for public release as v1.0.0 — no, but not for a code reason</h2></div>
+      <div class="callout crit">
+        <span class="callout-label">Finding — the LICENSE file directly contradicts a public release</span>
+        <p><code>LICENSE</code> reads: <em>"This package is proprietary and confidential. It is distributed exclusively via Tanaki Hub's private Composer path repository for use by Tanaki Hub and its authorized integration partners. No part of this package may be reproduced, distributed, or published outside that context without prior written permission."</em> <code>composer.json</code> matches: <code>"license": "proprietary"</code>. Technically, nothing in the code prevents public release — it's genuinely portable, as every other section of this audit confirms. But the package as currently licensed <strong>legally forbids</strong> exactly the action being asked about. This is a business/legal decision, not an architectural one, and it's the single clearest way this audit could show "not suitable for public release" without finding a single line of coupling — which is precisely why an external maintainer, reading only what's on disk, would have to answer "no" to this specific question as asked, while still answering "yes" to every technical reusability question in §01–§04 and §06–§07.</p>
+      </div>
+      <p>If the intent is genuine public release, the fix is a license/business decision (swap to MIT, Apache-2.0, or another OSI license, update the LICENSE file and composer.json's <code>license</code> field, and decide whether "Tanaki Hub" attribution stays) — not a code change, and out of scope for this audit per the instruction not to modify anything.</p>
+    </section>
+
+    <section id="laravel-other">
+      <div class="sec-head"><span class="sec-num">06</span><h2>Can it be consumed by a completely different Laravel application?</h2></div>
+      <p>Yes, with no evidence to the contrary found. Nothing in the package registers a service provider, publishes a config file, expects a specific container binding, reads an environment variable, or assumes any Laravel version-specific behavior. A different Laravel app — Laravel 10, 11, or 12, since the floor is plain PHP 8.2 — would <code>composer require</code> it exactly as Tanaki Hub does and get working interfaces, DTOs, enums, events, an attribute, and exceptions with zero Tanaki-specific setup. The one caveat: if that application wants to persist <code>DeviceCategory</code>/<code>ProtocolType</code> on an Eloquent model, it needs its own <code>CastsAttributes</code> adapter, exactly as documented in this package's own <code>UPGRADE.md</code> — that's a deliberate, documented consequence of the package staying framework-free, not an oversight.</p>
+    </section>
+
+    <section id="non-laravel">
+      <div class="sec-head"><span class="sec-num">07</span><h2>Can it be consumed by a non-Laravel PHP application? — proven by execution, not argument</h2></div>
+      <p>Rather than reason about this from the dependency list, I wrote a throwaway PHP script that loaded <em>only</em> the package's own <code>vendor/autoload.php</code> — never touching Tanaki Hub's application at all — and exercised five representative code paths, then deleted the script (no code was left behind; the audit instruction to modify nothing was honored).</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Check</th><th>Result</th></tr></thead>
+          <tbody>
+            <tr><td>Laravel/Illuminate loaded anywhere in the process</td><td><span class="pill ok">no</span></td></tr>
+            <tr><td><code>DeviceCategory::from()</code> + <code>label()</code></td><td><span class="pill ok">worked</span></td></tr>
+            <tr><td><code>WeighbridgeReadingDTO</code> construction with <code>CarbonImmutable</code></td><td><span class="pill ok">worked</span></td></tr>
+            <tr><td><code>WeighbridgeReadingCaptured</code> event construction</td><td><span class="pill ok">worked</span></td></tr>
+            <tr><td><code>#[IntegrationDriver]</code> attribute instantiation</td><td><span class="pill ok">worked</span></td></tr>
+            <tr><td>Exception thrown and caught via the <code>IntegrationExceptionInterface</code> marker</td><td><span class="pill ok">worked</span> <span class="pill warn">message content flagged — §02</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Every mechanism works in a genuinely Laravel-free PHP 8.3 CLI process. This is the strongest form of evidence available for this specific question — not "nothing looks coupled," but "it actually ran."</p>
+    </section>
+
+    <section id="findings">
+      <div class="sec-head"><span class="sec-num">08</span><h2>Findings summary</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Finding</th><th>Blocks technical reuse?</th><th>Blocks public release?</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td><code>DriverNotFoundException</code>'s message hardcodes a Tanaki-Hub-specific Artisan command name</td><td><span class="pill warn">No — cosmetic, catchable, functionally correct</span></td><td><span class="pill warn">Confusing for adopters, not blocking</span></td></tr>
+            <tr><td>2</td><td><code>LICENSE</code> forbids distribution outside Tanaki Hub</td><td><span class="pill ok">N/A — not a code issue</span></td><td><span class="pill crit">Yes — direct contradiction</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="verdict-banner ok">
+        <h3>Verdict</h3>
+        <p>I could not find an architectural violation. Every dependency, hidden-coupling, and circularity check came back clean under direct evidence — grep sweeps, a case-sensitive namespace/directory audit (the one class of bug that Windows development specifically hides), inspection of the package's own resolved dependency tree, and a live execution test in a Laravel-free process. The two findings that did surface are real but narrow: one is a leaky string in a single exception message, fixable in isolation without touching the package's shape; the other is a licensing decision that has nothing to do with whether the code itself is portable — and by every technical measure in this audit, it is. Package extraction achieved exactly what three prior review rounds were building toward: a genuinely reusable, framework-free contracts library, not merely a relocated one.</p>
+      </div>
+    </section>
+
+    <footer class="doc-footer">Independent Reusability Audit — tanaki/integration-contracts v1.0.0 · No code modified during this audit · Audit-only script created and deleted per instruction</footer>
+  </main>
+</div>

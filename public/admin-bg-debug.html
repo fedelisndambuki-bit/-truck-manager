@@ -1,0 +1,15 @@
+<script>
+(function(){
+  var el = document.querySelector('.fi-simple-layout');
+  var page = document.querySelector('.fi-simple-page');
+  var log = function(label, value){ console.log(label + ':', value); };
+  if (el) {
+    var cs = getComputedStyle(el);
+    log('layout bg', cs.backgroundImage);
+  }
+  if (page) {
+    var cs2 = getComputedStyle(page);
+    log('page bg', cs2.backgroundImage);
+  }
+})();
+</script>

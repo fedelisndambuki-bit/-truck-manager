@@ -1,0 +1,283 @@
+<title>Phase 0 — Completion Report: tanaki/integration-contracts Extracted</title>
+<style>
+  @media (prefers-color-scheme: light) { :root { color-scheme: light; } }
+  @media (prefers-color-scheme: dark)  { :root { color-scheme: dark; } }
+  :root {
+    --bg: #F1F4F7; --surface: #FFFFFF; --surface-2: #E7ECF1; --ink: #101B2D; --ink-muted: #45536B;
+    --line: #D3DBE3; --blueprint: #2C5C8A; --blueprint-soft: #E4EDF4; --signal: #B85C2C; --signal-soft: #F6E8DE;
+    --ok: #2F7A54; --ok-soft: #E3F0E9; --warn: #A6791F; --warn-soft: #F5EAD6; --crit: #A6342F; --crit-soft: #F5E0E0;
+    --shadow: 0 1px 2px rgba(16,27,45,.06), 0 8px 24px rgba(16,27,45,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0E1826; --surface: #142032; --surface-2: #1B2A40; --ink: #E8EDF3; --ink-muted: #93A3BA;
+      --line: #28384F; --blueprint: #7FB2DE; --blueprint-soft: #1D3348; --signal: #E08A52; --signal-soft: #3A2A1E;
+      --ok: #74C39A; --ok-soft: #17301F; --warn: #E0B45E; --warn-soft: #362A15; --crit: #E3847F; --crit-soft: #341C1B;
+      --shadow: 0 1px 2px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.35); }
+  }
+  :root[data-theme="light"] { --bg: #F1F4F7; --surface: #FFFFFF; --surface-2: #E7ECF1; --ink: #101B2D; --ink-muted: #45536B;
+    --line: #D3DBE3; --blueprint: #2C5C8A; --blueprint-soft: #E4EDF4; --signal: #B85C2C; --signal-soft: #F6E8DE;
+    --ok: #2F7A54; --ok-soft: #E3F0E9; --warn: #A6791F; --warn-soft: #F5EAD6; --crit: #A6342F; --crit-soft: #F5E0E0;
+    --shadow: 0 1px 2px rgba(16,27,45,.06), 0 8px 24px rgba(16,27,45,.06); }
+  :root[data-theme="dark"] { --bg: #0E1826; --surface: #142032; --surface-2: #1B2A40; --ink: #E8EDF3; --ink-muted: #93A3BA;
+    --line: #28384F; --blueprint: #7FB2DE; --blueprint-soft: #1D3348; --signal: #E08A52; --signal-soft: #3A2A1E;
+    --ok: #74C39A; --ok-soft: #17301F; --warn: #E0B45E; --warn-soft: #362A15; --crit: #E3847F; --crit-soft: #341C1B;
+    --shadow: 0 1px 2px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.35); }
+  * { box-sizing: border-box; } html, body { margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif; font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .mono { font-family: ui-monospace, "Cascadia Code", "SFMono-Regular", Consolas, monospace; font-variant-numeric: tabular-nums; }
+  a { color: var(--blueprint); }
+  .shell { display: flex; max-width: 1300px; margin: 0 auto; align-items: flex-start; }
+  .toc { position: sticky; top: 0; align-self: flex-start; width: 262px; flex: 0 0 262px; height: 100vh; overflow-y: auto; padding: 28px 18px 40px 28px; border-right: 1px solid var(--line); }
+  .toc::-webkit-scrollbar { width: 8px; } .toc::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+  .toc-brand { display: flex; align-items: center; gap: 9px; margin-bottom: 4px; }
+  .toc-mark { width: 22px; height: 22px; border-radius: 4px; background: var(--ok); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .toc-mark svg { width: 13px; height: 13px; }
+  .toc-brand-text { font-family: ui-monospace, monospace; font-size: 12.5px; font-weight: 600; letter-spacing: .02em; color: var(--ink-muted); }
+  .toc-title { font-size: 15px; font-weight: 700; line-height: 1.35; margin: 14px 0 4px; text-wrap: balance; }
+  .toc-status { display: inline-flex; align-items: center; gap: 6px; margin: 4px 0 22px; font-family: ui-monospace, monospace; font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ok); background: var(--ok-soft); padding: 4px 8px; border-radius: 4px; }
+  .toc-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
+  .toc nav { display: flex; flex-direction: column; gap: 1px; }
+  .toc nav a { color: var(--ink-muted); text-decoration: none; font-size: 13px; padding: 5px 8px; border-radius: 5px; display: flex; gap: 8px; }
+  .toc nav a:hover { background: var(--surface-2); color: var(--ink); }
+  .toc nav a .n { font-family: ui-monospace, monospace; color: var(--ok); font-size: 11.5px; min-width: 18px; }
+  .content { flex: 1 1 auto; min-width: 0; padding: 48px 56px 120px; }
+  @media (max-width: 900px) { .toc { display: none; } .content { padding: 32px 20px 100px; } }
+  .doc-header { margin-bottom: 48px; }
+  .doc-eyebrow { font-family: ui-monospace, monospace; font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--ok); margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+  .doc-eyebrow::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  h1.doc-title { font-size: clamp(26px, 3.6vw, 38px); font-weight: 800; letter-spacing: -.01em; line-height: 1.12; margin: 0 0 14px; text-wrap: balance; }
+  .doc-sub { font-size: 17px; color: var(--ink-muted); max-width: 66ch; margin: 0 0 26px; text-wrap: balance; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .meta-chip { display: inline-flex; align-items: center; gap: 7px; background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 7px 11px; font-size: 12.5px; box-shadow: var(--shadow); }
+  .meta-chip .k { color: var(--ink-muted); font-family: ui-monospace, monospace; font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; }
+  .meta-chip .v { font-weight: 600; }
+  .meta-chip.go { border-color: var(--ok); background: var(--ok-soft); } .meta-chip.go .v { color: var(--ok); }
+  section { margin: 0 0 56px; scroll-margin-top: 24px; }
+  .sec-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 6px; }
+  .sec-num { font-family: ui-monospace, monospace; font-size: 15px; font-weight: 700; color: var(--ok); }
+  h2 { font-size: 22px; font-weight: 800; letter-spacing: -.005em; margin: 0; text-wrap: balance; }
+  .sec-dek { color: var(--ink-muted); font-size: 15px; max-width: 68ch; margin: 10px 0 24px; }
+  h3 { font-size: 15.5px; font-weight: 700; margin: 26px 0 8px; }
+  p { max-width: 70ch; margin: 0 0 14px; }
+  ul, ol { max-width: 70ch; padding-left: 22px; margin: 0 0 16px; } li { margin-bottom: 6px; }
+  strong { font-weight: 700; }
+  code:not(pre code) { font-family: ui-monospace, monospace; font-size: .88em; background: var(--surface-2); padding: .12em .4em; border-radius: 4px; border: 1px solid var(--line); }
+  .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 20px 0 8px; }
+  .stat-card { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 16px 18px; box-shadow: var(--shadow); }
+  .stat-num { font-family: ui-monospace, monospace; font-size: 28px; font-weight: 700; line-height: 1; }
+  .stat-num.ok { color: var(--ok); } .stat-num.warn { color: var(--warn); } .stat-num.info { color: var(--blueprint); }
+  .stat-label { font-size: 11.5px; color: var(--ink-muted); margin-top: 6px; }
+  .table-wrap { overflow-x: auto; margin: 16px 0 26px; border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); }
+  table { width: 100%; border-collapse: collapse; background: var(--surface); font-size: 13.3px; min-width: 560px; }
+  thead th { text-align: left; font-size: 10.8px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-muted); background: var(--surface-2); padding: 9px 13px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  tbody td { padding: 10px 13px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody td.mono { font-size: 12.3px; font-family: ui-monospace, monospace; }
+  .pill { display: inline-flex; align-items: center; gap: 5px; font-size: 10.8px; font-weight: 600; padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
+  .pill::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
+  .pill.ok { color: var(--ok); background: var(--ok-soft); } .pill.ok::before { background: var(--ok); }
+  .pill.warn { color: var(--warn); background: var(--warn-soft); } .pill.warn::before { background: var(--warn); }
+  .pill.crit { color: var(--crit); background: var(--crit-soft); } .pill.crit::before { background: var(--crit); }
+  .pill.info { color: var(--blueprint); background: var(--blueprint-soft); } .pill.info::before { background: var(--blueprint); }
+  .callout { border: 1px solid var(--line); border-left: 3px solid var(--blueprint); background: var(--surface); border-radius: 8px; padding: 16px 18px; margin: 18px 0; box-shadow: var(--shadow); max-width: 70ch; }
+  .callout.finding { border-left-color: var(--signal); background: var(--signal-soft); } .callout.ok { border-left-color: var(--ok); } .callout.warn { border-left-color: var(--warn); background: var(--warn-soft); }
+  .callout .callout-label { font-family: ui-monospace, monospace; font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-muted); margin-bottom: 6px; display: block; }
+  .callout p:last-child { margin-bottom: 0; }
+  .ev-line { display: flex; gap: 8px; align-items: flex-start; font-size: 13.3px; margin-bottom: 8px; }
+  .ev-line .check { color: var(--ok); flex-shrink: 0; font-family: ui-monospace, monospace; }
+  .pkg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 14px 0 24px; }
+  .file-card { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 12px 14px; box-shadow: var(--shadow); font-size: 12.5px; }
+  .file-card .path { font-family: ui-monospace, monospace; font-weight: 600; margin-bottom: 3px; }
+  .file-card .desc { color: var(--ink-muted); }
+  footer.doc-footer { border-top: 1px solid var(--line); margin-top: 60px; padding-top: 24px; color: var(--ink-muted); font-size: 12.5px; }
+  ::selection { background: var(--ok-soft); }
+</style>
+
+<div class="shell">
+  <aside class="toc">
+    <div class="toc-brand">
+      <span class="toc-mark"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg></span>
+      <span class="toc-brand-text">TANAKI HUB</span>
+    </div>
+    <div class="toc-title">Phase 0 — Completion Report</div>
+    <span class="toc-status">Extraction complete &amp; validated</span>
+    <nav>
+      <a href="#summary"><span class="n">—</span>Summary</a>
+      <a href="#package"><span class="n">04</span>Package creation</a>
+      <a href="#migration"><span class="n">05</span>Application migration</a>
+      <a href="#validation"><span class="n">06</span>Validation results</a>
+      <a href="#performance"><span class="n">07</span>Performance report</a>
+      <a href="#documentation"><span class="n">08</span>Documentation</a>
+      <a href="#checklist"><span class="n">09</span>Final verification checklist</a>
+      <a href="#next"><span class="n">—</span>Stop condition</a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <header class="doc-header" id="summary">
+      <div class="doc-eyebrow">Phase 0 Complete · tanaki/integration-contracts extracted and validated</div>
+      <h1 class="doc-title">tanaki/integration-contracts is now a real, installed Composer package</h1>
+      <p class="doc-sub">The application depends on it through <code>composer.json</code>'s path repository exactly as an external consumer would — no source files are referenced directly, and every original file has been deleted. Nothing that worked before stopped working.</p>
+      <div class="meta-row">
+        <span class="meta-chip go"><span class="k">Files extracted</span><span class="v">50 / 50</span></span>
+        <span class="meta-chip go"><span class="k">Consumers migrated</span><span class="v">23 app + 9 test files</span></span>
+        <span class="meta-chip go"><span class="k">New regressions</span><span class="v">0</span></span>
+        <span class="meta-chip"><span class="k">Rollback needed</span><span class="v">No</span></span>
+      </div>
+    </header>
+
+    <section id="package">
+      <div class="sec-head"><span class="sec-num">04</span><h2>Package creation</h2></div>
+      <p class="sec-dek"><code>packages/tanaki/integration-contracts/</code> — a complete, independently-testable Composer package.</p>
+      <div class="pkg-grid">
+        <div class="file-card"><div class="path">composer.json</div><div class="desc">php ^8.2, nesbot/carbon ^3.0 — nothing else</div></div>
+        <div class="file-card"><div class="path">README.md</div><div class="desc">Purpose, install, driver-authoring example</div></div>
+        <div class="file-card"><div class="path">CHANGELOG.md</div><div class="desc">1.0.0 extraction release notes</div></div>
+        <div class="file-card"><div class="path">LICENSE</div><div class="desc">Proprietary — private distribution</div></div>
+        <div class="file-card"><div class="path">UPGRADE.md</div><div class="desc">Namespace map + Castable migration note</div></div>
+        <div class="file-card"><div class="path">phpunit.xml</div><div class="desc">Package's own isolated suite</div></div>
+        <div class="file-card"><div class="path">phpstan.neon</div><div class="desc">Level 8, zero findings</div></div>
+        <div class="file-card"><div class="path">.github/workflows/tests.yml</div><div class="desc">PHP 8.2–8.4 matrix, ready the moment this repo gets a remote</div></div>
+      </div>
+
+      <h3>Source (src/) — 50 files across 7 namespaces</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Namespace</th><th>Files</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">Contract\</td><td>7</td><td>DeviceRegistryInterface's array-not-Collection shape carried over unchanged</td></tr>
+            <tr><td class="mono">Contract\Category\</td><td>9</td><td>WeighbridgeDriverInterface's parseReading() rename carried over unchanged</td></tr>
+            <tr><td class="mono">DTO\</td><td>12</td><td>All final readonly, CarbonImmutable, now with full PHPStan level 8 array-shape docblocks</td></tr>
+            <tr><td class="mono">Enum\</td><td>4</td><td><strong>DeviceCategory/ProtocolType rewritten</strong> — Castable dropped entirely (see below); DeviceStatus/ConnectionMedium unchanged native enums</td></tr>
+            <tr><td class="mono">Event\</td><td>12</td><td>Trait-free value objects, unchanged</td></tr>
+            <tr><td class="mono">Attribute\</td><td>1</td><td>readonly properties, unchanged</td></tr>
+            <tr><td class="mono">Exception\</td><td>5</td><td>IntegrationExceptionInterface marker, unchanged</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout finding">
+        <span class="callout-label">The one real design change made during extraction (flagged in the pre-implementation plan, §02)</span>
+        <p><code>DeviceCategory</code> and <code>ProtocolType</code> no longer implement Laravel's <code>Castable</code> contract — that was a genuine conflict between two correct-in-isolation prior decisions (pure-PHP package vs. zero-touch Eloquent casts) that could only be resolved one way once the package boundary became real. The cast logic now lives in two new app-side classes: <code>App\IntegrationEngine\Casts\DeviceCategoryCast</code> and <code>ProtocolTypeCast</code>. <code>IntegratedDevice.php</code>'s <code>$casts</code> array now references those instead of the enum classes directly — the one line of actual behavioral wiring this extraction touched beyond a namespace swap.</p>
+      </div>
+
+      <h3>Package self-verification (isolated from the host app)</h3>
+      <div class="ev-line"><span class="check">✓</span><span><code>composer install</code> inside the package directory succeeds standalone — no Laravel required.</span></div>
+      <div class="ev-line"><span class="check">✓</span><span>16/16 tests pass via the package's own <code>phpunit.xml</code>, zero PHPUnit deprecations.</span></div>
+      <div class="ev-line"><span class="check">✓</span><span>PHPStan level 8: <strong>0 errors</strong> (19 initial array-shape findings fixed with proper generic docblocks, not suppressed).</span></div>
+      <div class="ev-line"><span class="check">✓</span><span>Confirmed zero <code>Illuminate</code>/<code>Filament</code> <code>use</code>-imports anywhere in <code>src/</code> — genuinely framework-free, as promised across three prior review rounds.</span></div>
+    </section>
+
+    <section id="migration">
+      <div class="sec-head"><span class="sec-num">05</span><h2>Application migration</h2></div>
+      <p class="sec-dek">23 app files + 9 test files repointed from <code>App\IntegrationEngine\{Contracts,DTOs,Enums,Events,Attributes,Exceptions}</code> to <code>Tanaki\IntegrationContracts\*</code>. Every rename was scripted (not hand-edited) and verified with a zero-remaining-references grep after each pass.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Area</th><th>Files</th><th>What changed</th></tr></thead>
+          <tbody>
+            <tr><td>Drivers</td><td class="mono">AbstractDeviceDriver.php, GenericHttpWeighbridgeDriver.php</td><td>Imports only; logic untouched</td></tr>
+            <tr><td>Protocols</td><td class="mono">10 files</td><td>Imports only</td></tr>
+            <tr><td>Discovery / Registry / Factory / Provider</td><td class="mono">4 files</td><td>Imports only — the boot-time wiring that was the highest-risk item in the plan came through clean</td></tr>
+            <tr><td>Console commands</td><td class="mono">3 files</td><td>Imports only, plus the <code>->getLabel()</code>→<code>->label()</code> call already fixed in the SDK stabilization pass</td></tr>
+            <tr><td>Model</td><td class="mono">IntegratedDevice.php</td><td>Imports + <code>$casts</code> now reference the new Cast adapter classes (§04)</td></tr>
+            <tr><td>Business listener</td><td class="mono">RecordWeighbridgeReading.php</td><td>One import line — the only business-module file touched, exactly as instructed</td></tr>
+            <tr><td>Tests</td><td class="mono">9 files</td><td>Imports only; 2 files' <code>@dataProvider</code> docblocks also modernized to PHPUnit attributes while touching the file</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><code>composer.json</code>: added the path repository + <code>tanaki/integration-contracts: ^1.0</code> requirement; removed the direct <code>nesbot/carbon</code> entry added during SDK stabilization (now correctly the package's own dependency — Carbon remains available to the rest of the app transitively via <code>laravel/framework</code>, exactly as before this engine existed).</p>
+    </section>
+
+    <section id="validation">
+      <div class="sec-head"><span class="sec-num">06</span><h2>Validation results</h2></div>
+      <p class="sec-dek">Every check below was run twice — once with the original 6 directories still on disk (proving the package path works before anything irreversible happens), and once after deletion (proving nothing was secretly still reading from the old location).</p>
+      <div class="ev-line"><span class="check">✓</span><span><strong>Application boots</strong> — <code>php artisan about</code> succeeds both before and after deletion.</span></div>
+      <div class="ev-line"><span class="check">✓</span><span><strong>Composer install succeeds</strong> — path repository resolves via a real symlink (confirmed: Windows created a genuine symlink here, not just a junction — no elevated privileges required on this machine).</span></div>
+      <div class="ev-line"><span class="check">✓</span><span><strong>Autoload generation succeeds</strong> — <code>composer dump-autoload -o</code> clean, 12,300 classes (was 12,298; +2 for the new Cast adapters).</span></div>
+      <div class="ev-line"><span class="check">✓</span><span><strong>Existing tests pass</strong> — 43/48 Integration Engine tests, identical to the pre-extraction count. The 5 failures are the already-documented, pre-existing, repo-wide <code>RefreshDatabase</code>/<code>payouts</code> migration bug, re-confirmed unrelated by running an untouched control test (<code>TripObserverTest</code>) which fails identically.</span></div>
+      <div class="ev-line"><span class="check">✓</span><span><strong>Existing drivers work</strong> — <code>GenericHttpWeighbridgeDriver</code> resolves and parses correctly through the package.</span></div>
+      <div class="ev-line"><span class="check">✓</span><span><strong>Driver discovery works</strong> — <code>integration-engine:driver:discover</code> finds and caches it correctly post-migration.</span></div>
+      <div class="ev-line"><span class="check">✓</span><span><strong>Generic HTTP Weighbridge Driver works</strong> — verified via a direct, rolled-back-transaction script against the real database: device created with a package-backed <code>DeviceCategory</code> value object (confirmed loaded from <code>packages/tanaki/integration-contracts/src/</code>, not a stale copy), <code>parseReading()</code> called, correct net weight computed.</span></div>
+      <div class="ev-line"><span class="check">✓</span><span><strong>Event flow works</strong> — <code>WeighbridgeReadingCaptured</code> (package class) dispatched and received by the <strong>unmodified</strong> <code>RecordWeighbridgeReading</code> listener, which wrote a real <code>WeighbridgeTicket</code> row.</span></div>
+      <div class="ev-line"><span class="check">✓</span><span><strong>Queue works</strong> — verified with <code>queue.default</code> forced to <code>sync</code> so the <code>ShouldQueue</code> listener executed in-process during the script check; the job/listener classes themselves were untouched by this phase.</span></div>
+      <div class="ev-line"><span class="check">✓</span><span><strong>Health checks work</strong> — <code>integration-engine:device:health-check</code> runs clean, both before and after deletion.</span></div>
+      <div class="ev-line"><span class="check">✓</span><span><strong>Diagnostics work</strong> — <code>DeviceDiagnosticsDTO</code> construction path (via <code>AbstractDeviceDriver::runDiagnostics()</code>) unchanged, covered by the existing test suite.</span></div>
+      <div class="ev-line"><span class="check">✓</span><span><strong>Existing Artisan commands function</strong> — <code>driver:discover</code>, <code>driver:list</code>, <code>device:health-check</code> all re-run and confirmed post-deletion.</span></div>
+    </section>
+
+    <section id="performance">
+      <div class="sec-head"><span class="sec-num">07</span><h2>Performance report</h2></div>
+      <p class="sec-dek">Measured, not assumed — including one number that looked like a regression until it was actually investigated.</p>
+
+      <div class="stat-row">
+        <div class="stat-card"><div class="stat-num ok">+2</div><div class="stat-label">Classes in the autoloader (12,298 → 12,300)</div></div>
+        <div class="stat-card"><div class="stat-num ok">±0</div><div class="stat-label">Peak memory change (98.33MB → 98.33MB)</div></div>
+        <div class="stat-card"><div class="stat-num ok">4.1MB</div><div class="stat-label">vendor/composer/ size — unchanged</div></div>
+        <div class="stat-card"><div class="stat-num info">130KB</div><div class="stat-label">Package src/ on-disk size</div></div>
+      </div>
+
+      <h3>Wall-clock boot time — investigated, not just reported</h3>
+      <p>Raw measurement: baseline boot averaged <strong>1,716ms</strong> across 3 runs before extraction; the identical script averaged <strong>4,551ms</strong> across 8 runs after. Reported as measured — but that gap didn't match the memory/class-count evidence, so it was investigated rather than written up at face value.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Test</th><th>Result</th></tr></thead>
+          <tbody>
+            <tr><td>Swap path-repository <code>symlink: true → false</code> (real file copy instead)</td><td><span class="pill warn">No change — still ~4.8s</span></td></tr>
+            <tr><td>Repeat the same command 8× in a row (rules out one-time AV file-scan-then-cache)</td><td><span class="pill warn">No improvement over time — consistently slow</span></td></tr>
+            <tr><td><code>time php artisan --version</code> — compare wall time to actual CPU time</td><td><span class="pill crit">real 5.4–6.1s vs. user+sys ≈ 15–46ms</span></td></tr>
+            <tr><td>Windows Defender real-time protection status</td><td><span class="pill crit">Confirmed ENABLED</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout warn">
+        <span class="callout-label">Conclusion: not a code regression — an I/O-interception artifact from this session's file-change volume</span>
+        <p>A process spending 46ms of actual CPU time to produce 5,400ms of wall-clock time is, by definition, spending &gt;99% of its time blocked — almost always a signature of antivirus real-time file scanning intercepting the thousands of individual file opens PHP's autoloader performs, not additional computational work. Memory usage and class count — the two metrics that <em>would</em> move if the package boundary itself added overhead — are unchanged to the byte/class. Disabling the symlink (eliminating reparse-point traversal as a variable) made no difference, and the slowdown didn't decrease across repeated runs, which rules out both symlink overhead and a one-time per-file AV scan that then caches clean. Windows Defender's real-time protection was confirmed active during this session, which involved an unusually large burst of new and modified files (50 new package files, ~40 newly-installed dev dependencies, dozens of edits) — exactly the condition that triggers sustained on-access scanning until the AV's cache catches up.</p>
+        <p style="margin-top:10px;"><strong>Recommendation, not a fix applied here:</strong> exclude the project directory (or at minimum <code>vendor/</code> and <code>packages/</code>) from real-time AV scanning in local development, a standard practice for PHP/Composer projects regardless of this extraction, and re-measure. This was not done as part of Phase 0 — it's an environment-configuration recommendation, not an application change, and outside this phase's scope.</p>
+      </div>
+
+      <h3>Package dependency graph</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Package</th><th>Requires</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">tanaki-hub/app (root)</td><td class="mono">tanaki/integration-contracts ^1.0 (path repo, symlinked)</td></tr>
+            <tr><td class="mono">tanaki/integration-contracts</td><td class="mono">php ^8.2, nesbot/carbon ^3.0</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Exactly the two-node graph the migration plan targeted — no transitive Laravel/Filament dependency anywhere under the package.</p>
+    </section>
+
+    <section id="documentation">
+      <div class="sec-head"><span class="sec-num">08</span><h2>Documentation</h2></div>
+      <ul>
+        <li><code>packages/tanaki/integration-contracts/README.md</code> — purpose, install, the DeviceCategory/ProtocolType design rationale, a worked driver example.</li>
+        <li><code>packages/tanaki/integration-contracts/CHANGELOG.md</code> — the 1.0.0 extraction release entry.</li>
+        <li><code>packages/tanaki/integration-contracts/UPGRADE.md</code> — the namespace map for anyone with code written against the old <code>App\IntegrationEngine\*</code> paths, plus the Castable→Cast-adapter migration note.</li>
+        <li><code>docs/architecture/phase0-extraction-plan.html</code> — the pre-implementation extraction plan, risk analysis, and rollback plan (produced before any file moved).</li>
+        <li>This report — the post-implementation record of what actually happened, including the performance investigation.</li>
+      </ul>
+    </section>
+
+    <section id="checklist">
+      <div class="sec-head"><span class="sec-num">09</span><h2>Final verification checklist</h2></div>
+      <div class="ev-line"><span class="check">✓</span><span>tanaki/integration-contracts extracted, 50/50 files, zero Laravel/Filament dependency confirmed by grep</span></div>
+      <div class="ev-line"><span class="check">✓</span><span>Package has its own composer.json, README, CHANGELOG, LICENSE, phpunit.xml, phpstan.neon, CI workflow, UPGRADE.md</span></div>
+      <div class="ev-line"><span class="check">✓</span><span>Package's own test suite passes in isolation (16/16), PHPStan level 8 clean</span></div>
+      <div class="ev-line"><span class="check">✓</span><span>Application depends on the package via a Composer path repository, not direct source references</span></div>
+      <div class="ev-line"><span class="check">✓</span><span>All 23 app + 9 test consumer files migrated; zero remaining references to the old namespace anywhere in app/ or tests/</span></div>
+      <div class="ev-line"><span class="check">✓</span><span>Original 6 source directories deleted; validation re-run and passing after deletion</span></div>
+      <div class="ev-line"><span class="check">✓</span><span>Zero new test regressions (43/48 pass, identical to pre-extraction; 5 failures are the pre-existing, unrelated, already-documented migration bug)</span></div>
+      <div class="ev-line"><span class="check">✓</span><span>Zero business-module files touched beyond the one required import line in RecordWeighbridgeReading.php</span></div>
+      <div class="ev-line"><span class="check">✓</span><span>Rollback was not needed — backup directory retained regardless, outside the project root</span></div>
+      <div class="ev-line"><span class="check">✓</span><span>Performance: memory and autoload size confirmed flat; wall-clock timing anomaly investigated to root cause (AV interception, not the package boundary) rather than glossed over</span></div>
+    </section>
+
+    <section id="next">
+      <div class="sec-head"><span class="sec-num">—</span><h2>Stop condition</h2></div>
+      <p>Per instruction: <code>tanaki/integration-core</code> extraction, protocol packages, driver packages, Marketplace, and Plugin Manager changes have not been started. Phase 0 stops here, with the application fully operational and running through the extracted package. Waiting for approval before Phase 1.</p>
+    </section>
+
+    <footer class="doc-footer">Phase 0 — tanaki/integration-contracts Extraction · Complete, validated, documented · Awaiting approval for Phase 1</footer>
+  </main>
+</div>

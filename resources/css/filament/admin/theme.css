@@ -1,0 +1,345 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap');
+@import '../../../../vendor/filament/filament/resources/css/base.css';
+
+.fi-simple-layout {
+    background-image: url('/images/truck-background.jpg') !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    background-color: #0b1220 !important;
+    min-height: 100vh !important;
+    background-attachment: fixed !important;
+    position: relative !important;
+}
+
+/* Minimal overlay - very transparent to show the image */
+.fi-simple-layout::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: rgba(11, 18, 32, 0.15) !important;
+    pointer-events: none !important;
+    backdrop-filter: none !important;
+}
+
+/* Admin login page base */
+.fi-simple-page {
+    background-image: none !important;
+    background-color: transparent !important;
+    font-family: 'DM Sans', sans-serif !important;
+    color: #1f1f2d !important;
+}
+
+.fi-simple-main-ctn {
+    justify-content: flex-start !important;
+    align-items: center !important;
+    padding: 2.5rem 1.5rem !important;
+    padding-left: 3rem !important;
+    background-color: transparent !important;
+}
+
+.fi-simple-main {
+    background-color: transparent !important;
+    width: 100% !important;
+    max-width: 26.25rem !important; /* 420px */
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+/* Card */
+.fi-simple-page .fi-card {
+    background: #e9e9e9 !important;
+    border: 1px solid rgba(0, 0, 0, 0.06) !important;
+    border-radius: 30px !important;
+    box-shadow: 0 18px 30px rgba(0, 0, 0, 0.18) !important;
+    padding: 3rem 2.75rem !important; /* 48px 44px */
+}
+.fi-simple-page .fi-card > .fi-card-header,
+.fi-simple-page .fi-card > .fi-card-content {
+    padding: 0 !important;
+}
+
+/* Header + brand */
+.fi-simple-header {
+    align-items: center !important;
+    text-align: center !important;
+}
+.fi-logo {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 12px !important;
+    margin-bottom: 28px !important;
+    font-family: 'Playfair Display', serif !important;
+    font-size: 22px !important;
+    font-weight: 600 !important;
+    color: #1f1f2d !important;
+    letter-spacing: 0.2px !important;
+}
+.fi-logo::before {
+    content: none !important;
+}
+.fi-logo .tm-brand-logo-wrap {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+.fi-logo .tm-brand-logo {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 12px !important;
+    object-fit: cover !important;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25) !important;
+}
+.fi-logo .tm-brand-name {
+    font-family: 'Playfair Display', serif !important;
+    font-size: 22px !important;
+    font-weight: 600 !important;
+    color: #ffffff !important;
+    letter-spacing: 0.2px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+.fi-simple-header-heading {
+    font-family: 'Playfair Display', serif !important;
+    font-size: 26px !important;
+    font-weight: 400 !important;
+    color: #1f1f2d !important;
+    margin-bottom: 6px !important;
+    text-align: center !important;
+}
+.fi-simple-header-subheading,
+.fi-simple-header-description {
+    font-size: 14px !important;
+    color: #1f2d2d !important;
+    margin-bottom: 24px !important;
+    font-weight: 400 !important;
+}
+
+/* Subheading/register link styling */
+.fi-simple-page .fi-link,
+.fi-simple-header-subheading a,
+.fi-simple-header-description a {
+    color: #1f2d2d !important;
+    text-decoration: none !important;
+    border-bottom: 1px solid #1f2d2d !important;
+    padding-bottom: 1px !important;
+    font-weight: 400 !important;
+}
+.fi-simple-page .fi-link:hover,
+.fi-simple-header-subheading a:hover,
+.fi-simple-header-description a:hover {
+    color: #1f2d2d !important;
+    border-color: #1f2d2d !important;
+}
+
+/* Form spacing */
+.fi-simple-page .fi-form,
+.fi-simple-page .fi-fo-component-ctn {
+    gap: 1.125rem !important; /* 18px */
+}
+
+/* Labels */
+.fi-simple-page label,
+.fi-simple-page .fi-fo-field-wrp-label {
+    display: block !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.06em !important;
+    text-transform: uppercase !important;
+    color: #1f2d2d !important;
+    margin-bottom: 8px !important;
+}
+.fi-simple-page .fi-fo-checkbox-label,
+.fi-simple-page .fi-checkbox-label,
+.fi-simple-page .fi-fo-field-wrp-content label,
+.fi-simple-page .fi-fo-field-wrp-content span {
+    color: #1f2d2d !important;
+    font-weight: 500 !important;
+}
+.fi-simple-page .fi-fo-field-wrp-label sup {
+    color: #c0392b !important;
+}
+
+/* Inputs */
+.fi-simple-page .fi-input-wrp {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+.fi-simple-page .fi-input {
+    width: 100% !important;
+    padding: 13px 16px !important;
+    background: #f7f7f7 !important;
+    border: 1px solid #d2d2d2 !important;
+    border-radius: 14px !important;
+    color: #1f1f2d !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 14.5px !important;
+    font-weight: 400 !important;
+    outline: none !important;
+    transition: border-color 0.25s, background 0.25s, box-shadow 0.25s !important;
+}
+.fi-simple-page .fi-input::placeholder {
+    color: #a6a6a6 !important;
+}
+.fi-simple-page .fi-input:focus {
+    border-color: #2f4f4f !important;
+    background: #ffffff !important;
+    box-shadow: 0 0 0 3px rgba(47, 79, 79, 0.12) !important;
+}
+
+/* Password show/hide button as text */
+.fi-simple-page .fi-input-wrp .fi-input-wrp-action,
+.fi-simple-page .fi-input-wrp .fi-icon-btn {
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: #1f2d2d !important;
+    font-size: 13.5px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.02em !important;
+    padding: 0 4px !important;
+    margin: 0 !important;
+    min-height: auto !important;
+    min-width: auto !important;
+}
+.fi-simple-page .fi-input-wrp .fi-input-wrp-action svg,
+.fi-simple-page .fi-input-wrp .fi-icon-btn svg {
+    display: none !important;
+}
+.fi-simple-page .fi-input-wrp .fi-input-wrp-action[title*="Show"]::after,
+.fi-simple-page .fi-input-wrp .fi-icon-btn[title*="Show"]::after {
+    content: "Show" !important;
+}
+.fi-simple-page .fi-input-wrp .fi-input-wrp-action[title*="Hide"]::after,
+.fi-simple-page .fi-input-wrp .fi-icon-btn[title*="Hide"]::after {
+    content: "Hide" !important;
+}
+.fi-simple-page .fi-input-wrp-suffix {
+    border: none !important;
+    padding-right: 12px !important;
+}
+
+/* Checkbox styling */
+.fi-simple-page input[type="checkbox"] {
+    width: 16px !important;
+    height: 16px !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    background: #ffffff !important;
+    border: 1px solid #cfcfcf !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    position: relative !important;
+}
+.fi-simple-page input[type="checkbox"]:checked {
+    background: #2f4f4f !important;
+    border-color: #2f4f4f !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 10'%3E%3Cpath fill='none' stroke='%23ffffff' stroke-width='2' d='M1 5l3 3 7-7'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+}
+
+/* Button */
+.fi-simple-page .fi-btn {
+    width: 100% !important;
+    padding: 14px !important;
+    background: #2f4f4f !important;
+    border: none !important;
+    border-radius: 16px !important;
+    color: #eef4f4 !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.03em !important;
+    cursor: pointer !important;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28) !important;
+    transition: transform 0.18s, box-shadow 0.18s, background 0.18s !important;
+}
+.fi-simple-page .fi-btn:hover {
+    transform: translateY(-2px) !important;
+    background: #3b6363 !important;
+    box-shadow: 0 12px 22px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Global admin body button palette */
+.fi-main {
+    --tm-btn-primary: #2f4f4f;
+    --tm-btn-primary-hover: #3c6262;
+    --tm-btn-primary-ring: rgba(47, 79, 79, 0.35);
+    --tm-btn-cancel: #dc2626;
+    --tm-btn-cancel-hover: #b91c1c;
+    --tm-btn-cancel-ring: rgba(220, 38, 38, 0.35);
+}
+
+/* Main action buttons in page body */
+.fi-main .fi-btn:not([class*="fi-color-danger"]):not([aria-label*="cancel" i]):not([title*="cancel" i]) {
+    background-color: var(--tm-btn-primary) !important;
+    border-color: var(--tm-btn-primary) !important;
+    color: #ffffff !important;
+}
+
+.fi-main .fi-btn:not([class*="fi-color-danger"]):not([aria-label*="cancel" i]):not([title*="cancel" i]):hover {
+    background-color: var(--tm-btn-primary-hover) !important;
+    border-color: var(--tm-btn-primary-hover) !important;
+}
+
+.fi-main .fi-btn:not([class*="fi-color-danger"]):not([aria-label*="cancel" i]):not([title*="cancel" i]):focus-visible {
+    box-shadow: none !important;
+}
+
+/* Icon-only action buttons (search/upload/quick actions) in page body */
+.fi-main .fi-icon-btn:not([class*="fi-color-danger"]):not([aria-label*="cancel" i]):not([title*="cancel" i]) {
+    background-color: var(--tm-btn-primary) !important;
+    border-color: var(--tm-btn-primary) !important;
+    color: #ffffff !important;
+}
+
+.fi-main .fi-icon-btn:not([class*="fi-color-danger"]):not([aria-label*="cancel" i]):not([title*="cancel" i]):hover {
+    background-color: var(--tm-btn-primary-hover) !important;
+    border-color: var(--tm-btn-primary-hover) !important;
+}
+
+/* Cancel buttons (explicit cancel labels + danger buttons) */
+.fi-main .fi-btn[class*="fi-color-danger"],
+.fi-main .fi-btn[aria-label*="cancel" i],
+.fi-main .fi-btn[title*="cancel" i],
+.fi-main .fi-icon-btn[class*="fi-color-danger"],
+.fi-main .fi-icon-btn[aria-label*="cancel" i],
+.fi-main .fi-icon-btn[title*="cancel" i] {
+    background-color: var(--tm-btn-cancel) !important;
+    border-color: var(--tm-btn-cancel) !important;
+    color: #ffffff !important;
+}
+
+.fi-main .fi-btn[class*="fi-color-danger"]:hover,
+.fi-main .fi-btn[aria-label*="cancel" i]:hover,
+.fi-main .fi-btn[title*="cancel" i]:hover,
+.fi-main .fi-icon-btn[class*="fi-color-danger"]:hover,
+.fi-main .fi-icon-btn[aria-label*="cancel" i]:hover,
+.fi-main .fi-icon-btn[title*="cancel" i]:hover {
+    background-color: var(--tm-btn-cancel-hover) !important;
+    border-color: var(--tm-btn-cancel-hover) !important;
+}
+
+.fi-main .fi-btn[class*="fi-color-danger"]:focus-visible,
+.fi-main .fi-btn[aria-label*="cancel" i]:focus-visible,
+.fi-main .fi-btn[title*="cancel" i]:focus-visible,
+.fi-main .fi-icon-btn[class*="fi-color-danger"]:focus-visible,
+.fi-main .fi-icon-btn[aria-label*="cancel" i]:focus-visible,
+.fi-main .fi-icon-btn[title*="cancel" i]:focus-visible {
+    box-shadow: none !important;
+}
+
+@import '../../filament-custom.css';

@@ -1,0 +1,88 @@
+/* public/css/filament-custom.css */
+
+/* 1. Global Scrollbar Removal */
+* {
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+}
+::-webkit-scrollbar {
+    display: none !important;
+}
+
+/* 2. Sidebar Customization - DarkSlateGrey */
+.fi-sidebar, 
+aside.fi-sidebar, 
+.fi-sidebar nav, 
+.fi-sidebar-content, 
+.fi-sidebar-nav {
+    background-color: #2f4f4f !important;
+}
+
+.fi-sidebar * {
+    color: #ffffff !important;
+}
+
+.fi-sidebar-item-active {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 3. Topbar Branding & Contrast */
+header.fi-topbar,
+.fi-topbar,
+.fi-topbar > div,
+.fi-topbar nav,
+.fi-sidebar-header {
+    background-color: #000000 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.fi-topbar *, .fi-topbar button, .fi-topbar a {
+    color: #ffffff !important;
+}
+
+/* Theme Switcher Visibility Fixes */
+.fi-theme-switcher {
+    background-color: #ffffff !important;
+    padding: 2px !important;
+    border-radius: 8px !important;
+    border: 1px solid #e5e7eb !important;
+    display: flex !important;
+}
+
+.fi-theme-switcher-btn, 
+.fi-theme-switcher-btn svg,
+.fi-theme-switcher-btn * {
+    color: #000000 !important;
+    fill: currentColor !important;
+}
+
+.fi-theme-switcher-btn:hover,
+.fi-theme-switcher-btn:hover svg {
+    background-color: #f3f4f6 !important;
+    color: #000000 !important;
+}
+
+.fi-theme-switcher-btn[aria-selected="true"],
+.fi-theme-switcher-btn[aria-selected="true"] svg {
+    background-color: #e5e7eb !important;
+    color: #2563eb !important; /* Keep active as blue, but visible */
+}
+
+/* 4. FORCE FULL WIDTH (Remove Centering) */
+/* We target the container that limits width, but keep margins for sidebar */
+.fi-main-ctn {
+    max-width: none !important;
+}
+
+/* Ensure sections and tables stretch */
+.fi-section, .fi-ta-ctn, .fi-wi {
+    width: 100% !important;
+}
+
+/* 5. Fix for x-cloak */
+[x-cloak] { display: none !important; }
+
+/* 6. Professional Buttons */
+.fi-btn.fi-color-primary {
+    background-color: #2f4f4f !important;
+}
