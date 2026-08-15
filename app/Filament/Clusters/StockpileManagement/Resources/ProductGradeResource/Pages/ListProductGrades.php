@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\StockpileManagement\Resources\ProductGradeResour
 use App\Filament\Clusters\StockpileManagement\Resources\ProductGradeResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListProductGrades extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListProductGrades extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-swatch',
+            'title' => 'Product Grades',
+            'subtitle' => 'Manage product grade definitions used across stockpiles.',
+        ]);
     }
 }

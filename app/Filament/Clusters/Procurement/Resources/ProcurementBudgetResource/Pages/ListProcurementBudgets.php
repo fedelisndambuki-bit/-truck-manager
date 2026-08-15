@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\Procurement\Resources\ProcurementBudgetResource\
 use App\Filament\Clusters\Procurement\Resources\ProcurementBudgetResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListProcurementBudgets extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListProcurementBudgets extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-banknotes',
+            'title' => 'Budget Control',
+            'subtitle' => 'Monitor approved procurement budgets and remaining spend by department.',
+        ]);
     }
 }

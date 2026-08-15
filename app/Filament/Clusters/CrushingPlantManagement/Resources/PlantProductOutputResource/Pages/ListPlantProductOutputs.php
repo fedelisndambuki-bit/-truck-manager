@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\CrushingPlantManagement\Resources\PlantProductOu
 use App\Filament\Clusters\CrushingPlantManagement\Resources\PlantProductOutputResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListPlantProductOutputs extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListPlantProductOutputs extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-cube-transparent',
+            'title' => 'Plant Product Outputs',
+            'subtitle' => 'Track finished product output produced by the crushing plant.',
+        ]);
     }
 }

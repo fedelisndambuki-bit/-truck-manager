@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\CrushingPlantManagement\Resources\FeederResource
 use App\Filament\Clusters\CrushingPlantManagement\Resources\FeederResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListFeeders extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListFeeders extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-inbox-arrow-down',
+            'title' => 'Feeders',
+            'subtitle' => 'Manage feeder units that regulate material flow into the crushing process.',
+        ]);
     }
 }

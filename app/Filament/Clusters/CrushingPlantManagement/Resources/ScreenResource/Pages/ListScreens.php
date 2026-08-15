@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\CrushingPlantManagement\Resources\ScreenResource
 use App\Filament\Clusters\CrushingPlantManagement\Resources\ScreenResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListScreens extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListScreens extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-table-cells',
+            'title' => 'Screens',
+            'subtitle' => 'Manage screening equipment used to sort and grade crushed material.',
+        ]);
     }
 }

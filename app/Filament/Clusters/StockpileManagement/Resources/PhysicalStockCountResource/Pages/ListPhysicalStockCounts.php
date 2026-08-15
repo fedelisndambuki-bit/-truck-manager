@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\StockpileManagement\Resources\PhysicalStockCount
 use App\Filament\Clusters\StockpileManagement\Resources\PhysicalStockCountResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListPhysicalStockCounts extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListPhysicalStockCounts extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-clipboard-document-check',
+            'title' => 'Physical Stock Counts',
+            'subtitle' => 'Record and reconcile physical stock counts against system records.',
+        ]);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\Procurement\Resources\GoodsReceivedNoteResource\
 use App\Filament\Clusters\Procurement\Resources\GoodsReceivedNoteResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListGoodsReceivedNotes extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListGoodsReceivedNotes extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-clipboard-document-check',
+            'title' => 'Goods Receiving',
+            'subtitle' => 'Inspect and approve delivered goods before crediting them to warehouse stock.',
+        ]);
     }
 }

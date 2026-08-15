@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\StockpileManagement\Resources\StockAdjustmentRes
 use App\Filament\Clusters\StockpileManagement\Resources\StockAdjustmentResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListStockAdjustments extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListStockAdjustments extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-adjustments-horizontal',
+            'title' => 'Stock Adjustments',
+            'subtitle' => 'Track and approve manual adjustments to stockpile quantities.',
+        ]);
     }
 }

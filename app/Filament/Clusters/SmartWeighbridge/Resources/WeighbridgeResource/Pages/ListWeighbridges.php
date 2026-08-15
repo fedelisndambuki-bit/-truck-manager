@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\SmartWeighbridge\Resources\WeighbridgeResource\P
 use App\Filament\Clusters\SmartWeighbridge\Resources\WeighbridgeResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListWeighbridges extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListWeighbridges extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-scale',
+            'title' => 'Weighbridges',
+            'subtitle' => 'Configure and manage weighbridge stations.',
+        ]);
     }
 }

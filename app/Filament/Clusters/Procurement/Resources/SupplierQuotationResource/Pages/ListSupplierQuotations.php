@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\Procurement\Resources\SupplierQuotationResource\
 use App\Filament\Clusters\Procurement\Resources\SupplierQuotationResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListSupplierQuotations extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListSupplierQuotations extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-document-currency-dollar',
+            'title' => 'Supplier Quotations',
+            'subtitle' => 'Compare supplier quotations received against open RFQs.',
+        ]);
     }
 }

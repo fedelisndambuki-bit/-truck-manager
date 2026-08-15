@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\BlastManagement\Resources\BlastDocumentResource\
 use App\Filament\Clusters\BlastManagement\Resources\BlastDocumentResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListBlastDocuments extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListBlastDocuments extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-document-text',
+            'title' => 'Blast Documents',
+            'subtitle' => 'Manage permits, licenses, and supporting documents for blasting operations.',
+        ]);
     }
 }

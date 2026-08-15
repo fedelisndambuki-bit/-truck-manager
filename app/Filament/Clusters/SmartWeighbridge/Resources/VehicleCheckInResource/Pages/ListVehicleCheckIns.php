@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\SmartWeighbridge\Resources\VehicleCheckInResourc
 use App\Filament\Clusters\SmartWeighbridge\Resources\VehicleCheckInResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListVehicleCheckIns extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListVehicleCheckIns extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-identification',
+            'title' => 'Vehicle Check-Ins',
+            'subtitle' => 'Track vehicles checking in at the weighbridge gate.',
+        ]);
     }
 }

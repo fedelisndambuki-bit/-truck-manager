@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\CrushingPlantManagement\Resources\EnergyReadingR
 use App\Filament\Clusters\CrushingPlantManagement\Resources\EnergyReadingResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListEnergyReadings extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListEnergyReadings extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-bolt',
+            'title' => 'Energy Readings',
+            'subtitle' => 'Record and monitor power consumption readings across plant equipment.',
+        ]);
     }
 }

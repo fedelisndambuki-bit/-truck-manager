@@ -114,7 +114,9 @@ class WeighbridgeExceptionResource extends Resource
                 Tables\Filters\SelectFilter::make('exception_type')->options(array_combine(WeighbridgeException::EXCEPTION_TYPES, WeighbridgeException::EXCEPTION_TYPES)),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
+                Tables\Actions\ViewAction::make()
+                    ->modalIcon('heroicon-o-eye')
+                    ->modalIconColor('gray'),
                 Tables\Actions\Action::make('submitForApproval')
                     ->label('Submit for Approval')
                     ->icon('heroicon-o-paper-airplane')

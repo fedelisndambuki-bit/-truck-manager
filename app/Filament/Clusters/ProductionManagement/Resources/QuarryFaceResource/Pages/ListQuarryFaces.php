@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\ProductionManagement\Resources\QuarryFaceResourc
 use App\Filament\Clusters\ProductionManagement\Resources\QuarryFaceResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListQuarryFaces extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListQuarryFaces extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-viewfinder-circle',
+            'title' => 'Quarry Faces',
+            'subtitle' => 'Manage active quarry faces, reserves, and safety notes.',
+        ]);
     }
 }

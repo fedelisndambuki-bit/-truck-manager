@@ -79,7 +79,9 @@ class PermissionResource extends Resource
                     ->label('Filter by Guard'),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
+                Tables\Actions\ViewAction::make()
+                    ->modalIcon('heroicon-o-eye')
+                    ->modalIconColor('gray'),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])

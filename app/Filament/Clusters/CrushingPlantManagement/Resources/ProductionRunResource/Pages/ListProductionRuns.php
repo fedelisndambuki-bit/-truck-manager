@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\CrushingPlantManagement\Resources\ProductionRunR
 use App\Filament\Clusters\CrushingPlantManagement\Resources\ProductionRunResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListProductionRuns extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListProductionRuns extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-play-circle',
+            'title' => 'Production Runs',
+            'subtitle' => 'Track production runs from start to approval across crushing plants.',
+        ]);
     }
 }

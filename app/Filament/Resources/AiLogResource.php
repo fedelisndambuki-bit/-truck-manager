@@ -56,7 +56,9 @@ class AiLogResource extends Resource
             Tables\Columns\TextColumn::make('response_time_ms')->label('Response (ms)')->placeholder('—')->sortable(),
             Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable(),
         ])->filters([])->actions([
-            Tables\Actions\ViewAction::make(),
+            Tables\Actions\ViewAction::make()
+                ->modalIcon('heroicon-o-eye')
+                ->modalIconColor('gray'),
             Tables\Actions\DeleteAction::make(),
         ])
         ->striped();

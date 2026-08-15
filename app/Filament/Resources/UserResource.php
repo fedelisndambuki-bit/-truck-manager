@@ -230,7 +230,9 @@ class UserResource extends Resource
                     ->label('Filter by Status'),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
+                Tables\Actions\ViewAction::make()
+                    ->modalIcon('heroicon-o-eye')
+                    ->modalIconColor('gray'),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\Action::make('link_driver')
                     ->label('Link Driver')

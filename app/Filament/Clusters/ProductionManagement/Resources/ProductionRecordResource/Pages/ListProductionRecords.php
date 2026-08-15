@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\ProductionManagement\Resources\ProductionRecordR
 use App\Filament\Clusters\ProductionManagement\Resources\ProductionRecordResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListProductionRecords extends ListRecords
 {
@@ -15,5 +16,14 @@ class ListProductionRecords extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-clipboard-document-list',
+            'title' => 'Production Records',
+            'subtitle' => 'Log daily production output, yields, and equipment performance.',
+        ]);
     }
 }

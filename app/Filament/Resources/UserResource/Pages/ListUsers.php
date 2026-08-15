@@ -10,11 +10,21 @@ use Filament\Actions;
 use Filament\Forms;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 use Spatie\Permission\Models\Role;
 
 class ListUsers extends ListRecords
 {
     protected static string $resource = UserResource::class;
+
+    public function getHeader(): ?View
+    {
+        return view('filament.partials.page-header', [
+            'icon' => 'heroicon-o-users',
+            'title' => 'Users',
+            'subtitle' => 'Manage user accounts, roles, and access for your company.',
+        ]);
+    }
 
     protected function getHeaderActions(): array
     {
