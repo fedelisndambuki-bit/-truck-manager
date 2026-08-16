@@ -13,6 +13,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * "Sampling Requests" — the 7 real trigger reasons per spec. Only
@@ -54,6 +55,11 @@ class SamplingRequestResource extends Resource
             'In Progress', 'Assigned' => 'info',
             default => 'warning',
         };
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['assignedTechnician']);
     }
 
     public static function form(Form $form): Form

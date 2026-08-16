@@ -38,6 +38,11 @@ class BoqItemResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'item_code';
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['project']);
+    }
+
     public static function form(Form $form): Form
     {
         $currency = session('currency', 'KES');

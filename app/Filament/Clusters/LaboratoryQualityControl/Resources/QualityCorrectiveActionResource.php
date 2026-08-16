@@ -12,6 +12,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * "Corrective Actions" (CAPA) — over the new QualityCorrectiveAction model,
@@ -52,6 +53,11 @@ class QualityCorrectiveActionResource extends Resource
             'In Progress' => 'warning',
             default => 'gray',
         };
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['nonConformance', 'responsiblePerson']);
     }
 
     public static function form(Form $form): Form

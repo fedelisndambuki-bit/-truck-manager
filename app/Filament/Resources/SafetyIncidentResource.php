@@ -77,6 +77,11 @@ class SafetyIncidentResource extends Resource
         return Auth::user()?->company?->industry === CompanyIndustry::Quarry->value;
     }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['site', 'extractionSite', 'reportedBy']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form

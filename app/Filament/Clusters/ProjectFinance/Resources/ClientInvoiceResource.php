@@ -41,7 +41,7 @@ class ClientInvoiceResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->whereNotNull('project_id');
+        return parent::getEloquentQuery()->whereNotNull('project_id')->with(['project', 'client']);
     }
 
     public static function getStatusColor(string $status): string

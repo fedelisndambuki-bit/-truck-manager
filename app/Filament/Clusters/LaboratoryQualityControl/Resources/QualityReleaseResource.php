@@ -44,7 +44,7 @@ class QualityReleaseResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->where('status', 'Released');
+        return parent::getEloquentQuery()->where('status', 'Released')->with(['stockpile', 'releasedBy']);
     }
 
     public static function canCreate(): bool

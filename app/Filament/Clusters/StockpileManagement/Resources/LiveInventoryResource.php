@@ -12,6 +12,7 @@ use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * A read-only, real-time view over the same Stockpile table — computed
@@ -43,6 +44,11 @@ class LiveInventoryResource extends Resource
     protected static ?int $navigationSort = 3;
 
     protected static ?string $slug = 'inventory';
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['material', 'extractionSite']);
+    }
 
     public static function canCreate(): bool
     {

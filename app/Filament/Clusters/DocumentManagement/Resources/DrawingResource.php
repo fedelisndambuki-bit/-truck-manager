@@ -43,7 +43,7 @@ class DrawingResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->where('type', 'Drawing');
+        return parent::getEloquentQuery()->where('type', 'Drawing')->with(['project']);
     }
 
     public static function getStatusColor(string $status): string

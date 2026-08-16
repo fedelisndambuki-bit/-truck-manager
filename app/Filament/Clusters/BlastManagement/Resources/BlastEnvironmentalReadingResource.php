@@ -11,6 +11,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class BlastEnvironmentalReadingResource extends Resource
 {
@@ -35,6 +36,11 @@ class BlastEnvironmentalReadingResource extends Resource
     protected static ?string $navigationLabel = 'Environmental Monitoring';
 
     protected static ?int $navigationSort = 10;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['blastPlan']);
+    }
 
     public static function getComplianceStatusOptions(): array
     {

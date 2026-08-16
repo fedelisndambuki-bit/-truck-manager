@@ -100,6 +100,11 @@ class VehicleExitResource extends Resource
             ->striped();
     }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['customer']);
+    }
+
     public static function getPages(): array
     {
         return [

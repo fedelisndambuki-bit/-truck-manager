@@ -35,6 +35,11 @@ class ProcurementBudgetResource extends Resource
 
     protected static ?int $navigationSort = 19;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['businessUnit', 'department']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form

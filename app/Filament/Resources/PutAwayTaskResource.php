@@ -37,6 +37,11 @@ class PutAwayTaskResource extends Resource
 
     protected static ?int $navigationSort = 12;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['goodsReceivedNote', 'material', 'warehouse', 'recommendedBin', 'actualBin']);
+    }
+
     public static function table(Table $table): Table
     {
         return $table

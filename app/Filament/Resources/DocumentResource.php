@@ -77,6 +77,11 @@ class DocumentResource extends Resource
         ];
     }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['project', 'site', 'equipment', 'staff', 'material', 'subcontractor', 'contract']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form

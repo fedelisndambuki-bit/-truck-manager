@@ -42,6 +42,11 @@ class InventoryMovementResource extends Resource
 
     protected static ?int $navigationSort = 13;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['material', 'warehouse', 'sourceBin', 'destinationBin', 'operator']);
+    }
+
     public static function getMovementTypeColor(string $state): string
     {
         return match ($state) {

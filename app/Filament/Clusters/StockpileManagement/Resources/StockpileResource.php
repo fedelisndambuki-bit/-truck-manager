@@ -46,6 +46,11 @@ class StockpileResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['material', 'extractionSite']);
+    }
+
     public static function getStatusOptions(): array
     {
         return array_combine(Stockpile::STATUSES, Stockpile::STATUSES);

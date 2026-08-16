@@ -40,6 +40,11 @@ class SafetyInspectionResource extends Resource
         return ['Pass' => 'Pass', 'Pass with Observations' => 'Pass with Observations', 'Needs Review' => 'Needs Review', 'Fail' => 'Fail'];
     }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['site', 'inspector']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form

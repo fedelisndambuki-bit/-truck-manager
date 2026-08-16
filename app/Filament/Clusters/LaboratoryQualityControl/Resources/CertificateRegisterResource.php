@@ -10,6 +10,7 @@ use App\Traits\HasModuleAccess;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * "Certificates" — 2nd Resource over the same Certificate table
@@ -47,6 +48,11 @@ class CertificateRegisterResource extends Resource
     public static function canCreate(): bool
     {
         return false;
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['customer', 'material']);
     }
 
     public static function table(Table $table): Table

@@ -38,6 +38,11 @@ class DepreciationScheduleResource extends Resource
 
     protected static ?int $navigationSort = 21;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['equipment']);
+    }
+
     public static function getMethodOptions(): array
     {
         return array_combine(DepreciationSchedule::METHODS, DepreciationSchedule::METHODS);

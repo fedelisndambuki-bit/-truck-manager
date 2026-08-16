@@ -37,6 +37,11 @@ class PurchaseRequestResource extends Resource
 
     protected static ?int $navigationSort = 7;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['material']);
+    }
+
     public static function getStatusColor(string $status): string
     {
         return match ($status) {

@@ -50,6 +50,11 @@ class HazardResource extends Resource
         return ['Open' => 'Open', 'In Progress' => 'In Progress', 'Controlled' => 'Controlled', 'Closed' => 'Closed'];
     }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['site', 'responsibleStaff']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form

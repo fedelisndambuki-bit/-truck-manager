@@ -33,6 +33,11 @@ class ContactResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'full_name';
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['client']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form

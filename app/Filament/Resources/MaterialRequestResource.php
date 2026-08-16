@@ -37,6 +37,11 @@ class MaterialRequestResource extends Resource
 
     protected static ?int $navigationSort = 6;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['project', 'site', 'requestedBy']);
+    }
+
     public static function getPriorityOptions(): array
     {
         return ['Low' => 'Low', 'Medium' => 'Medium', 'High' => 'High', 'Urgent' => 'Urgent'];

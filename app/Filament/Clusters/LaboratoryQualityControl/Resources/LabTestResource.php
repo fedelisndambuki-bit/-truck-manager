@@ -13,6 +13,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * "Laboratory Tests" — records measured vs expected values and computes
@@ -52,6 +53,11 @@ class LabTestResource extends Resource
             'Conditional' => 'warning',
             default => 'gray',
         };
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['sample', 'testMethod', 'technician']);
     }
 
     public static function form(Form $form): Form

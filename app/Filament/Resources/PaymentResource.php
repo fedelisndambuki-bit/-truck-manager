@@ -140,6 +140,11 @@ class PaymentResource extends Resource
             ])->striped();
     }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['client']);
+    }
+
     public static function getRelations(): array
     {
         return [];

@@ -11,6 +11,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * "Delivery Confirmation" — the first dedicated CRUD Resource for
@@ -40,6 +41,11 @@ class ProofOfDeliveryResource extends Resource
     protected static ?string $navigationLabel = 'Delivery Confirmation';
 
     protected static ?int $navigationSort = 8;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['dispatchOrder.customer']);
+    }
 
     public static function getStatusColor(string $state): string
     {

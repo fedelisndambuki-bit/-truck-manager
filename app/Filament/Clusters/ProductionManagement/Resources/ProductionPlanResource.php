@@ -69,6 +69,11 @@ class ProductionPlanResource extends Resource
         };
     }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['extractionSite', 'material', 'supervisor']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form

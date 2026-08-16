@@ -11,6 +11,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * "Test Methods" — the laboratory's maintained procedures library (Sieve
@@ -40,6 +41,11 @@ class TestMethodResource extends Resource
     protected static ?string $navigationLabel = 'Test Methods';
 
     protected static ?int $navigationSort = 4;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['qualityStandard']);
+    }
 
     public static function form(Form $form): Form
     {

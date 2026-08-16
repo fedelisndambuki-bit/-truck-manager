@@ -11,6 +11,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 
 class TechnicalSubmittalResource extends Resource
@@ -38,6 +39,11 @@ class TechnicalSubmittalResource extends Resource
     protected static ?int $navigationSort = 7;
 
     protected static ?string $recordTitleAttribute = 'title';
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['project', 'subcontractor']);
+    }
 
     public static function getStatusColor(string $status): string
     {

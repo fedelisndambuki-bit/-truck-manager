@@ -12,6 +12,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class PhysicalStockCountResource extends Resource
 {
@@ -36,6 +37,11 @@ class PhysicalStockCountResource extends Resource
     protected static ?string $navigationLabel = 'Physical Counts';
 
     protected static ?int $navigationSort = 9;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['stockpile']);
+    }
 
     public static function getStatusOptions(): array
     {

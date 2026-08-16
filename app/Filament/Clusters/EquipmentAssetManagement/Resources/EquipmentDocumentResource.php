@@ -38,6 +38,11 @@ class EquipmentDocumentResource extends Resource
 
     protected static ?int $navigationSort = 23;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['documentable', 'uploadedBy']);
+    }
+
     public static function getCategoryOptions(): array
     {
         return array_combine(EquipmentDocument::CATEGORIES, EquipmentDocument::CATEGORIES);

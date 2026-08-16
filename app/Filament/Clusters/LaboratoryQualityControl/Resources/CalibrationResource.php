@@ -11,6 +11,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * "Calibration" — each new record's created hook resyncs the parent
@@ -49,6 +50,11 @@ class CalibrationResource extends Resource
             'Expired' => 'danger',
             default => 'gray',
         };
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['labEquipment', 'performedBy']);
     }
 
     public static function form(Form $form): Form

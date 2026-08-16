@@ -19,6 +19,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * "Dispatch Planning" — the genuine new upstream entity: customer order
@@ -48,6 +49,11 @@ class CustomerOrderResource extends Resource
     protected static ?string $navigationLabel = 'Dispatch Planning';
 
     protected static ?int $navigationSort = 1;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['customer', 'material']);
+    }
 
     public static function getPriorityOptions(): array
     {

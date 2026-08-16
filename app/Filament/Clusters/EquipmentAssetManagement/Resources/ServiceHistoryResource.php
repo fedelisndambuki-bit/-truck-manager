@@ -47,6 +47,11 @@ class ServiceHistoryResource extends Resource
 
     protected static ?int $navigationSort = 8;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['equipment', 'technician', 'workOrder']);
+    }
+
     public static function infolist(Infolist $infolist): Infolist
     {
         return $infolist->schema([

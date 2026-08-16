@@ -14,6 +14,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * A quality-focused view over the same Stockpile table — each stockpile's
@@ -46,6 +47,11 @@ class StockpileQualityResource extends Resource
     protected static ?int $navigationSort = 10;
 
     protected static ?string $slug = 'quality-status';
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['material']);
+    }
 
     public static function canCreate(): bool
     {

@@ -45,6 +45,11 @@ class CorrectiveActionResource extends Resource
         return ['Open' => 'Open', 'In Progress' => 'In Progress', 'Completed' => 'Completed', 'Verified' => 'Verified', 'Closed' => 'Closed'];
     }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['responsibleStaff']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form

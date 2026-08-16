@@ -37,6 +37,11 @@ class BreakdownResource extends Resource
 
     protected static ?int $navigationSort = 10;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['equipment', 'workOrder.technician']);
+    }
+
     public static function getSeverityOptions(): array
     {
         return array_combine(Breakdown::SEVERITIES, Breakdown::SEVERITIES);

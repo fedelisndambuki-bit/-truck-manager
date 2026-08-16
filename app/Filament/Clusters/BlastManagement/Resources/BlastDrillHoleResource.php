@@ -11,6 +11,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class BlastDrillHoleResource extends Resource
 {
@@ -35,6 +36,11 @@ class BlastDrillHoleResource extends Resource
     protected static ?string $navigationLabel = 'Drilling';
 
     protected static ?int $navigationSort = 3;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['blastPlan', 'drillRig', 'operator']);
+    }
 
     public static function form(Form $form): Form
     {

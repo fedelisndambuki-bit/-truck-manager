@@ -37,6 +37,11 @@ class EquipmentAttachmentResource extends Resource
 
     protected static ?int $navigationSort = 17;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['currentEquipment']);
+    }
+
     public static function getTypeOptions(): array
     {
         return array_combine(EquipmentAttachment::TYPES, EquipmentAttachment::TYPES);

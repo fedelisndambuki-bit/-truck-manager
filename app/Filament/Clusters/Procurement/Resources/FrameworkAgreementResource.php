@@ -42,7 +42,7 @@ class FrameworkAgreementResource extends Resource
 
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
-        return parent::getEloquentQuery()->where('contract_type', 'Framework Agreement');
+        return parent::getEloquentQuery()->where('contract_type', 'Framework Agreement')->with(['supplier']);
     }
 
     public static function form(Form $form): Form

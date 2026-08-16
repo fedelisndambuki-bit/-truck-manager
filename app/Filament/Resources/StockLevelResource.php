@@ -34,6 +34,11 @@ class StockLevelResource extends Resource
 
     protected static ?int $navigationSort = 5;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['material', 'warehouse', 'project', 'site']);
+    }
+
     public static function canCreate(): bool
     {
         return false;

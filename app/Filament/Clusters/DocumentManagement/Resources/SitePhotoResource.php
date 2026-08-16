@@ -41,7 +41,7 @@ class SitePhotoResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->where('category', 'Site Photos');
+        return parent::getEloquentQuery()->where('category', 'Site Photos')->with(['project', 'site']);
     }
 
     public static function form(Form $form): Form

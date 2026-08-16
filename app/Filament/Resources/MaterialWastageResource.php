@@ -37,6 +37,11 @@ class MaterialWastageResource extends Resource
 
     protected static ?int $navigationSort = 16;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['material', 'project']);
+    }
+
     public static function getWasteTypeOptions(): array
     {
         return ['Damaged' => 'Damaged', 'Lost' => 'Lost', 'Expired' => 'Expired', 'Overuse' => 'Overuse'];

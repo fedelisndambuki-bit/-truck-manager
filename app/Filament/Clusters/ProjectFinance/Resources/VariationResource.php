@@ -46,7 +46,7 @@ class VariationResource extends Resource
 
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
-        return parent::getEloquentQuery()->where('type', 'client_variation');
+        return parent::getEloquentQuery()->where('type', 'client_variation')->with(['project']);
     }
 
     public static function getStatusColor(string $status): string

@@ -50,7 +50,7 @@ class SchedulingResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->whereIn('status', ['Draft', 'Planned']);
+        return parent::getEloquentQuery()->with(['customerOrder', 'customer', 'material'])->whereIn('status', ['Draft', 'Planned']);
     }
 
     public static function form(Form $form): Form

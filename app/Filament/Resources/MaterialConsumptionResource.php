@@ -35,6 +35,11 @@ class MaterialConsumptionResource extends Resource
 
     protected static ?int $navigationSort = 14;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['material', 'project', 'site', 'issuedBy']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form

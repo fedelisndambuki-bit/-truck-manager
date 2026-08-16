@@ -38,6 +38,11 @@ class CostCodeResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['parent']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form

@@ -29,6 +29,11 @@ class AiLogResource extends Resource
 
     protected static ?string $navigationLabel = 'AI Logs';
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['user']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form->schema([

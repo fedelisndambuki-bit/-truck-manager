@@ -42,7 +42,7 @@ class DocumentResource extends Resource
 
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
-        return parent::getEloquentQuery()->where('status', '!=', 'Archived');
+        return parent::getEloquentQuery()->where('status', '!=', 'Archived')->with(['project', 'owner']);
     }
 
     public static function getCategoryOptions(): array

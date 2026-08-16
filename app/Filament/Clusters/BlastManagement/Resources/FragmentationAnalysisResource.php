@@ -11,6 +11,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class FragmentationAnalysisResource extends Resource
 {
@@ -35,6 +36,11 @@ class FragmentationAnalysisResource extends Resource
     protected static ?string $navigationLabel = 'Fragmentation Analysis';
 
     protected static ?int $navigationSort = 9;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['blastPlan']);
+    }
 
     public static function form(Form $form): Form
     {

@@ -41,6 +41,11 @@ class EquipmentCostEntryResource extends Resource
 
     protected static ?int $navigationSort = 20;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['equipment']);
+    }
+
     public static function getCategoryColor(string $state): string
     {
         return match ($state) {

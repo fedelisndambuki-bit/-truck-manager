@@ -10,6 +10,7 @@ use App\Traits\HasModuleAccess;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * "Loading Schedule" — a scheduling-focused read view over the same
@@ -40,6 +41,11 @@ class LoadingScheduleResource extends Resource
     protected static ?string $navigationLabel = 'Loading Schedule';
 
     protected static ?int $navigationSort = 6;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['stockpile']);
+    }
 
     public static function getStatusColor(string $state): string
     {

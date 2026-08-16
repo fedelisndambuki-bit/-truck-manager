@@ -11,6 +11,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * "Laboratory Equipment" — dedicated model (not the generic Equipment used
@@ -49,6 +50,11 @@ class LabEquipmentResource extends Resource
             'Out of Service', 'Under Maintenance' => 'danger',
             default => 'gray',
         };
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['responsibleTechnician']);
     }
 
     public static function form(Form $form): Form

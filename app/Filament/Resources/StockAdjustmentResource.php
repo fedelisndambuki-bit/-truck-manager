@@ -37,6 +37,11 @@ class StockAdjustmentResource extends Resource
 
     protected static ?int $navigationSort = 17;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['material', 'warehouse']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form

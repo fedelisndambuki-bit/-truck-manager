@@ -20,6 +20,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * "Samples" — the LIMS flagship. Full sample lifecycle: Collected ->
@@ -58,6 +59,11 @@ class LabSampleResource extends Resource
             'Archived' => 'gray',
             default => 'warning',
         };
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['material', 'stockpile']);
     }
 
     public static function infolist(Infolist $infolist): Infolist

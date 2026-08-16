@@ -38,6 +38,11 @@ class CostCentreResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['project', 'site', 'manager']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form

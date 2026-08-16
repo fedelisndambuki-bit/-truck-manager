@@ -43,6 +43,11 @@ class MaintenanceWorkOrderResource extends Resource
 
     protected static ?int $navigationSort = 11;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['equipment', 'technician']);
+    }
+
     public static function getTypeOptions(): array
     {
         return array_combine(MaintenanceWorkOrder::TYPES, MaintenanceWorkOrder::TYPES);

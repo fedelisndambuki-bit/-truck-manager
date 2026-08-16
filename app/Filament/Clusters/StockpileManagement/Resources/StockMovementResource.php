@@ -14,6 +14,7 @@ use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * The automated stock ledger. Most rows are system-generated (Production
@@ -45,6 +46,11 @@ class StockMovementResource extends Resource
     protected static ?string $navigationLabel = 'Stock Movements';
 
     protected static ?int $navigationSort = 5;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['material', 'sourceStockpile', 'destinationStockpile', 'operator']);
+    }
 
     public const MANUAL_MOVEMENT_TYPES = ['Waste', 'Internal Consumption', 'Customer Return'];
 

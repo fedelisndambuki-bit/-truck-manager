@@ -40,6 +40,11 @@ class PreventiveMaintenancePlanResource extends Resource
 
     protected static ?int $navigationSort = 9;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['equipment']);
+    }
+
     public static function getTriggerTypeOptions(): array
     {
         return array_combine(PreventiveMaintenancePlan::TRIGGER_TYPES, PreventiveMaintenancePlan::TRIGGER_TYPES);

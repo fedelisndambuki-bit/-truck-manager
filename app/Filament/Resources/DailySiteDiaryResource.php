@@ -372,6 +372,11 @@ class DailySiteDiaryResource extends Resource
             ->defaultSort('date', 'desc');
     }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['project', 'site', 'loggedBy']);
+    }
+
     public static function getPages(): array
     {
         return [

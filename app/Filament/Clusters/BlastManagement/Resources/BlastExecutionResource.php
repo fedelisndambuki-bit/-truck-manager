@@ -11,6 +11,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class BlastExecutionResource extends Resource
 {
@@ -35,6 +36,11 @@ class BlastExecutionResource extends Resource
     protected static ?string $navigationLabel = 'Blast Execution';
 
     protected static ?int $navigationSort = 7;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['blastPlan', 'responsibleEngineer', 'shotFirer']);
+    }
 
     public static function getOutcomeOptions(): array
     {

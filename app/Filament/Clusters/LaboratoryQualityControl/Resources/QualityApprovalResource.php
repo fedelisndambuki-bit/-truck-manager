@@ -10,6 +10,7 @@ use App\Traits\HasModuleAccess;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * "Quality Approvals" — 2nd Resource over LabSample, scoped to samples
@@ -48,6 +49,11 @@ class QualityApprovalResource extends Resource
     public static function canCreate(): bool
     {
         return false;
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['material']);
     }
 
     public static function table(Table $table): Table

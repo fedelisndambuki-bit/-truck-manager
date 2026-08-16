@@ -44,7 +44,7 @@ class CustomerDeliveryResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->whereNotNull('customer_id')->whereIn('status', ['Exited', 'En Route', 'Delivered', 'Delayed']);
+        return parent::getEloquentQuery()->with(['customer', 'material'])->whereNotNull('customer_id')->whereIn('status', ['Exited', 'En Route', 'Delivered', 'Delayed']);
     }
 
     public static function table(Table $table): Table

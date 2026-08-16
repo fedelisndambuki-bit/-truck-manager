@@ -12,6 +12,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class StockTransferResource extends Resource
 {
@@ -36,6 +37,11 @@ class StockTransferResource extends Resource
     protected static ?string $navigationLabel = 'Stock Transfers';
 
     protected static ?int $navigationSort = 6;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['material', 'sourceStockpile', 'destinationStockpile']);
+    }
 
     public static function getStatusOptions(): array
     {

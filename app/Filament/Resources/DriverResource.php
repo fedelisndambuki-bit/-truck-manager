@@ -34,6 +34,11 @@ class DriverResource extends Resource
 
     protected static ?string $navigationGroup = 'Fleet Management';
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['user', 'employee']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form

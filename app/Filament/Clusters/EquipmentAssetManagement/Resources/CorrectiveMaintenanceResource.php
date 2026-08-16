@@ -47,7 +47,7 @@ class CorrectiveMaintenanceResource extends Resource
 
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
-        return parent::getEloquentQuery()->where('work_order_type', 'Corrective');
+        return parent::getEloquentQuery()->where('work_order_type', 'Corrective')->with(['equipment', 'technician']);
     }
 
     public static function form(Form $form): Form

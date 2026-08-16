@@ -45,7 +45,7 @@ class DeliveryTrackingResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->whereIn('status', ['Exited', 'En Route', 'Delayed']);
+        return parent::getEloquentQuery()->with(['customer'])->whereIn('status', ['Exited', 'En Route', 'Delayed']);
     }
 
     public static function getStatusColor(string $state): string

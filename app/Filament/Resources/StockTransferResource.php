@@ -37,6 +37,11 @@ class StockTransferResource extends Resource
 
     protected static ?int $navigationSort = 12;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['material', 'sourceWarehouse', 'destinationWarehouse']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form

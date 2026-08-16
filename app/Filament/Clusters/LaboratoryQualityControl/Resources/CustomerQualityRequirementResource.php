@@ -11,6 +11,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * "Customer Quality Requirements" — not in the spec's literal sidebar list,
@@ -43,6 +44,11 @@ class CustomerQualityRequirementResource extends Resource
     protected static ?string $navigationLabel = 'Customer Quality Requirements';
 
     protected static ?int $navigationSort = 14;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['customer', 'material']);
+    }
 
     public static function form(Form $form): Form
     {

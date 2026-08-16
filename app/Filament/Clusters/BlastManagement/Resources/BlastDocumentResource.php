@@ -11,6 +11,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 
 class BlastDocumentResource extends Resource
@@ -36,6 +37,11 @@ class BlastDocumentResource extends Resource
     protected static ?string $navigationLabel = 'Documents';
 
     protected static ?int $navigationSort = 12;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['blastPlan', 'uploadedBy']);
+    }
 
     public static function getCategoryOptions(): array
     {

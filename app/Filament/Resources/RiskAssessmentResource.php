@@ -40,6 +40,11 @@ class RiskAssessmentResource extends Resource
         return [1 => '1 - Very Low', 2 => '2 - Low', 3 => '3 - Medium', 4 => '4 - High', 5 => '5 - Very High'];
     }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['site']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form

@@ -35,6 +35,11 @@ class PhysicalStockCountResource extends Resource
 
     protected static ?int $navigationSort = 18;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['warehouse']);
+    }
+
     public static function headerSchema(): array
     {
         return [

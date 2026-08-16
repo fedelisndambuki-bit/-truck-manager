@@ -45,7 +45,7 @@ class ShopDrawingResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->where('type', 'Shop Drawing');
+        return parent::getEloquentQuery()->where('type', 'Shop Drawing')->with(['project']);
     }
 
     public static function getStatusColor(string $status): string

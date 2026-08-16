@@ -41,6 +41,11 @@ class ProductionTargetResource extends Resource
         return array_combine(ProductionTarget::PERIOD_TYPES, ProductionTarget::PERIOD_TYPES);
     }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['extractionSite', 'material']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form

@@ -40,6 +40,11 @@ class NearMissResource extends Resource
         return ['Low' => 'Low', 'Medium' => 'Medium', 'High' => 'High', 'Critical' => 'Critical'];
     }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['site', 'reportedBy']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form

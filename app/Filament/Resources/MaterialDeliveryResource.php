@@ -35,6 +35,11 @@ class MaterialDeliveryResource extends Resource
 
     protected static ?int $navigationSort = 10;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['material', 'supplier', 'warehouse']);
+    }
+
     public static function getInspectionStatusColor(?string $status): string
     {
         return match ($status) {

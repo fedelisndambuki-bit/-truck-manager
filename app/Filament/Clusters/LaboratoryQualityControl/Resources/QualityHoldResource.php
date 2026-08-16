@@ -51,7 +51,7 @@ class QualityHoldResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->where('status', 'Active');
+        return parent::getEloquentQuery()->where('status', 'Active')->with(['stockpile', 'material', 'heldBy']);
     }
 
     public static function form(Form $form): Form

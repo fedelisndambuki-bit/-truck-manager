@@ -114,6 +114,11 @@ class VariationResource extends Resource
             ->striped();
     }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['contract.subcontractor']);
+    }
+
     public static function getPages(): array
     {
         return [

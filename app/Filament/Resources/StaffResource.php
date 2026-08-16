@@ -272,6 +272,11 @@ class StaffResource extends Resource
             ->striped();
     }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['department', 'position']);
+    }
+
     public static function getPages(): array
     {
         return [

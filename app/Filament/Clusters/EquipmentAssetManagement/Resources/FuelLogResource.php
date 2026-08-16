@@ -47,7 +47,7 @@ class FuelLogResource extends Resource
 
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
-        return parent::getEloquentQuery()->whereNotNull('equipment_id');
+        return parent::getEloquentQuery()->whereNotNull('equipment_id')->with(['equipment']);
     }
 
     public static function form(Form $form): Form

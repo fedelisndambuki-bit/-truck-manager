@@ -11,6 +11,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class ExplosiveIssueResource extends Resource
 {
@@ -35,6 +36,11 @@ class ExplosiveIssueResource extends Resource
     protected static ?string $navigationLabel = 'Explosive Inventory';
 
     protected static ?int $navigationSort = 4;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['blastPlan']);
+    }
 
     public static function getApprovalStatusOptions(): array
     {

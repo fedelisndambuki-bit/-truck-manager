@@ -39,6 +39,11 @@ class EquipmentResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['category', 'extractionSite']);
+    }
+
     public static function getStatusOptions(): array
     {
         return array_combine(Equipment::STATUSES, Equipment::STATUSES);

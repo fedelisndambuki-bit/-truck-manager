@@ -13,6 +13,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * "Product Certification" — the primary, generation-focused Resource over
@@ -51,6 +52,11 @@ class CertificateResource extends Resource
             'Revoked' => 'danger',
             default => 'gray',
         };
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['sample', 'customer', 'material']);
     }
 
     public static function form(Form $form): Form

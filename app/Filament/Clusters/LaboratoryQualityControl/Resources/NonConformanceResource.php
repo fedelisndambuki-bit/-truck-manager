@@ -12,6 +12,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * "Non-Conformance" — NCRs created manually or (in the demo seeder) from a
@@ -58,6 +59,11 @@ class NonConformanceResource extends Resource
             'In Progress' => 'info',
             default => 'warning',
         };
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['sample', 'responsiblePerson']);
     }
 
     public static function form(Form $form): Form

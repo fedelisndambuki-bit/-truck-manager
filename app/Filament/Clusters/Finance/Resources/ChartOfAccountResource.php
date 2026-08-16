@@ -128,7 +128,7 @@ class ChartOfAccountResource extends Resource
      */
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
-        $query = parent::getEloquentQuery()->withoutGlobalScope('company');
+        $query = parent::getEloquentQuery()->withoutGlobalScope('company')->with(['costCentre', 'profitCentre']);
         $user = auth()->user();
 
         if ($user && ! $user->hasRole('Super Admin')) {

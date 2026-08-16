@@ -11,6 +11,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class TransmittalResource extends Resource
 {
@@ -37,6 +38,11 @@ class TransmittalResource extends Resource
     protected static ?int $navigationSort = 15;
 
     protected static ?string $recordTitleAttribute = 'transmittal_number';
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['project']);
+    }
 
     public static function form(Form $form): Form
     {

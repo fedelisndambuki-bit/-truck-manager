@@ -11,6 +11,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class PostBlastAnalysisResource extends Resource
 {
@@ -35,6 +36,11 @@ class PostBlastAnalysisResource extends Resource
     protected static ?string $navigationLabel = 'Post-Blast Analysis';
 
     protected static ?int $navigationSort = 8;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['blastPlan']);
+    }
 
     public static function form(Form $form): Form
     {

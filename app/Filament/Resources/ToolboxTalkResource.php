@@ -35,6 +35,11 @@ class ToolboxTalkResource extends Resource
 
     protected static ?int $navigationSort = 70;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['site', 'presenter']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form

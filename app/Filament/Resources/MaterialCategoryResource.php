@@ -35,6 +35,11 @@ class MaterialCategoryResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['parent']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form

@@ -98,6 +98,11 @@ class SubcontractorAssignmentResource extends Resource
             ->striped();
     }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['subcontractor', 'project', 'site', 'siteManager', 'supervisor']);
+    }
+
     public static function getPages(): array
     {
         return [

@@ -37,6 +37,11 @@ class MaterialResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['category', 'preferredSupplier']);
+    }
+
     public static function getUnitOptions(): array
     {
         return [

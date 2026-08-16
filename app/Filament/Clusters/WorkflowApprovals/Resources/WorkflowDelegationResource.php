@@ -33,6 +33,11 @@ class WorkflowDelegationResource extends Resource
 
     protected static ?int $navigationSort = 8;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['delegator', 'delegate', 'workflowDefinition']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form->schema([

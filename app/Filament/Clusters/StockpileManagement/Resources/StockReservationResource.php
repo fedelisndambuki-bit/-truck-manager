@@ -12,6 +12,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class StockReservationResource extends Resource
 {
@@ -36,6 +37,11 @@ class StockReservationResource extends Resource
     protected static ?string $navigationLabel = 'Reservations';
 
     protected static ?int $navigationSort = 7;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['stockpile.material', 'customer']);
+    }
 
     public static function getStatusOptions(): array
     {

@@ -37,6 +37,11 @@ class TelematicsReadingResource extends Resource
 
     protected static ?int $navigationSort = 19;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['equipment']);
+    }
+
     public static function getSourceOptions(): array
     {
         return array_combine(TelematicsReading::SOURCES, TelematicsReading::SOURCES);

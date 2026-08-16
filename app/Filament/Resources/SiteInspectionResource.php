@@ -30,6 +30,11 @@ class SiteInspectionResource extends Resource
 
     protected static ?int $navigationSort = 9;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['site', 'inspector']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form

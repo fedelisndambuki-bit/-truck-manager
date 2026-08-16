@@ -57,7 +57,7 @@ class DispatchExceptionResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->whereIn('exception_type', self::DELIVERY_EXCEPTION_TYPES);
+        return parent::getEloquentQuery()->with(['dispatchOrder.customer'])->whereIn('exception_type', self::DELIVERY_EXCEPTION_TYPES);
     }
 
     public static function getStatusOptions(): array

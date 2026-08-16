@@ -35,6 +35,11 @@ class GoodsReceivedNoteResource extends Resource
 
     protected static ?int $navigationSort = 10;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['materialDelivery.material']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form

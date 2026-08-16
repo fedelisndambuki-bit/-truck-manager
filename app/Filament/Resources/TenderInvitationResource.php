@@ -100,6 +100,11 @@ class TenderInvitationResource extends Resource
             ->striped();
     }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['project', 'site']);
+    }
+
     public static function getRelations(): array
     {
         return [

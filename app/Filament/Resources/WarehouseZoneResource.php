@@ -35,6 +35,11 @@ class WarehouseZoneResource extends Resource
 
     protected static ?int $navigationSort = 5;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['warehouse']);
+    }
+
     public static function getTypeOptions(): array
     {
         return array_combine(

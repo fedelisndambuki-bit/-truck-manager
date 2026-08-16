@@ -41,6 +41,11 @@ class PurchaseOrderResource extends Resource
 
     protected static ?int $navigationSort = 8;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['supplier']);
+    }
+
     public static function getStatusColor(string $status): string
     {
         return match ($status) {

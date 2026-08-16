@@ -121,6 +121,11 @@ class BidSubmissionResource extends Resource
             ->striped();
     }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['tenderInvitation', 'subcontractor']);
+    }
+
     public static function getPages(): array
     {
         return [

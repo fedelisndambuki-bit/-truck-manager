@@ -36,6 +36,11 @@ class WorkshopBayResource extends Resource
 
     protected static ?int $navigationSort = 14;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['workshop']);
+    }
+
     public static function getStatusColor(string $state): string
     {
         return match ($state) {

@@ -35,6 +35,11 @@ class MedicalCaseResource extends Resource
 
     protected static ?int $navigationSort = 120;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['staff']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form

@@ -36,6 +36,11 @@ class WeighbridgeTicketResource extends Resource
 
     protected static ?string $navigationGroup = 'Quarry';
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['extractionSite', 'customer', 'material']);
+    }
+
     public static function getDirectionOptions(): array
     {
         return array_combine(WeighbridgeTicket::DIRECTIONS, WeighbridgeTicket::DIRECTIONS);

@@ -45,6 +45,11 @@ class QuotationResource extends Resource
         };
     }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['client']);
+    }
+
     public static function form(Form $form): Form
     {
         $currency = session('currency', 'KES');

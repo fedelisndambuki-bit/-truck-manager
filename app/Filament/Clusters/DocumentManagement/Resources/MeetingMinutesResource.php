@@ -41,7 +41,7 @@ class MeetingMinutesResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->where('category', 'Meeting Minutes');
+        return parent::getEloquentQuery()->where('category', 'Meeting Minutes')->with(['project']);
     }
 
     public static function form(Form $form): Form

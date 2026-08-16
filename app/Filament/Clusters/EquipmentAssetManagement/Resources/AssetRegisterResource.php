@@ -46,6 +46,11 @@ class AssetRegisterResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['category']);
+    }
+
     public static function infolist(Infolist $infolist): Infolist
     {
         return $infolist->schema([

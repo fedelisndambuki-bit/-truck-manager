@@ -36,6 +36,11 @@ class WorkshopResource extends Resource
 
     protected static ?int $navigationSort = 13;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['extractionSite']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form

@@ -13,6 +13,7 @@ use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * "Dispatch Orders" — the unscoped master list/create/edit/view across the
@@ -46,6 +47,11 @@ class DispatchOrderResource extends Resource
     protected static ?string $navigationLabel = 'Dispatch Orders';
 
     protected static ?int $navigationSort = 2;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['customerOrder', 'customer', 'material']);
+    }
 
     public static function getStatusColor(string $state): string
     {

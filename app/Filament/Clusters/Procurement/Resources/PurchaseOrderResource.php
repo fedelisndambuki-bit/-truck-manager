@@ -50,6 +50,11 @@ class PurchaseOrderResource extends Resource
         };
     }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['supplier']);
+    }
+
     public static function infolist(Infolist $infolist): Infolist
     {
         return $infolist->schema([

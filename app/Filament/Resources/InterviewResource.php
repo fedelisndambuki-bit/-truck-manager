@@ -79,6 +79,11 @@ class InterviewResource extends Resource
             ->striped();
     }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['application', 'interviewer']);
+    }
+
     public static function getPages(): array
     {
         return [

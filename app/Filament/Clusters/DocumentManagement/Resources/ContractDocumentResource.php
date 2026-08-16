@@ -45,7 +45,7 @@ class ContractDocumentResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->where('category', 'Contracts');
+        return parent::getEloquentQuery()->where('category', 'Contracts')->with(['project']);
     }
 
     public static function form(Form $form): Form

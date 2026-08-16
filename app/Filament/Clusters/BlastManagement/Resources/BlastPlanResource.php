@@ -18,6 +18,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class BlastPlanResource extends Resource
 {
@@ -42,6 +43,11 @@ class BlastPlanResource extends Resource
     protected static ?string $navigationLabel = 'Blast Plans';
 
     protected static ?int $navigationSort = 2;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['extractionSite', 'blastEngineer']);
+    }
 
     public static function getStatusOptions(): array
     {

@@ -37,6 +37,11 @@ class EquipmentInspectionResource extends Resource
 
     protected static ?int $navigationSort = 7;
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['equipment', 'inspector']);
+    }
+
     public static function getTypeOptions(): array
     {
         return array_combine(EquipmentInspection::TYPES, EquipmentInspection::TYPES);

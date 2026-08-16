@@ -306,6 +306,11 @@ class VehicleCheckInResource extends Resource
             ->striped();
     }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['customer', 'material']);
+    }
+
     public static function getGloballySearchableAttributes(): array
     {
         return ['dispatch_number', 'order_number', 'vehicle_registration', 'driver_name', 'driver_phone', 'trailer_number'];

@@ -35,6 +35,11 @@ class CustomReportResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['createdBy']);
+    }
+
     public static function form(Form $form): Form
     {
         $service = app(BusinessIntelligenceService::class);

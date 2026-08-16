@@ -34,6 +34,11 @@ class FinancialPeriodResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->with(['closedBy']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form
