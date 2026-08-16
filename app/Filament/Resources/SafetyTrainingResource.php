@@ -45,7 +45,7 @@ class SafetyTrainingResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->whereIn('training_type', self::SAFETY_TYPES);
+        return parent::getEloquentQuery()->with(['staff'])->whereIn('training_type', self::SAFETY_TYPES);
     }
 
     public static function getTypeOptions(): array

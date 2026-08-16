@@ -81,7 +81,7 @@ class CargoResource extends Resource
 
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
-        $query = parent::getEloquentQuery();
+        $query = parent::getEloquentQuery()->with(['client']);
         $user  = auth()->user();
         if ($user) {
             $query->where('company_id', $user->company_id);

@@ -174,7 +174,10 @@ class TripResource extends Resource
 
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
-        return parent::getEloquentQuery()->with('assignment');
+        // truck.plate_number and client.company_name are both rendered per
+        // row in the table below — 'assignment' was already eager loaded,
+        // but truck/client were not, so each was a separate query per row.
+        return parent::getEloquentQuery()->with(['assignment', 'truck', 'client']);
     }
 
     public static function getRelations(): array

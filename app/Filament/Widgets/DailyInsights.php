@@ -51,6 +51,16 @@ class DailyInsights extends Widget
         $this->loading = false;
     }
 
+    /**
+     * Only ever reads from cache here — this runs inside mount(), which is
+     * part of the dashboard's initial page render. Calling the AI directly
+     * when nothing was cached yet used to block the ENTIRE dashboard load on
+     * a live LLM call (seconds on Groq, up to 30-45s on an OpenRouter
+     * fallback) for the first page view of the day. If nothing is cached,
+     * the view triggers refreshInsights() itself via wire:init — a separate
+     * Livewire request that fires only after the page has already rendered,
+     * so a slow/missing cache no longer holds up the rest of the dashboard.
+     */
     private function loadInsights(): void
     {
         $user = auth()->user();
@@ -64,10 +74,7 @@ class DailyInsights extends Widget
         if ($cached) {
             $this->content = (string) $cached;
             $this->lastRefreshedAt = Cache::get($this->cacheKeyAt($companyId));
-            return;
         }
-        // Generate once if missing
-        $this->refreshInsights();
     }
 
     private function cacheKey(int $companyId): string

@@ -50,7 +50,7 @@ class SafetyDocumentResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->whereIn('category', self::SAFETY_CATEGORIES);
+        return parent::getEloquentQuery()->with(['project', 'site', 'staff'])->whereIn('category', self::SAFETY_CATEGORIES);
     }
 
     public static function form(Form $form): Form
