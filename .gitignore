@@ -34,3 +34,4 @@ Homestead.yaml
 Thumbs.db
 .aider*
 /mobile/flutter
+/queue-worker.ps1
