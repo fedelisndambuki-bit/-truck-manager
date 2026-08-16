@@ -182,8 +182,14 @@ class AiPanel extends Component
                 return;
             }
 
+            // Everything already in $this->history except the user turn just
+            // appended above, so the AI has real conversational memory for
+            // follow-ups ("their names") instead of a fresh, memory-less
+            // context every single question.
+            $recentHistory = array_slice($this->history, 0, -1);
+
             $ai = app(AIService::class);
-            $result = $ai->processRequest($companyId ?? 0, $user->id, $this->message);
+            $result = $ai->processRequest($companyId ?? 0, $user->id, $this->message, $recentHistory);
 
             $rawResponse = $result['success'] ? $result['response'] : ($result['error'] ?? 'AI service unavailable.');
             

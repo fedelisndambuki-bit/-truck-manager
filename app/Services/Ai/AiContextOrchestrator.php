@@ -35,17 +35,28 @@ class AiContextOrchestrator
      *     depth: string,
      * }
      */
-    public function build(User $user, ?string $industry, int $companyId, string $question): array
+    /**
+     * @param string $priorContext recent conversation text (prior user/assistant
+     *     turns, not just this question) used ONLY to widen module routing —
+     *     e.g. "their names" alone matches no module keyword, but combined with
+     *     a prior turn mentioning "drivers" it correctly still pulls Fleet in.
+     *     Deliberately NOT used for depth classification or period parsing —
+     *     what THIS question asks for depth-wise, and which dates it names,
+     *     shouldn't be inferred from older turns.
+     */
+    public function build(User $user, ?string $industry, int $companyId, string $question, string $priorContext = ''): array
     {
         $depth = $this->classifier->classify($question);
         $industryApplicable = $this->registry->industryApplicableProviders($industry);
         $authorized = $this->registry->authorizedProviders($user, $industry);
         $period = $this->periodParser->parse($question);
 
+        $routingText = $priorContext !== '' ? $priorContext.' '.$question : $question;
+
         // Route against the full industry-applicable set (not yet
         // permission-filtered) so we can tell "wanted this but denied by
         // permission" apart from "this module doesn't apply here at all".
-        $desiredKeys = $this->router->route($question, array_keys($industryApplicable));
+        $desiredKeys = $this->router->route($routingText, array_keys($industryApplicable));
         $deniedKeys = array_diff($desiredKeys, array_keys($authorized));
         $deniedModules = [];
         foreach ($deniedKeys as $key) {

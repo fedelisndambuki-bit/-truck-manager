@@ -48,7 +48,16 @@ class AIService
         }
     }
 
-    public function processRequest(int $companyId, int $userId, string $question): array
+    /**
+     * @param array<int, array{role: string, content: string}> $recentHistory prior
+     *     turns from the same chat session (oldest first), NOT including this
+     *     question — e.g. AiPanel's own $history minus the message just added.
+     *     Without this, every question was a fresh, memory-less context, so a
+     *     follow-up like "their names" (after "how many drivers do we have")
+     *     had nothing to resolve "their" against and neither routed to the
+     *     right module nor let the model recall what was just discussed.
+     */
+    public function processRequest(int $companyId, int $userId, string $question, array $recentHistory = []): array
     {
         $startTime = microtime(true);
         $user = User::find($userId);
@@ -70,7 +79,8 @@ class AIService
                 $providersInvoked = [];
                 $periodLabel = null;
             } else {
-                $built = $this->orchestrator->build($user, $industry, $companyId, $question);
+                $priorContext = $this->priorContextText($recentHistory);
+                $built = $this->orchestrator->build($user, $industry, $companyId, $question, $priorContext);
 
                 if (! empty($built['denied_modules'])) {
                     // Deterministic refusal — never let the model attempt to
@@ -94,7 +104,8 @@ class AIService
                         $built['tools'],
                         $built['authorized_providers'],
                         $companyId,
-                        $maxOutputTokens
+                        $maxOutputTokens,
+                        $recentHistory
                     );
 
                     $modulesAccessed = array_values(array_unique(array_merge($built['modules_accessed'], $invokedKeys)));
@@ -229,14 +240,19 @@ class AIService
      * specific data without every question paying for every module upfront.
      *
      * @param array<string, \App\Contracts\AiDataProviderInterface> $authorizedProviders
+     * @param array<int, array{role: string, content: string}> $recentHistory prior chat
+     *     turns given to the model as real conversation history so it can resolve
+     *     pronouns/references ("their names", "that vehicle") against what was
+     *     just discussed, not just the data given for this single question.
      * @return array{0: string, 1: int, 2: string, 3: string[]} [responseText, totalTokens, provider, invokedProviderKeys]
      */
-    private function runToolLoop(string $systemPrompt, string $question, array $tools, array $authorizedProviders, int $companyId, ?int $maxOutputTokens = null): array
+    private function runToolLoop(string $systemPrompt, string $question, array $tools, array $authorizedProviders, int $companyId, ?int $maxOutputTokens = null, array $recentHistory = []): array
     {
-        $messages = [
-            ['role' => 'system', 'content' => $systemPrompt],
-            ['role' => 'user', 'content' => $question],
-        ];
+        $messages = array_merge(
+            [['role' => 'system', 'content' => $systemPrompt]],
+            $this->recentHistoryMessages($recentHistory),
+            [['role' => 'user', 'content' => $question]]
+        );
 
         $maxRounds = max(1, (int) config('ai.max_tool_rounds', 3));
         $maxOutputTokens = $maxOutputTokens ?? (int) config('ai.max_output_tokens', 400);
@@ -324,6 +340,48 @@ class AIService
         $text = trim((string) ($result['message']['content'] ?? ''));
 
         return [$text !== '' ? $text : 'AI unavailable.', $totalTokens, $result['provider'], $invokedKeys];
+    }
+
+    /**
+     * Flattens recent chat turns into plain text (both roles) for widening
+     * module routing — kept small (last few entries) since this is only
+     * meant to carry over a topic word like "drivers", not full context.
+     */
+    private function priorContextText(array $recentHistory): string
+    {
+        return collect($recentHistory)
+            ->pluck('content')
+            ->filter(fn ($c) => is_string($c) && $c !== '')
+            ->slice(-4)
+            ->implode(' ');
+    }
+
+    /**
+     * Converts AiPanel's history shape (role 'user'|'ai') into the last few
+     * real OpenAI-style turns for the model itself, capped in both count and
+     * per-message length so a long prior AI answer can't quietly bloat every
+     * subsequent request back toward the slow, oversized-prompt behaviour
+     * already fixed once this session.
+     *
+     * @return array<int, array{role: string, content: string}>
+     */
+    private function recentHistoryMessages(array $recentHistory): array
+    {
+        $messages = [];
+
+        foreach (array_slice($recentHistory, -4) as $entry) {
+            $content = trim((string) ($entry['content'] ?? ''));
+            if ($content === '') {
+                continue;
+            }
+
+            $messages[] = [
+                'role' => ($entry['role'] ?? '') === 'ai' ? 'assistant' : 'user',
+                'content' => mb_substr($content, 0, 600),
+            ];
+        }
+
+        return $messages;
     }
 
     /**
@@ -425,6 +483,7 @@ PROMPT;
 - If you need more specific data than what's shown above (e.g. a single vehicle's details, a deeper breakdown), use the real tool-calling mechanism to call one of the available tools. NEVER write out a function name or a JSON block like {"name": ..., "parameters": ...} as part of your visible reply — if you decide to call a tool, actually call it; do not describe or narrate calling one.
 - Only ever reference the exact slash commands listed above, exactly as written, and only if none of the data above already answers the question. Never suggest a command not in that list.
 - ALWAYS write a real answer to the user's question first, in your own words — even after calling a tool. A tool result being visible in the conversation is not itself an answer; you must summarize it for the user. NEVER send a reply that is only the suggestions line with no answer above it.
+- If earlier messages appear above this system prompt, they are real prior turns in this same conversation — use them to resolve references like "their", "that truck", or "the increase" to whatever was actually discussed, instead of treating a follow-up question as if it had no history. If the data needed to answer a follow-up isn't in the current {$dataLabel} above, use a tool call to get it rather than saying the data isn't available.
 TEXT;
 
         if ($depth === 'simple') {
