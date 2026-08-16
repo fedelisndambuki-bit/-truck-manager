@@ -95,9 +95,20 @@ class AiContextOrchestrator
             }
         }
 
+        // Scope tool definitions to the providers actually relevant to this
+        // question (same set as the eager context), not every provider the
+        // user happens to be authorized for. Attaching all ~11 providers'
+        // tool schemas to every request — including a bare "hi" — bloats the
+        // prompt and is exactly the "large tool schema" condition that makes
+        // the free-tier model return an empty completion and need a retry
+        // (see AiProviderService::call()). Overview/executive questions
+        // still get every relevant provider here since route() already
+        // returns the full available set for those.
+        $toolProviders = array_intersect_key($authorized, array_flip($relevantKeys));
+
         return [
             'context' => $context,
-            'tools' => $this->registry->toolsFor($authorized),
+            'tools' => $this->registry->toolsFor($toolProviders ?: $authorized),
             'authorized_providers' => $authorized,
             'modules_accessed' => $includedKeys,
             'denied_modules' => $deniedModules,

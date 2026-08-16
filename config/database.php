@@ -37,9 +37,19 @@ return [
             'database' => env('DB_DATABASE', database_path('database.sqlite')),
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
-            'busy_timeout' => null,
-            'journal_mode' => null,
-            'synchronous' => null,
+            // WAL lets readers and writers proceed concurrently instead of the
+            // default rollback journal serializing everything behind a single
+            // writer — the single biggest lever for a SQLite app that "feels
+            // laggy" under any concurrent access (multiple panel tabs, a
+            // queue worker, the AI chat writing AiLog/AiUsageLog rows while a
+            // dashboard reads). busy_timeout avoids an immediate "database is
+            // locked" exception during the brief moments a writer does hold
+            // the lock, waiting up to the timeout instead. NORMAL synchronous
+            // is the standard, safe pairing with WAL (still durable — only
+            // FULL's extra fsync-per-transaction is skipped).
+            'busy_timeout' => env('DB_SQLITE_BUSY_TIMEOUT', 5000),
+            'journal_mode' => env('DB_SQLITE_JOURNAL_MODE', 'wal'),
+            'synchronous' => env('DB_SQLITE_SYNCHRONOUS', 'normal'),
             'transaction_mode' => 'DEFERRED',
         ],
 
