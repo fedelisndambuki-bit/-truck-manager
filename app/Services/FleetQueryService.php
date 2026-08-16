@@ -211,7 +211,7 @@ class FleetQueryService
             if ($label === '→' || $label === '→ ') {
                 $label = 'Trip #'.$t->id;
             }
-            return ($t->status ?: 'N/A').' • '.$label;
+            return ($t->status?->value ?: 'N/A').' • '.$label;
         })->toArray();
 
         $title = $statuses ? implode(', ', $statuses) : 'All';
@@ -238,7 +238,7 @@ class FleetQueryService
             }
             return implode("\n", $lines);
         }
-        $truck = \App\Models\Truck::where('company_id', $companyId)->where('plate_number', $plate)->first();
+        $truck = \App\Models\Truck::where('company_id', $companyId)->whereRaw('LOWER(plate_number) = ?', [$plate])->first();
         if (! $truck) {
             return 'Truck not found.';
         }
@@ -305,7 +305,7 @@ class FleetQueryService
         if ($plate === '') {
             return 'Usage: /truck [plate]';
         }
-        $truck = Truck::where('company_id', $companyId)->where('plate_number', $plate)->first();
+        $truck = Truck::where('company_id', $companyId)->whereRaw('LOWER(plate_number) = ?', [$plate])->first();
         if (!$truck) {
             return 'Truck not found.';
         }
@@ -313,7 +313,7 @@ class FleetQueryService
         $mileage = $truck->current_mileage ? number_format($truck->current_mileage).' KM' : 'N/A';
         return implode("\n", [
             'Plate: '.$truck->plate_number,
-            'Status: '.($truck->status ?? 'N/A'),
+            'Status: '.($truck->status?->value ?? 'N/A'),
             'Driver: '.$driver,
             'Mileage: '.$mileage,
             'Type: '.($truck->truck_type ?? 'N/A'),
@@ -436,7 +436,7 @@ class FleetQueryService
         if ($plate === '') {
             return 'Usage: /truck next-maintenance [plate]';
         }
-        $truck = Truck::where('company_id', $companyId)->where('plate_number', $plate)->first();
+        $truck = Truck::where('company_id', $companyId)->whereRaw('LOWER(plate_number) = ?', [$plate])->first();
         if (!$truck) {
             return 'Truck not found.';
         }

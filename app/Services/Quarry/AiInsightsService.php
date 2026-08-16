@@ -8,13 +8,13 @@ use App\Models\Crusher;
 use App\Models\ProductionTarget;
 use App\Models\SafetyIncident;
 use App\Models\Stockpile;
-use Illuminate\Support\Facades\Http;
+use App\Services\AiProviderService;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Quarry-domain AI insights — same shape as
  * App\Services\Construction\AiInsightsService (deterministic detectors, real
- * data, an optional Ollama narrative on top with a templated fallback). The
+ * data, an optional AI-generated narrative on top with a templated fallback). The
  * `ai_insights.project_id` column is a real FK to `projects`, which Quarry
  * has no equivalent of, so it is never set here — extraction site / crusher
  * / stockpile identifiers live inside `facts` instead. There is no Quarry
@@ -28,6 +28,7 @@ class AiInsightsService
         protected CrushingPlantAnalyticsService $crushingPlant,
         protected WeighbridgeAnalyticsService $weighbridge,
         protected DispatchAnalyticsService $dispatch,
+        protected AiProviderService $aiProvider,
     ) {
     }
 
@@ -245,26 +246,19 @@ class AiInsightsService
         try {
             $prompt = "You are a quarry operations analyst. In 1-2 concise sentences, explain this finding to a quarry manager and suggest one concrete action. Finding: {$insight['title']}. Supporting data: " . json_encode($insight['facts']);
 
-            $response = Http::timeout(10)->post(config('services.ollama.url'), [
-                'model' => config('services.ollama.model'),
-                'prompt' => $prompt,
-                'stream' => false,
-                'options' => ['num_predict' => 150, 'temperature' => 0.2],
-            ]);
+            $result = $this->aiProvider->generate($prompt, 150);
 
-            if ($response->successful() && filled($response->json('response'))) {
-                if ($companyId) {
-                    AiUsageLog::create([
-                        'company_id' => $companyId,
-                        'tokens_used' => (int) $response->json('prompt_eval_count', 0) + (int) $response->json('eval_count', 0),
-                        'response_ms' => (int) round((microtime(true) - $start) * 1000),
-                    ]);
-                }
-
-                return trim($response->json('response'));
+            if ($companyId) {
+                AiUsageLog::create([
+                    'company_id' => $companyId,
+                    'tokens_used' => $result['tokens'],
+                    'response_ms' => (int) round((microtime(true) - $start) * 1000),
+                ]);
             }
+
+            return $result['text'];
         } catch (\Throwable $e) {
-            Log::info('Quarry AiInsightsService: Ollama narrative unavailable, using fallback.', ['error' => $e->getMessage()]);
+            Log::info('Quarry AiInsightsService: AI narrative unavailable, using fallback.', ['error' => $e->getMessage()]);
         }
 
         return $fallback;

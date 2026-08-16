@@ -41,9 +41,14 @@ return [
         'base_url'   => 'https://api.paystack.co',
     ],
 
-    'ollama' => [
-        'url' => env('OLLAMA_URL', 'http://localhost:11434/api/generate'),
-        'model' => env('OLLAMA_MODEL', 'llama3'),
+    'groq' => [
+        'key' => env('GROQ_API_KEY'),
+        'model' => env('GROQ_MODEL', 'llama-3.3-70b-versatile'),
+    ],
+
+    'openrouter' => [
+        'key' => env('OPENROUTER_API_KEY'),
+        'model' => env('OPENROUTER_MODEL', 'meta-llama/llama-3.3-70b-instruct'),
     ],
 
     'mpesa' => [

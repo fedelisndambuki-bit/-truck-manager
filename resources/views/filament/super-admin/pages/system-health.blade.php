@@ -21,7 +21,8 @@
                 <div class="flex justify-between"><span>Database</span><span class="{{ $dbStatus === 'up' ? 'text-green-600' : 'text-red-600' }}">{{ strtoupper($dbStatus) }}</span></div>
                 <div class="flex justify-between"><span>Queue Pending</span><span>{{ $queuePending ?? 'N/A' }}</span></div>
                 <div class="flex justify-between"><span>Queue Failed</span><span>{{ $queueFailed ?? 'N/A' }}</span></div>
-                <div class="flex justify-between"><span>Ollama</span><span class="{{ $ollamaStatus === 'up' ? 'text-green-600' : 'text-red-600' }}">{{ strtoupper($ollamaStatus) }}</span></div>
+                <div class="flex justify-between"><span>Groq</span><span class="{{ $groqStatus === 'up' ? 'text-green-600' : 'text-red-600' }}">{{ strtoupper($groqStatus) }}</span></div>
+                <div class="flex justify-between"><span>OpenRouter</span><span class="{{ $openRouterStatus === 'up' ? 'text-green-600' : 'text-red-600' }}">{{ strtoupper($openRouterStatus) }}</span></div>
             </div>
         </div>
         <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">

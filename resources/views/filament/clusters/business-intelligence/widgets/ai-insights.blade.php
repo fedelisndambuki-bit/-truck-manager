@@ -21,8 +21,7 @@
                     <div class="flex items-start gap-3 rounded-lg border border-gray-200 dark:border-white/10 p-3">
                         <x-filament::icon
                             :icon="\App\Models\AiInsight::getIcon($insight->type)"
-                            class="h-5 w-5 flex-shrink-0 mt-0.5"
-                            :class="match(\App\Models\AiInsight::getColor($insight->severity)) {
+                            :class="'h-5 w-5 flex-shrink-0 mt-0.5 ' . match(\App\Models\AiInsight::getColor($insight->severity)) {
                                 'danger' => 'text-danger-600 dark:text-danger-400',
                                 'warning' => 'text-warning-600 dark:text-warning-400',
                                 default => 'text-info-600 dark:text-info-400',

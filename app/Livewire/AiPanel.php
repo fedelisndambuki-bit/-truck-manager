@@ -108,7 +108,7 @@ class AiPanel extends Component
         $user = auth()->user();
         if (!$user) return;
 
-        $this->history[] = ['role' => 'user', 'content' => $this->message];
+        $this->history[] = ['role' => 'user', 'content' => $this->message, 'time' => now()->format('H:i')];
         $this->loading = true;
         $this->autoCompleteSuggestions = [];
 
@@ -166,7 +166,7 @@ class AiPanel extends Component
                 if (str_contains($msgLower, $key)) {
                     $res = $fq->handle($companyId ?? 0, $cmd);
                     if ($res) {
-                        $this->history[] = ['role' => 'ai', 'content' => $res, 'suggestions' => []];
+                        $this->history[] = ['role' => 'ai', 'content' => $res, 'suggestions' => [], 'time' => now()->format('H:i')];
                         $this->loading = false;
                         $this->message = '';
                         return;
@@ -176,7 +176,7 @@ class AiPanel extends Component
 
             $maybe = $fq->handle($companyId ?? 0, $this->message);
             if ($maybe !== null) {
-                $this->history[] = ['role' => 'ai', 'content' => $maybe, 'suggestions' => []];
+                $this->history[] = ['role' => 'ai', 'content' => $maybe, 'suggestions' => [], 'time' => now()->format('H:i')];
                 $this->loading = false;
                 $this->message = '';
                 return;
@@ -199,16 +199,17 @@ class AiPanel extends Component
             $lastLog = AiLog::where('user_id', $user->id)->latest()->first();
 
             $this->history[] = [
-                'role' => 'ai', 
+                'role' => 'ai',
                 'content' => $content,
                 'suggestions' => $aiSuggestions,
                 'log_id' => $lastLog?->id,
-                'rating' => null
+                'rating' => null,
+                'time' => now()->format('H:i'),
             ];
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('AI Error: ' . $e->getMessage());
-            $this->history[] = ['role' => 'ai', 'content' => 'Error: ' . $e->getMessage(), 'suggestions' => []];
+            $this->history[] = ['role' => 'ai', 'content' => "Sorry, I ran into a problem answering that. Please try again in a moment.", 'suggestions' => [], 'time' => now()->format('H:i')];
         }
 
         $this->loading = false;

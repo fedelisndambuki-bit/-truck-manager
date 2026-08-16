@@ -17,6 +17,10 @@ class AiLog extends Model
         'question',
         'response',
         'fleet_data',
+        'modules_accessed',
+        'providers_invoked',
+        'date_range_used',
+        'ai_model_used',
         'response_time_ms',
         'status',
         'error_message',
@@ -25,6 +29,9 @@ class AiLog extends Model
 
     protected $casts = [
         'fleet_data' => 'array',
+        'modules_accessed' => 'array',
+        'providers_invoked' => 'array',
+        'date_range_used' => 'array',
         'response_time_ms' => 'integer',
     ];
 

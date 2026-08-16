@@ -53,7 +53,7 @@ class AiInsight extends BaseModel
 
     /**
      * The detector service for a given industry — each shares this same
-     * table/model and the narrate()-with-Ollama-fallback pattern, but reads
+     * table/model and the narrate()-with-AI-fallback pattern, but reads
      * from that industry's own real modules.
      */
     public static function serviceForIndustry(?string $industry): string

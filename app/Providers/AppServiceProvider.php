@@ -72,7 +72,21 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(\App\Services\Ai\AiDataRegistry::class, function ($app) {
+            return new \App\Services\Ai\AiDataRegistry([
+                $app->make(\App\Services\Ai\DataProviders\FleetAiDataProvider::class),
+                $app->make(\App\Services\Ai\DataProviders\FuelAiDataProvider::class),
+                $app->make(\App\Services\Ai\DataProviders\WorkshopAiDataProvider::class),
+                $app->make(\App\Services\Ai\DataProviders\WeighbridgeAiDataProvider::class),
+                $app->make(\App\Services\Ai\DataProviders\QuarryAiDataProvider::class),
+                $app->make(\App\Services\Ai\DataProviders\ConstructionAiDataProvider::class),
+                $app->make(\App\Services\Ai\DataProviders\FinanceAiDataProvider::class),
+                $app->make(\App\Services\Ai\DataProviders\HrAiDataProvider::class),
+                $app->make(\App\Services\Ai\DataProviders\ProcurementAiDataProvider::class),
+                $app->make(\App\Services\Ai\DataProviders\DriverPerformanceAiDataProvider::class),
+                $app->make(\App\Services\Ai\DataProviders\CrmAiDataProvider::class),
+            ]);
+        });
     }
 
     /**

@@ -8,16 +8,20 @@ use Illuminate\Auth\Access\Response;
 class AIPolicy
 {
     /**
-     * Determine whether the user can access AI features.
+     * Determine whether the user can access AI features. Uses the
+     * 'access-ai' Spatie permission (granted to Super Admin/Company
+     * Admin/Fleet Manager by RoleSeeder, same as before) rather than a
+     * hardcoded role list, so it can also be granted to other roles (e.g.
+     * Finance Manager) — the per-module AiDataProviderInterface permission
+     * checks then decide what data any of them can actually see.
      */
     public function accessAI(User $user): Response
     {
-        // Only Super Admin, Company Admin, and Fleet Manager can access AI
-        if ($user->hasRole(['Super Admin', 'Company Admin', 'Fleet Manager'])) {
+        if ($user->hasRole('Super Admin') || $user->can('access-ai')) {
             return Response::allow();
         }
 
-        return Response::deny('Only administrators and fleet managers can access AI features.');
+        return Response::deny('You do not have permission to access AI features.');
     }
 
     /**

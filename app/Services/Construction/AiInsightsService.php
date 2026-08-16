@@ -10,20 +10,20 @@ use App\Models\Maintenance;
 use App\Models\MaterialWastage;
 use App\Models\Project;
 use App\Models\SafetyIncident;
-use Illuminate\Support\Facades\Http;
+use App\Services\AiProviderService;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Construction-domain AI insights: deterministic threshold/trend detectors
  * are the reliable core (work with zero AI dependency, same try/catch-to-
  * empty-state resilience every chart widget already uses) — an optional
- * Ollama-generated narrative is layered on top when the local LLM responds.
- * Reuses the same `services.ollama.*` config as the existing fleet-focused
+ * AI-generated narrative is layered on top when the model responds.
+ * Reuses the same AiProviderService as the existing fleet-focused
  * App\Services\AIService, but with construction-domain prompts/data.
  */
 class AiInsightsService
 {
-    public function __construct(protected ProjectFinanceService $finance)
+    public function __construct(protected ProjectFinanceService $finance, protected AiProviderService $aiProvider)
     {
     }
 
@@ -302,7 +302,7 @@ class AiInsightsService
 
     /**
      * Optional AI-generated plain-English narrative for a detected insight.
-     * Falls back to a templated sentence built from the facts if Ollama is
+     * Falls back to a templated sentence built from the facts if the AI is
      * unreachable — the insight is always usable either way.
      */
     protected function narrate(array $insight, ?int $companyId = null): string
@@ -316,26 +316,19 @@ class AiInsightsService
         try {
             $prompt = "You are a construction project analyst. In 1-2 concise sentences, explain this finding to a construction executive and suggest one concrete action. Finding: {$insight['title']}. Supporting data: " . json_encode($insight['facts']);
 
-            $response = Http::timeout(10)->post(config('services.ollama.url'), [
-                'model' => config('services.ollama.model'),
-                'prompt' => $prompt,
-                'stream' => false,
-                'options' => ['num_predict' => 150, 'temperature' => 0.2],
-            ]);
+            $result = $this->aiProvider->generate($prompt, 150);
 
-            if ($response->successful() && filled($response->json('response'))) {
-                if ($companyId) {
-                    AiUsageLog::create([
-                        'company_id' => $companyId,
-                        'tokens_used' => (int) $response->json('prompt_eval_count', 0) + (int) $response->json('eval_count', 0),
-                        'response_ms' => (int) round((microtime(true) - $start) * 1000),
-                    ]);
-                }
-
-                return trim($response->json('response'));
+            if ($companyId) {
+                AiUsageLog::create([
+                    'company_id' => $companyId,
+                    'tokens_used' => $result['tokens'],
+                    'response_ms' => (int) round((microtime(true) - $start) * 1000),
+                ]);
             }
+
+            return $result['text'];
         } catch (\Throwable $e) {
-            Log::info('AiInsightsService: Ollama narrative unavailable, using fallback.', ['error' => $e->getMessage()]);
+            Log::info('AiInsightsService: AI narrative unavailable, using fallback.', ['error' => $e->getMessage()]);
         }
 
         return $fallback;

@@ -39,13 +39,26 @@ class SystemHealth extends Page
         $queuePending = Schema::hasTable('jobs') ? DB::table('jobs')->count() : null;
         $queueFailed = Schema::hasTable('failed_jobs') ? DB::table('failed_jobs')->count() : null;
 
-        $ollamaUrl = rtrim((string) env('OLLAMA_BASE_URL', 'http://127.0.0.1:11434'), '/');
-        $ollamaStatus = 'down';
+        $groqStatus = 'down';
         try {
-            $response = Http::timeout(2)->get($ollamaUrl . '/api/tags');
-            $ollamaStatus = $response->successful() ? 'up' : 'down';
+            $groqKey = config('services.groq.key');
+            if (filled($groqKey)) {
+                $response = Http::timeout(3)->withToken($groqKey)->get('https://api.groq.com/openai/v1/models');
+                $groqStatus = $response->successful() ? 'up' : 'down';
+            }
         } catch (\Throwable $e) {
-            $ollamaStatus = 'down';
+            $groqStatus = 'down';
+        }
+
+        $openRouterStatus = 'down';
+        try {
+            $openRouterKey = config('services.openrouter.key');
+            if (filled($openRouterKey)) {
+                $response = Http::timeout(3)->withToken($openRouterKey)->get('https://openrouter.ai/api/v1/models');
+                $openRouterStatus = $response->successful() ? 'up' : 'down';
+            }
+        } catch (\Throwable $e) {
+            $openRouterStatus = 'down';
         }
 
         return [
@@ -55,7 +68,8 @@ class SystemHealth extends Page
             'dbStatus' => $dbStatus,
             'queuePending' => $queuePending,
             'queueFailed' => $queueFailed,
-            'ollamaStatus' => $ollamaStatus,
+            'groqStatus' => $groqStatus,
+            'openRouterStatus' => $openRouterStatus,
             'phpVersion' => PHP_VERSION,
             'appEnv' => config('app.env'),
         ];

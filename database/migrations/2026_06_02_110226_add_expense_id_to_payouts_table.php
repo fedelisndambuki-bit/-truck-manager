@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('payouts', function (Blueprint $column) {
+        Schema::table('fin_payouts', function (Blueprint $column) {
             $column->uuid('expense_id')->nullable()->after('company_id');
         });
     }
@@ -21,7 +21,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('payouts', function (Blueprint $column) {
+        Schema::table('fin_payouts', function (Blueprint $column) {
             $column->dropColumn('expense_id');
         });
     }

@@ -9,14 +9,14 @@ use App\Models\Maintenance;
 use App\Models\Trip;
 use App\Models\Truck;
 use App\Services\DriverRiskService;
+use App\Services\AiProviderService;
 use App\Services\PredictiveMaintenanceService;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Fleet-domain AI insights — same shape as
  * App\Services\Construction\AiInsightsService (deterministic detectors, real
- * data, an optional Ollama narrative on top with a templated fallback). The
+ * data, an optional AI-generated narrative on top with a templated fallback). The
  * `ai_insights.project_id` column is a real FK to `projects`, so it is never
  * set here — truck/driver identifiers live inside `facts` instead.
  */
@@ -25,6 +25,7 @@ class AiInsightsService
     public function __construct(
         protected PredictiveMaintenanceService $predictiveMaintenance,
         protected DriverRiskService $driverRisk,
+        protected AiProviderService $aiProvider,
     ) {
     }
 
@@ -306,26 +307,19 @@ class AiInsightsService
         try {
             $prompt = "You are a fleet operations analyst. In 1-2 concise sentences, explain this finding to a fleet manager and suggest one concrete action. Finding: {$insight['title']}. Supporting data: " . json_encode($insight['facts']);
 
-            $response = Http::timeout(10)->post(config('services.ollama.url'), [
-                'model' => config('services.ollama.model'),
-                'prompt' => $prompt,
-                'stream' => false,
-                'options' => ['num_predict' => 150, 'temperature' => 0.2],
-            ]);
+            $result = $this->aiProvider->generate($prompt, 150);
 
-            if ($response->successful() && filled($response->json('response'))) {
-                if ($companyId) {
-                    AiUsageLog::create([
-                        'company_id' => $companyId,
-                        'tokens_used' => (int) $response->json('prompt_eval_count', 0) + (int) $response->json('eval_count', 0),
-                        'response_ms' => (int) round((microtime(true) - $start) * 1000),
-                    ]);
-                }
-
-                return trim($response->json('response'));
+            if ($companyId) {
+                AiUsageLog::create([
+                    'company_id' => $companyId,
+                    'tokens_used' => $result['tokens'],
+                    'response_ms' => (int) round((microtime(true) - $start) * 1000),
+                ]);
             }
+
+            return $result['text'];
         } catch (\Throwable $e) {
-            Log::info('Fleet AiInsightsService: Ollama narrative unavailable, using fallback.', ['error' => $e->getMessage()]);
+            Log::info('Fleet AiInsightsService: AI narrative unavailable, using fallback.', ['error' => $e->getMessage()]);
         }
 
         return $fallback;
