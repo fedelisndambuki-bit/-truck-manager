@@ -1,0 +1,26 @@
+name: Production Health Check
+
+on:
+  schedule:
+    - cron: '*/15 * * * *' # Every 15 minutes
+  workflow_dispatch:
+
+jobs:
+  health-check:
+    name: Monitor Production Health
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Check Application /up endpoint
+        run: |
+          response=$(curl -s -o /dev/null -w "%{http_code}" ${{ secrets.PRODUCTION_URL }}/up)
+          if [ "$response" -ne 200 ]; then
+            echo "Production health check failed with status $response"
+            exit 1
+          fi
+          echo "Production is healthy."
+
+      - name: Report Failure
+        if: failure()
+        run: echo "ALERT: Production environment ${{ secrets.PRODUCTION_URL }} is unreachable or unhealthy!"

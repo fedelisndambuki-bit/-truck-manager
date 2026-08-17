@@ -1,0 +1,68 @@
+name: Mobile Build
+
+on:
+  push:
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/mobile-build.yml'
+    branches: [ main, develop ]
+  pull_request:
+    paths:
+      - 'mobile/**'
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    name: Build Android
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        working-directory: mobile/flutter
+        run: flutter pub get
+
+      - name: Check Format
+        working-directory: mobile/flutter
+        run: dart format --set-exit-if-changed .
+
+      - name: Run Analyze
+        working-directory: mobile/flutter
+        run: flutter analyze
+
+      - name: Run Tests
+        working-directory: mobile/flutter
+        run: flutter test
+
+      - name: Build APK
+        working-directory: mobile/flutter
+        run: flutter build apk --release
+
+      - name: Build App Bundle (AAB)
+        working-directory: mobile/flutter
+        run: flutter build appbundle --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: mobile/flutter/build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-aab
+          path: mobile/flutter/build/app/outputs/bundle/release/app-release.aab
